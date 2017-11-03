@@ -65,7 +65,7 @@ func main() {
 	sdl.LogWarn(0, "omg a warning")
 
 	window, err := sdl.CreateWindow("test", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
-		800, 600, sdl.WINDOW_SHOWN)
+		640, 480, sdl.WINDOW_SHOWN)
 	if err != nil {
 		panic(err)
 	}
@@ -76,15 +76,35 @@ func main() {
 		panic(err)
 	}
 
-	tex, err := loadTexture(getResource("img", "hello.bmp"), renderer)
+	background, err := loadTexture(getResource("img", "background.bmp"), renderer)
 	if err != nil {
+		panic(err)
+	}
+	defer background.Destroy()
+
+	foreground, err := loadTexture(getResource("img", "image.bmp"), renderer)
+	if err != nil {
+		panic(err)
+	}
+	defer foreground.Destroy()
+
+	if err = renderTexture(background, renderer, 0, 0); err != nil {
+		panic(err)
+	}
+	if err = renderTexture(background, renderer, 320, 0); err != nil {
+		panic(err)
+	}
+	if err = renderTexture(background, renderer, 0, 240); err != nil {
+		panic(err)
+	}
+	if err = renderTexture(background, renderer, 320, 240); err != nil {
 		panic(err)
 	}
 
-	err = renderTexture(tex, renderer, 50, 50)
-	if err != nil {
+	if err = renderTexture(foreground, renderer, 50, 50); err != nil {
 		panic(err)
 	}
+
 	renderer.Present()
 	window.UpdateSurface()
 
