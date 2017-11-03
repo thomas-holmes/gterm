@@ -9,9 +9,9 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-const TileSize = 40
-const WindowWidth = 640
-const WindowHeight = 480
+const tileSize = 40
+const windowWidth = 640
+const windowHeight = 480
 
 func getResource(root string, asset string) string {
 	return path.Join("assets", root, asset)
@@ -99,7 +99,7 @@ func main() {
 	}
 	defer background.Destroy()
 
-	tileBackground(background, renderer, WindowWidth, WindowHeight, TileSize)
+	tileBackground(background, renderer, windowWidth, windowHeight, tileSize)
 
 	foreground, err := loadTexture(getResource("img", "image.png"), renderer)
 	if err != nil {
