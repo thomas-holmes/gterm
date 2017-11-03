@@ -5,25 +5,25 @@ import (
 	"log"
 	"path"
 
+	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 )
+
+const TileSize = 40
+const WindowWidth = 640
+const WindowHeight = 480
 
 func getResource(root string, asset string) string {
 	return path.Join("assets", root, asset)
 }
 
 func loadTexture(file string, renderer *sdl.Renderer) (*sdl.Texture, error) {
-	bmp, err := sdl.LoadBMP(file)
+	texture, err := img.LoadTexture(renderer, file)
 	if err != nil {
 		return nil, err
 	}
-	defer bmp.Free()
 
-	tex, err := renderer.CreateTextureFromSurface(bmp)
-	if err != nil {
-		return nil, err
-	}
-	return tex, nil
+	return texture, nil
 }
 
 func renderTexture(texture *sdl.Texture, renderer *sdl.Renderer, x int, y int) error {
@@ -31,13 +31,16 @@ func renderTexture(texture *sdl.Texture, renderer *sdl.Renderer, x int, y int) e
 	if err != nil {
 		return err
 	}
+	// This is silly, casting between int and int32, oh well
+	return renderTextureScaled(texture, renderer, x, y, int(width), int(height))
+}
 
-	dest := sdl.Rect{H: height, W: width, X: int32(x), Y: int32(y)}
-	err = renderer.Copy(texture, nil, &dest)
+func renderTextureScaled(texture *sdl.Texture, renderer *sdl.Renderer, x int, y int, w int, h int) error {
+	dest := sdl.Rect{H: int32(h), W: int32(w), X: int32(x), Y: int32(y)}
+	err := renderer.Copy(texture, nil, &dest)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -56,13 +59,27 @@ func setSdlLogger() {
 	}, nil)
 }
 
+func tileBackground(background *sdl.Texture, renderer *sdl.Renderer, width int, height int, tileSize int) error {
+	xTiles := width / tileSize
+	yTiles := height / tileSize
+
+	for tile := 0; tile < xTiles*yTiles; tile++ {
+		x := tile % xTiles
+		y := tile / xTiles
+
+		err := renderTextureScaled(background, renderer, x*tileSize, y*tileSize, tileSize, tileSize)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func main() {
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		panic(err)
 	}
 	defer sdl.Quit()
-
-	sdl.LogWarn(0, "omg a warning")
 
 	window, err := sdl.CreateWindow("test", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
 		640, 480, sdl.WINDOW_SHOWN)
@@ -76,34 +93,21 @@ func main() {
 		panic(err)
 	}
 
-	background, err := loadTexture(getResource("img", "background.bmp"), renderer)
+	background, err := loadTexture(getResource("img", "background.png"), renderer)
 	if err != nil {
 		panic(err)
 	}
 	defer background.Destroy()
 
-	foreground, err := loadTexture(getResource("img", "image.bmp"), renderer)
+	tileBackground(background, renderer, WindowWidth, WindowHeight, TileSize)
+
+	foreground, err := loadTexture(getResource("img", "image.png"), renderer)
 	if err != nil {
 		panic(err)
 	}
 	defer foreground.Destroy()
 
-	if err = renderTexture(background, renderer, 0, 0); err != nil {
-		panic(err)
-	}
-	if err = renderTexture(background, renderer, 320, 0); err != nil {
-		panic(err)
-	}
-	if err = renderTexture(background, renderer, 0, 240); err != nil {
-		panic(err)
-	}
-	if err = renderTexture(background, renderer, 320, 240); err != nil {
-		panic(err)
-	}
-
-	if err = renderTexture(foreground, renderer, 50, 50); err != nil {
-		panic(err)
-	}
+	renderTexture(foreground, renderer, 200, 200)
 
 	renderer.Present()
 	window.UpdateSurface()
