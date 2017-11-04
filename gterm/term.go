@@ -120,7 +120,7 @@ func computeTileSize(font string, fontSize int) (width int, height int, err erro
 	if err != nil {
 		return 0, 0, err
 	}
-	atGlyph, err := fontFile.RenderUTF8_Blended("@", sdl.Color{255, 255, 255, 255})
+	atGlyph, err := fontFile.RenderUTF8_Blended("@", sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
 		return 0, 0, err
 	}
