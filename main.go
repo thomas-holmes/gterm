@@ -8,6 +8,7 @@ import (
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 const tileSize = 40
@@ -53,6 +54,28 @@ func renderTextureScaled(texture *sdl.Texture, renderer *sdl.Renderer, x int, y 
 	return nil
 }
 
+func renderText(renderer *sdl.Renderer, message string, fontFile string, color sdl.Color, fontSize int) (*sdl.Texture, error) {
+
+	font, err := ttf.OpenFont(fontFile, fontSize)
+	if err != nil {
+		return nil, err
+	}
+	defer font.Close()
+
+	surface, err := font.RenderUTF8_Blended(message, color)
+	if err != nil {
+		return nil, err
+	}
+	defer surface.Free()
+
+	texture, err := renderer.CreateTextureFromSurface(surface)
+	if err != nil {
+		return nil, err
+	}
+
+	return texture, err
+}
+
 func setSdlLogger() {
 	/*
 		LOG_PRIORITY_VERBOSE
@@ -88,6 +111,7 @@ func initSdl() {
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		panic(err)
 	}
+	ttf.Init()
 }
 
 func createWindow() *sdl.Window {
@@ -144,13 +168,15 @@ func main() {
 
 	quit := false
 	frameCount := 0
+	fps := 0
 	clipIndex := 0
-	go startFpsCounter(&frameCount)
+
+	go startFpsCounter(&frameCount, &fps)
 	for quit == false {
 		renderer.Clear()
 		event := sdl.PollEvent()
 		if event != nil {
-			log.Println(fmt.Sprintf("got event %#v", event))
+			// log.Println(fmt.Sprintf("got event %#v", event))
 			switch e := event.(type) {
 			case *sdl.QuitEvent:
 				quit = true
@@ -173,18 +199,34 @@ func main() {
 
 		tileBackground(background, renderer, windowWidth, windowHeight, tileSize)
 		renderTexture(foreground, renderer, 50, 50, &clipMap[clipIndex])
+		renderFps(renderer, fps)
 
 		renderer.Present()
 		window.UpdateSurface()
 	}
 }
 
-func startFpsCounter(i *int) {
+func renderFps(renderer *sdl.Renderer, fps int) {
+	texture, err := renderText(renderer, fmt.Sprint(fps), getResource("font", "sample.ttf"), sdl.Color{R: 255, G: 255, B: 255}, 48)
+	if err != nil {
+		panic(err)
+	}
+
+	_, _, width, height, err := texture.Query()
+	if err != nil {
+		panic(err)
+	}
+	dest := sdl.Rect{X: windowWidth - width, Y: 0, W: width, H: height}
+	renderer.Copy(texture, nil, &dest)
+}
+
+func startFpsCounter(i *int, fps *int) {
 	timer := time.Tick(1 * time.Second)
 	go func() {
 		for {
 			<-timer
 			log.Println(*i)
+			*fps = *i
 			*i = 0
 		}
 	}()
