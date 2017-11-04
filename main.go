@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"path"
+	"time"
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
@@ -92,6 +93,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer renderer.Destroy()
 
 	background, err := loadTexture(getResource("img", "background.png"), renderer)
 	if err != nil {
@@ -109,11 +111,38 @@ func main() {
 
 	renderTexture(foreground, renderer, 200, 200)
 
-	renderer.Present()
-	window.UpdateSurface()
+	quit := false
+	frameCount := 0
+	go startFpsCounter(&frameCount)
+	for quit == false {
+		event := sdl.PollEvent()
+		if event != nil {
+			log.Println(fmt.Sprintf("got event %#v", event))
+			switch event.(type) {
+			case *sdl.QuitEvent:
+				quit = true
+			case *sdl.KeyDownEvent:
+				quit = true
+			case *sdl.MouseButtonEvent:
+				quit = true
+			}
+		}
+		frameCount++
 
-	sdl.Delay(2500)
-	renderer.Destroy()
+		renderer.Present()
+		window.UpdateSurface()
+	}
+}
+
+func startFpsCounter(i *int) {
+	timer := time.Tick(1 * time.Second)
+	go func() {
+		for {
+			<-timer
+			log.Println(*i)
+			*i = 0
+		}
+	}()
 }
 
 func init() {
