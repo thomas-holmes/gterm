@@ -27,13 +27,21 @@ func loadTexture(file string, renderer *sdl.Renderer) (*sdl.Texture, error) {
 	return texture, nil
 }
 
-func renderTexture(texture *sdl.Texture, renderer *sdl.Renderer, x int, y int) error {
+func finalRenderTexture(texture *sdl.Texture, renderer *sdl.Renderer,
+	destination *sdl.Rect, clip *sdl.Rect) error {
+
+	return renderer.Copy(texture, clip, destination)
+}
+
+func renderTexture(texture *sdl.Texture, renderer *sdl.Renderer, xPos int, yPos int, clip *sdl.Rect) error {
 	_, _, width, height, err := texture.Query()
 	if err != nil {
 		return err
 	}
-	// This is silly, casting between int and int32, oh well
-	return renderTextureScaled(texture, renderer, x, y, int(width), int(height))
+
+	dest := sdl.Rect{H: height, W: width, X: int32(xPos), Y: int32(yPos)}
+
+	return finalRenderTexture(texture, renderer, &dest, clip)
 }
 
 func renderTextureScaled(texture *sdl.Texture, renderer *sdl.Renderer, x int, y int, w int, h int) error {
@@ -76,23 +84,37 @@ func tileBackground(background *sdl.Texture, renderer *sdl.Renderer, width int, 
 	return nil
 }
 
-func main() {
+func initSdl() {
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		panic(err)
 	}
-	defer sdl.Quit()
+}
 
+func createWindow() *sdl.Window {
 	window, err := sdl.CreateWindow("test", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
 		640, 480, sdl.WINDOW_SHOWN)
 	if err != nil {
 		panic(err)
 	}
-	defer window.Destroy()
+	return window
+}
 
+func createRenderer(window *sdl.Window) *sdl.Renderer {
 	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
 	if err != nil {
 		panic(err)
 	}
+	return renderer
+}
+
+func main() {
+	initSdl()
+	defer sdl.Quit()
+
+	window := createWindow()
+	defer window.Destroy()
+
+	renderer := createRenderer(window)
 	defer renderer.Destroy()
 
 	background, err := loadTexture(getResource("img", "background.png"), renderer)
@@ -101,7 +123,18 @@ func main() {
 	}
 	defer background.Destroy()
 
-	tileBackground(background, renderer, windowWidth, windowHeight, tileSize)
+	clipMap := [4]sdl.Rect{}
+	clipWidth := 100
+	clipHeight := 100
+	for i := 0; i < 4; i++ {
+		clip := sdl.Rect{
+			X: int32(i / 2 * clipWidth),
+			Y: int32(i % 2 * clipHeight),
+			W: int32(clipWidth),
+			H: int32(clipHeight),
+		}
+		clipMap[i] = clip
+	}
 
 	foreground, err := loadTexture(getResource("img", "image.png"), renderer)
 	if err != nil {
@@ -109,25 +142,37 @@ func main() {
 	}
 	defer foreground.Destroy()
 
-	renderTexture(foreground, renderer, 200, 200)
-
 	quit := false
 	frameCount := 0
+	clipIndex := 0
 	go startFpsCounter(&frameCount)
 	for quit == false {
+		renderer.Clear()
 		event := sdl.PollEvent()
 		if event != nil {
 			log.Println(fmt.Sprintf("got event %#v", event))
-			switch event.(type) {
+			switch e := event.(type) {
 			case *sdl.QuitEvent:
 				quit = true
 			case *sdl.KeyDownEvent:
-				quit = true
+				switch e.Keysym.Sym {
+				case sdl.K_1:
+					clipIndex = 0
+				case sdl.K_2:
+					clipIndex = 1
+				case sdl.K_3:
+					clipIndex = 2
+				case sdl.K_4:
+					clipIndex = 3
+				}
 			case *sdl.MouseButtonEvent:
 				quit = true
 			}
 		}
 		frameCount++
+
+		tileBackground(background, renderer, windowWidth, windowHeight, tileSize)
+		renderTexture(foreground, renderer, 50, 50, &clipMap[clipIndex])
 
 		renderer.Present()
 		window.UpdateSurface()
