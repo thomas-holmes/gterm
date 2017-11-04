@@ -9,17 +9,35 @@ import (
 
 // EventManager is
 type eventManager struct {
-	id            int
-	inputHandlers map[int]InputHandler
+	id             int
+	inputHandlers  map[int]InputHandler
+	renderHandlers []RenderHandler
 }
 
 func newEventManager() eventManager {
 	eventManager := eventManager{
-		id:            0,
-		inputHandlers: make(map[int]InputHandler),
+		id:             0,
+		inputHandlers:  make(map[int]InputHandler),
+		renderHandlers: make([]RenderHandler, 1),
 	}
 
 	return eventManager
+}
+
+// RenderHandler supplies an SDL renderer for you draw on
+type RenderHandler func(renderer *sdl.Renderer)
+
+// RegisterRenderHandler register a rendering handler to draw to the screen
+func (eventManager *eventManager) RegisterRenderHandler(handler RenderHandler) {
+	eventManager.renderHandlers = append(eventManager.renderHandlers, handler)
+}
+
+func (eventManager *eventManager) runRenderHandlers(renderer *sdl.Renderer) {
+	for _, handler := range eventManager.renderHandlers {
+		if handler != nil {
+			handler(renderer)
+		}
+	}
 }
 
 // RegisterInputHandler registers an InputHandler
@@ -82,6 +100,11 @@ func NewWindow(columns int, rows int, tileSize int, font string) *Window {
 	return window
 }
 
+// RegisterRenderHandler adds a render handler to be processed every frame
+func (window *Window) RegisterRenderHandler(handler RenderHandler) {
+	window.eventManager.RegisterRenderHandler(handler)
+}
+
 // RegisterInputHandler save an input handler to be processed during the main event loop
 // Returns an int identifier for the input handler so it can be removed later.
 func (window *Window) RegisterInputHandler(handler InputHandler) int {
@@ -92,27 +115,6 @@ func (window *Window) RegisterInputHandler(handler InputHandler) int {
 // in the map of handlers and removed otherwise returns false
 func (window *Window) UnregisterInputHandler(handlerID int) bool {
 	return window.eventManager.UnregisterInputHandler(handlerID)
-}
-
-// Run is a blocking call that starts the SDL rendering loop
-func (window *Window) Run() {
-	window.startRenderLoop()
-}
-func (window *Window) startRenderLoop() {
-	err := window.sdlRenderer.SetDrawColor(200, 200, 225, 255)
-	if err != nil {
-		log.Fatalln("Could not set render color", err)
-	}
-	for {
-		window.sdlRenderer.Clear()
-
-		if event := sdl.PollEvent(); event != nil {
-			window.eventManager.ProcessInputEvent(event)
-		}
-		// window.sdlWindow.UpdateSurface()
-
-		window.sdlRenderer.Present()
-	}
 }
 
 func computeTileSize(font string, fontSize int) (width int, height int, err error) {
@@ -153,4 +155,26 @@ func (window *Window) Init() error {
 	window.sdlRenderer = sdlRenderer
 
 	return nil
+}
+
+// Run is a blocking call that starts the SDL rendering loop
+func (window *Window) Run() {
+	window.startRenderLoop()
+}
+func (window *Window) startRenderLoop() {
+	err := window.sdlRenderer.SetDrawColor(200, 200, 225, 255)
+	if err != nil {
+		log.Fatalln("Could not set render color", err)
+	}
+	for {
+		window.sdlRenderer.Clear()
+
+		if event := sdl.PollEvent(); event != nil {
+			window.eventManager.ProcessInputEvent(event)
+		}
+
+		window.eventManager.runRenderHandlers(window.sdlRenderer)
+
+		window.sdlRenderer.Present()
+	}
 }
