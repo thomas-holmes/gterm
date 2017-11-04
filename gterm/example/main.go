@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"path"
 
 	"github.com/thomas-holmes/sneaker/gterm"
 	"github.com/veandco/go-sdl2/sdl"
@@ -16,7 +17,7 @@ func logOnKeyPress(event sdl.Event) {
 }
 
 func main() {
-	window := gterm.NewWindow(40, 40, 16)
+	window := gterm.NewWindow(80, 24, 16, path.Join("assets", "font", "FiraMono-Regular.ttf"))
 
 	window.Init()
 	window.RegisterInputHandler(logOnKeyPress)

@@ -59,23 +59,23 @@ type InputHandler func(sdl.Event)
 type Window struct {
 	Columns      int
 	Rows         int
-	TileSize     int
+	FontSize     int
 	heightPixel  int
 	widthPixel   int
+	font         string
 	sdlWindow    *sdl.Window
 	sdlRenderer  *sdl.Renderer
 	eventManager *eventManager
 }
 
 // NewWindow constructs a window
-func NewWindow(columns int, rows int, tileSize int) *Window {
+func NewWindow(columns int, rows int, tileSize int, font string) *Window {
 	eventManager := newEventManager()
 	window := &Window{
 		Columns:      columns,
 		Rows:         rows,
-		TileSize:     tileSize,
-		heightPixel:  rows * tileSize,
-		widthPixel:   columns * tileSize,
+		FontSize:     tileSize,
+		font:         font,
 		eventManager: &eventManager,
 	}
 
@@ -115,6 +115,18 @@ func (window *Window) startRenderLoop() {
 	}
 }
 
+func computeTileSize(font string, fontSize int) (width int, height int, err error) {
+	fontFile, err := ttf.OpenFont(font, fontSize)
+	if err != nil {
+		return 0, 0, err
+	}
+	atGlyph, err := fontFile.RenderUTF8_Blended("@", sdl.Color{255, 255, 255, 255})
+	if err != nil {
+		return 0, 0, err
+	}
+	return int(atGlyph.W), int(atGlyph.H), nil
+}
+
 // Init initialized the window for drawing
 func (window *Window) Init() error {
 	err := sdl.Init(sdl.INIT_EVERYTHING)
@@ -125,6 +137,9 @@ func (window *Window) Init() error {
 	if err != nil {
 		return nil
 	}
+	tileWidth, tileHeight, err := computeTileSize(window.font, window.FontSize)
+	window.heightPixel = tileHeight * window.Rows
+	window.widthPixel = tileWidth * window.Columns
 
 	log.Printf("Creating window w:%v, h:%v", window.widthPixel, window.heightPixel)
 	sdlWindow, sdlRenderer, err := sdl.CreateWindowAndRenderer(window.widthPixel,
