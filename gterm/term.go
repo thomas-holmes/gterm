@@ -7,63 +7,76 @@ import (
 	"github.com/veandco/go-sdl2/ttf"
 )
 
+// EventManager is
+type eventManager struct {
+	id            int
+	inputHandlers map[int]InputHandler
+}
+
+func newEventManager() eventManager {
+	eventManager := eventManager{
+		id:            0,
+		inputHandlers: make(map[int]InputHandler),
+	}
+
+	return eventManager
+}
+
+// RegisterInputHandler registers an InputHandler
+func (eventManager *eventManager) RegisterInputHandler(handler InputHandler) int {
+	eventManager.id++
+	eventManager.inputHandlers[eventManager.id] = handler
+	return eventManager.id
+}
+
+// UnregisterInputHandler removes an input handler, returning true if an InputHandler
+// was registered with the provided id, false otherwise
+func (eventManager *eventManager) UnregisterInputHandler(id int) bool {
+	_, ok := eventManager.inputHandlers[id]
+	if ok {
+		delete(eventManager.inputHandlers, id)
+		return true
+	}
+
+	return false
+}
+
+// ProcessInputEvent provides the input event to each handler and returns the number of
+// handlers executed
+func (eventManager *eventManager) ProcessInputEvent(event sdl.Event) int {
+	count := 0
+	for _, handler := range eventManager.inputHandlers {
+		handler(event)
+		count++
+	}
+	return count
+}
+
 // InputHandler a function that processes an sdl.Event
 type InputHandler func(sdl.Event)
 
-type inputHandlerRequest interface {
-	responseChannel() chan<- int
-}
-
-type inputHandlerAddRequest struct {
-	handler  InputHandler
-	response chan<- int
-}
-
-func (request inputHandlerAddRequest) responseChannel() chan<- int {
-	return request.response
-}
-
-type inputHandlerRemoveRequest struct {
-	id       int
-	response chan<- int
-}
-
-func (request inputHandlerRemoveRequest) responseChannel() chan<- int {
-	return request.response
-}
-
-type inputHandlerProcessHandlers struct {
-	event    sdl.Event
-	response chan<- int
-}
-
-func (request inputHandlerProcessHandlers) responseChannel() chan<- int {
-	return request.response
-}
-
 // Window represents the base window object
 type Window struct {
-	Columns          int
-	Rows             int
-	TileSize         int
-	heightPixel      int
-	widthPixel       int
-	sdlWindow        *sdl.Window
-	sdlRenderer      *sdl.Renderer
-	inputHandlers    map[int]InputHandler
-	inputHandlerChan chan inputHandlerRequest
+	Columns      int
+	Rows         int
+	TileSize     int
+	heightPixel  int
+	widthPixel   int
+	sdlWindow    *sdl.Window
+	sdlRenderer  *sdl.Renderer
+	eventManager *eventManager
 }
 
 // NewWindow constructs a window
 func NewWindow(columns int, rows int, tileSize int) *Window {
+	eventManager := newEventManager()
 	window := &Window{
-		Columns:          columns,
-		Rows:             rows,
-		TileSize:         tileSize,
-		heightPixel:      rows * tileSize,
-		widthPixel:       columns * tileSize,
-		inputHandlers:    make(map[int]InputHandler),
-		inputHandlerChan: make(chan inputHandlerRequest),
+		Columns:      columns,
+		Rows:         rows,
+		TileSize:     tileSize,
+		heightPixel:  rows * tileSize,
+		widthPixel:   columns * tileSize,
+		eventManager: &eventManager,
 	}
 
 	return window
@@ -72,22 +85,16 @@ func NewWindow(columns int, rows int, tileSize int) *Window {
 // RegisterInputHandler save an input handler to be processed during the main event loop
 // Returns an int identifier for the input handler so it can be removed later.
 func (window *Window) RegisterInputHandler(handler InputHandler) int {
-	responseChannel := make(chan int)
-	request := inputHandlerAddRequest{handler, responseChannel}
-	window.inputHandlerChan <- request
-	return <-responseChannel
+	return window.eventManager.RegisterInputHandler(handler)
 }
 
 // UnregisterInputHandler Unregister a handler by its id. Returns true if it was found
 // in the map of handlers and removed otherwise returns false
 func (window *Window) UnregisterInputHandler(handlerID int) bool {
-	responseChannel := make(chan int)
-	request := inputHandlerRemoveRequest{handlerID, responseChannel}
-	window.inputHandlerChan <- request
-	response := <-responseChannel
-	return response == handlerID
+	return window.eventManager.UnregisterInputHandler(handlerID)
 }
 
+// Run is a blocking call that starts the SDL rendering loop
 func (window *Window) Run() {
 	window.startRenderLoop()
 }
@@ -100,42 +107,11 @@ func (window *Window) startRenderLoop() {
 		window.sdlRenderer.Clear()
 
 		if event := sdl.PollEvent(); event != nil {
-			response := make(chan int)
-			request := inputHandlerProcessHandlers{event, response}
-			window.inputHandlerChan <- request
-			processed := <-response
-			log.Printf("Processed %v handlers", processed)
+			window.eventManager.ProcessInputEvent(event)
 		}
 		// window.sdlWindow.UpdateSurface()
 
 		window.sdlRenderer.Present()
-	}
-}
-
-func (window *Window) startEventManager() {
-	id := 1
-	for request := range window.inputHandlerChan {
-		switch r := request.(type) {
-		case inputHandlerAddRequest:
-			window.inputHandlers[id] = r.handler
-			r.response <- id
-			id++
-		case inputHandlerRemoveRequest:
-			_, ok := window.inputHandlers[r.id]
-			if ok {
-				delete(window.inputHandlers, r.id)
-				r.response <- r.id
-			} else {
-				r.response <- 0
-			}
-		case inputHandlerProcessHandlers:
-			count := 0
-			for _, handler := range window.inputHandlers {
-				handler(r.event)
-				count++
-			}
-			r.response <- count
-		}
 	}
 }
 
@@ -160,9 +136,6 @@ func (window *Window) Init() error {
 
 	window.sdlWindow = sdlWindow
 	window.sdlRenderer = sdlRenderer
-
-	go window.startEventManager()
-	// go window.startRenderLoop()
 
 	return nil
 }
