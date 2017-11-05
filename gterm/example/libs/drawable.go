@@ -1,4 +1,4 @@
-package gterm
+package libs
 
 import "github.com/veandco/go-sdl2/sdl"
 

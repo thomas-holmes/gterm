@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/thomas-holmes/sneaker/gterm"
+	"github.com/thomas-holmes/sneaker/gterm/example/libs"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -32,7 +33,7 @@ func getFpsHandler() gterm.RenderHandler {
 	return handler
 }
 
-func panelAdjusterInputHandler(panel *gterm.Panel) gterm.InputHandler {
+func panelAdjusterInputHandler(panel *libs.Panel) gterm.InputHandler {
 	return func(event sdl.Event) {
 		switch e := event.(type) {
 		case *sdl.KeyDownEvent:
@@ -67,8 +68,10 @@ func main() {
 	window.RegisterInputHandler(logOnKeyPress)
 	window.RegisterRenderHandler(getFpsHandler())
 
-	panel := window.AddPanel(20, 2, 40, 10, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16)
+	panelManager := libs.NewPanelManager()
+	panel := panelManager.NewPanel(20, 2, 40, 10, 1, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16)
 	window.RegisterInputHandler(panelAdjusterInputHandler(panel))
+	window.RegisterRenderHandler(panelManager.RenderHandler())
 
 	window.Run()
 }

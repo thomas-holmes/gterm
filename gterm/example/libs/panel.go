@@ -1,25 +1,26 @@
-package gterm
+package libs
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/thomas-holmes/sneaker/gterm"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
 
-type panelManager struct {
+type PanelManager struct {
 	heightPixels int
 	widthPixels  int
 	panels       []*Panel
 }
 
-func newPanelManager() panelManager {
-	return panelManager{panels: make([]*Panel, 0, 0)}
+func NewPanelManager() PanelManager {
+	return PanelManager{panels: make([]*Panel, 0, 0)}
 }
 
 // func (panel *Panel) draw(renderer *sdl.Renderer, font *ttf.Font, fontSize int, heightPixels int, widthPixels int) error {
-func (panelManager *panelManager) panelManagerRenderHandler() RenderHandler {
+func (panelManager *PanelManager) RenderHandler() gterm.RenderHandler {
 	return func(renderer *sdl.Renderer) {
 		for _, panel := range panelManager.panels {
 			panel.draw(renderer)
@@ -40,12 +41,16 @@ type Panel struct {
 	contents     [][][]interface{}
 }
 
-func (panelManager *panelManager) newPanel(xPos int, yPos int, width int, height int, z int, font *ttf.Font) *Panel {
+func (panelManager *PanelManager) NewPanel(xPos int, yPos int, width int, height int, z int, fontPath string, fontSize int) *Panel {
+	loadedFont, err := ttf.OpenFont(fontPath, fontSize)
+	if err != nil {
+		panic(err)
+	}
 	panelContents := make([][][]interface{}, width, width)
 	for i := range panelContents {
 		panelContents[i] = make([][]interface{}, height, height)
 	}
-	widthPixels, heightPixels, err := computeCellSizeFromFont(font)
+	widthPixels, heightPixels, err := gterm.ComputeCellSizeFromFont(loadedFont)
 	if err != nil {
 		panic(err)
 	}
@@ -55,7 +60,7 @@ func (panelManager *panelManager) newPanel(xPos int, yPos int, width int, height
 		Width:        width,
 		Height:       height,
 		Z:            z,
-		Font:         font,
+		Font:         loadedFont,
 		widthPixels:  widthPixels,
 		heightPixels: heightPixels,
 		contents:     panelContents,

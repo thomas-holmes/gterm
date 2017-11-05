@@ -18,20 +18,17 @@ type Window struct {
 	sdlWindow    *sdl.Window
 	sdlRenderer  *sdl.Renderer
 	eventManager *eventManager
-	panelManager *panelManager
 }
 
 // NewWindow constructs a window
 func NewWindow(columns int, rows int, tileSize int, font string) *Window {
 	eventManager := newEventManager()
-	panelManager := newPanelManager()
 	window := &Window{
 		Columns:      columns,
 		Rows:         rows,
 		FontSize:     tileSize,
 		font:         font,
 		eventManager: &eventManager,
-		panelManager: &panelManager,
 	}
 
 	return window
@@ -54,18 +51,7 @@ func (window *Window) UnregisterInputHandler(handlerID int) bool {
 	return window.eventManager.UnregisterInputHandler(handlerID)
 }
 
-// AddPanel adds a new panel to be rendered
-func (window *Window) AddPanel(xPos int, yPos int, width int, height int, font string, fontSize int) *Panel {
-	loadedFont, err := ttf.OpenFont(font, fontSize)
-	if err != nil {
-		panic(err)
-	}
-	panel := window.panelManager.newPanel(xPos, yPos, width, height, 1, loadedFont)
-
-	return panel
-}
-
-func computeCellSizeFromFont(font *ttf.Font) (width int, height int, err error) {
+func ComputeCellSizeFromFont(font *ttf.Font) (width int, height int, err error) {
 	atGlyph, err := font.RenderUTF8_Blended("@", sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
 		return 0, 0, err
@@ -73,12 +59,12 @@ func computeCellSizeFromFont(font *ttf.Font) (width int, height int, err error) 
 	return int(atGlyph.W), int(atGlyph.H), nil
 }
 
-func computeTileSize(font string, fontSize int) (width int, height int, err error) {
+func ComputeTileSize(font string, fontSize int) (width int, height int, err error) {
 	fontFile, err := ttf.OpenFont(font, fontSize)
 	if err != nil {
 		return 0, 0, err
 	}
-	return computeCellSizeFromFont(fontFile)
+	return ComputeCellSizeFromFont(fontFile)
 }
 
 // Init initialized the window for drawing
@@ -91,7 +77,7 @@ func (window *Window) Init() error {
 	if err != nil {
 		return nil
 	}
-	tileWidth, tileHeight, err := computeTileSize(window.font, window.FontSize)
+	tileWidth, tileHeight, err := ComputeTileSize(window.font, window.FontSize)
 	window.heightPixel = tileHeight * window.Rows
 	window.widthPixel = tileWidth * window.Columns
 
@@ -105,8 +91,6 @@ func (window *Window) Init() error {
 
 	window.sdlWindow = sdlWindow
 	window.sdlRenderer = sdlRenderer
-
-	window.RegisterRenderHandler(window.panelManager.panelManagerRenderHandler())
 
 	return nil
 }
