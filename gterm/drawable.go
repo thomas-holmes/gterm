@@ -10,3 +10,19 @@ type Drawable interface {
 	ForegroundColor() sdl.Color
 	BackgroundColor() sdl.Color
 }
+
+// A panel might look like:
+//   ┌──────────┐
+//   │          │
+//   │          │
+//   │          │
+//   │          │
+//   └──────────┘
+
+// Box drawing characters
+const BoxVertical = "│"
+const BoxHorizontal = "─"
+const BoxTopLeft = "┌"
+const BoxTopRight = "┐"
+const BoxBottomLeft = "└"
+const BoxBottomRight = "┘"
