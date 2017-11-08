@@ -55,6 +55,10 @@ func computeCellSize(font *ttf.Font) (width int, height int, err error) {
 	return int(atGlyph.W), int(atGlyph.H), nil
 }
 
+func (window *Window) SetTitle(title string) {
+	window.SdlWindow.SetTitle(title)
+}
+
 // Init initialized the window for drawing
 func (window *Window) Init() error {
 	err := sdl.Init(sdl.INIT_EVERYTHING) // not sure where to do this
@@ -88,7 +92,7 @@ func (window *Window) Init() error {
 		return err
 	}
 
-	err = sdlRenderer.SetDrawColor(225, 200, 200, 255)
+	err = sdlRenderer.SetDrawColor(10, 10, 25, 255)
 	if err != nil {
 		log.Fatalln("Could not set render color", err)
 	}
@@ -123,7 +127,7 @@ func (window *Window) renderCell(col int, row int) error {
 
 	for _, renderItem := range renderItems {
 		// surface, err := window.font.RenderUTF8_Blended(renderItem.Glyph, renderItem.FColor)
-		surface, err := window.font.RenderUTF8_Shaded(renderItem.Glyph, renderItem.FColor, renderItem.BColor)
+		surface, err := window.font.RenderUTF8_Solid(renderItem.Glyph, renderItem.FColor)
 		if err != nil {
 			return err
 		}
@@ -134,6 +138,14 @@ func (window *Window) renderCell(col int, row int) error {
 			return err
 		}
 		defer texture.Destroy()
+
+		_, _, width, height, err := texture.Query()
+		if err != nil {
+			return err
+		}
+
+		destinationRect.W = width
+		destinationRect.H = height
 
 		// log.Println(destinationRect)
 		err = window.SdlRenderer.Copy(texture, nil, &destinationRect)

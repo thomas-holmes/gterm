@@ -2,12 +2,16 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/thomas-holmes/sneaker/gterm"
 	"github.com/thomas-holmes/sneaker/gterm/example/libs"
 	"github.com/veandco/go-sdl2/sdl"
+
+	_ "net/http/pprof"
 )
 
 func logOnKeyPress(event sdl.Event) {
@@ -98,17 +102,30 @@ func (player *Player) handleRender(window *gterm.Window) {
 	window.AddToCell(player.XPos, player.YPos, player.Glyph, player.FColor, player.BColor)
 }
 
+func renderEverywhere(window *gterm.Window) {
+	for row := 0; row < window.Rows; row++ {
+		err := window.AddToCell(0, row, strings.Repeat(".", window.Columns), sdl.Color{R: 115, G: 115, B: 115, A: 255}, sdl.Color{R: 0, G: 0, B: 0, A: 0})
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+}
+
 func main() {
+	go http.ListenAndServe("localhost:6060", nil)
+
 	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16)
 
 	if err := window.Init(); err != nil {
 		log.Fatal(err)
 	}
 
+	window.SetTitle("gterm Example App")
+
 	panelManager := libs.NewPanelManager(window)
 	eventManager := libs.NewEventManager(window)
 
-	player := Player{10, 10, sdl.Color{R: 100, G: 50, B: 255, A: 255}, sdl.Color{R: 255, G: 255, B: 255, A: 255}, "@"}
+	player := Player{10, 10, sdl.Color{R: 25, G: 25, B: 255, A: 255}, sdl.Color{R: 0, G: 0, B: 0, A: 0}, "@"}
 
 	panel := panelManager.NewPanel(10, 2, 20, 20, 1)
 	eventManager.RegisterInputHandler(panelAdjusterInputHandler(panel))
@@ -124,6 +141,7 @@ func main() {
 		if event := sdl.PollEvent(); event != nil {
 			eventManager.RunInputHandlers(event)
 		}
+		renderEverywhere(window)
 
 		eventManager.RunRenderHandlers()
 
