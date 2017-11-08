@@ -125,7 +125,7 @@ func main() {
 	panelManager := libs.NewPanelManager(window)
 	eventManager := libs.NewEventManager(window)
 
-	player := Player{10, 10, sdl.Color{R: 25, G: 25, B: 255, A: 255}, sdl.Color{R: 0, G: 0, B: 0, A: 0}, "@"}
+	player := Player{10, 10, sdl.Color{R: 255, G: 25, B: 55, A: 255}, sdl.Color{R: 0, G: 0, B: 0, A: 0}, "@"}
 
 	panel := panelManager.NewPanel(10, 2, 20, 20, 1)
 	eventManager.RegisterInputHandler(panelAdjusterInputHandler(panel))

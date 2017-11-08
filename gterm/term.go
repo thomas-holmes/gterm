@@ -87,7 +87,7 @@ func (window *Window) Init() error {
 
 	log.Printf("Creating window w:%v, h:%v", window.widthPixel, window.heightPixel)
 	sdlWindow, sdlRenderer, err := sdl.CreateWindowAndRenderer(window.widthPixel,
-		window.heightPixel, sdl.RENDERER_ACCELERATED)
+		window.heightPixel, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
 	if err != nil {
 		return err
 	}
