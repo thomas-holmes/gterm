@@ -1,6 +1,8 @@
 package libs
 
 import (
+	"log"
+
 	"github.com/thomas-holmes/sneaker/gterm"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -20,7 +22,9 @@ func NewPanelManager(window *gterm.Window) PanelManager {
 // func (panel *Panel) draw(renderer *sdl.Renderer, font *ttf.Font, fontSize int, heightPixels int, widthPixels int) error {
 func (panelManager *PanelManager) RenderPanels() {
 	for _, panel := range panelManager.panels {
-		panel.draw(panelManager.window)
+		if err := panel.draw(panelManager.window); err != nil {
+			log.Fatalln(err)
+		}
 	}
 }
 
@@ -137,10 +141,6 @@ func (panel *Panel) drawBottomRow(window *gterm.Window) error {
 }
 
 func (panel *Panel) draw(window *gterm.Window) error {
-	if !panel.dirty {
-		return nil
-	}
-	window.ClearWindow()
 	if err := panel.drawTopRow(window); err != nil {
 		return err
 	}

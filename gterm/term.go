@@ -186,6 +186,5 @@ func (window *Window) Render() {
 
 	window.renderCells()
 
-	window.SdlWindow.UpdateSurface()
 	window.SdlRenderer.Present()
 }

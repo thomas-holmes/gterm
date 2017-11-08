@@ -71,24 +71,26 @@ func main() {
 	panelManager := libs.NewPanelManager(window)
 	eventManager := libs.NewEventManager(window)
 
-	panel := panelManager.NewPanel(20, 2, 40, 10, 1)
+	panel := panelManager.NewPanel(10, 2, 20, 20, 1)
 	eventManager.RegisterInputHandler(panelAdjusterInputHandler(panel))
 	eventManager.RegisterRenderHandler(getFpsHandler())
 
 	color := sdl.Color{R: 255, G: 0, B: 0, A: 0}
-	window.AddToCell(0, 0, "A", color)
-	window.AddToCell(1, 0, "B", color)
-	window.AddToCell(0, 1, "C", color)
 
 	quit := false
 	for !quit {
-		window.AddToCell(24, 12, "@", color)
+		window.ClearWindow()
+
+		window.AddToCell(0, 0, "A", color)
+		window.AddToCell(1, 0, "B", color)
+		window.AddToCell(0, 1, "C", color)
+		window.AddToCell(40, 12, "@", color)
 
 		if event := sdl.PollEvent(); event != nil {
 			eventManager.RunInputHandlers(event)
 		}
-		eventManager.RunRenderHandlers()
 
+		eventManager.RunRenderHandlers()
 		panelManager.RenderPanels()
 
 		window.Render()

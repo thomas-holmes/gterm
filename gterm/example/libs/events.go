@@ -15,10 +15,9 @@ type EventManager struct {
 
 func NewEventManager(window *gterm.Window) EventManager {
 	eventManager := EventManager{
-		id:             0,
-		inputHandlers:  make(map[int]InputHandler),
-		renderHandlers: make([]RenderHandler, 1),
-		window:         window,
+		id:            0,
+		inputHandlers: make(map[int]InputHandler),
+		window:        window,
 	}
 
 	return eventManager
