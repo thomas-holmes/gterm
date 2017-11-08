@@ -20,9 +20,3 @@ type Drawable interface {
 //   └──────────┘
 
 // Box drawing characters
-const BoxVertical = "│"
-const BoxHorizontal = "─"
-const BoxTopLeft = "┌"
-const BoxTopRight = "┐"
-const BoxBottomLeft = "└"
-const BoxBottomRight = "┘"

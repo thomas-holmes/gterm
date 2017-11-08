@@ -1,6 +1,7 @@
 package gterm
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -9,49 +10,43 @@ import (
 
 // Window represents the base window object
 type Window struct {
-	Columns      int
-	Rows         int
-	FontSize     int
-	heightPixel  int
-	widthPixel   int
-	font         string
-	sdlWindow    *sdl.Window
-	sdlRenderer  *sdl.Renderer
-	eventManager *eventManager
+	Columns         int
+	Rows            int
+	FontSize        int
+	tileHeightPixel int
+	tileWidthPixel  int
+	heightPixel     int
+	widthPixel      int
+	fontPath        string
+	font            *ttf.Font
+	SdlWindow       *sdl.Window
+	SdlRenderer     *sdl.Renderer
+	cells           [][]renderItem
+}
+
+type renderItem struct {
+	FColor sdl.Color
+	Glyph  string
 }
 
 // NewWindow constructs a window
-func NewWindow(columns int, rows int, tileSize int, font string) *Window {
-	eventManager := newEventManager()
+func NewWindow(columns int, rows int, fontPath string, fontSize int) *Window {
+
+	numCells := columns * rows
+	cells := make([][]renderItem, numCells, numCells)
+
 	window := &Window{
-		Columns:      columns,
-		Rows:         rows,
-		FontSize:     tileSize,
-		font:         font,
-		eventManager: &eventManager,
+		Columns:  columns,
+		Rows:     rows,
+		FontSize: fontSize,
+		fontPath: fontPath,
+		cells:    cells,
 	}
 
 	return window
 }
 
-// RegisterRenderHandler adds a render handler to be processed every frame
-func (window *Window) RegisterRenderHandler(handler RenderHandler) {
-	window.eventManager.RegisterRenderHandler(handler)
-}
-
-// RegisterInputHandler save an input handler to be processed during the main event loop
-// Returns an int identifier for the input handler so it can be removed later.
-func (window *Window) RegisterInputHandler(handler InputHandler) int {
-	return window.eventManager.RegisterInputHandler(handler)
-}
-
-// UnregisterInputHandler Unregister a handler by its id. Returns true if it was found
-// in the map of handlers and removed otherwise returns false
-func (window *Window) UnregisterInputHandler(handlerID int) bool {
-	return window.eventManager.UnregisterInputHandler(handlerID)
-}
-
-func ComputeCellSizeFromFont(font *ttf.Font) (width int, height int, err error) {
+func computeCellSize(font *ttf.Font) (width int, height int, err error) {
 	atGlyph, err := font.RenderUTF8_Blended("@", sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
 		return 0, 0, err
@@ -59,17 +54,9 @@ func ComputeCellSizeFromFont(font *ttf.Font) (width int, height int, err error) 
 	return int(atGlyph.W), int(atGlyph.H), nil
 }
 
-func ComputeTileSize(font string, fontSize int) (width int, height int, err error) {
-	fontFile, err := ttf.OpenFont(font, fontSize)
-	if err != nil {
-		return 0, 0, err
-	}
-	return ComputeCellSizeFromFont(fontFile)
-}
-
 // Init initialized the window for drawing
 func (window *Window) Init() error {
-	err := sdl.Init(sdl.INIT_EVERYTHING)
+	err := sdl.Init(sdl.INIT_EVERYTHING) // not sure where to do this
 	if err != nil {
 		return err
 	}
@@ -77,42 +64,128 @@ func (window *Window) Init() error {
 	if err != nil {
 		return nil
 	}
-	tileWidth, tileHeight, err := ComputeTileSize(window.font, window.FontSize)
+	openedFont, err := ttf.OpenFont(window.fontPath, window.FontSize)
+	if err != nil {
+		return err
+	}
+
+	window.font = openedFont
+	tileWidth, tileHeight, err := computeCellSize(window.font)
+	if err != nil {
+		return err
+	}
+
+	window.tileWidthPixel = tileWidth
+	window.tileHeightPixel = tileHeight
 	window.heightPixel = tileHeight * window.Rows
 	window.widthPixel = tileWidth * window.Columns
 
 	log.Printf("Creating window w:%v, h:%v", window.widthPixel, window.heightPixel)
 	sdlWindow, sdlRenderer, err := sdl.CreateWindowAndRenderer(window.widthPixel,
-		window.heightPixel, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
-
+		window.heightPixel, sdl.RENDERER_ACCELERATED)
 	if err != nil {
 		return err
 	}
 
-	window.sdlWindow = sdlWindow
-	window.sdlRenderer = sdlRenderer
+	err = sdlRenderer.SetDrawColor(225, 200, 200, 255)
+	if err != nil {
+		log.Fatalln("Could not set render color", err)
+	}
+
+	window.SdlWindow = sdlWindow
+	window.SdlRenderer = sdlRenderer
 
 	return nil
 }
 
-// Run is a blocking call that starts the SDL rendering loop
-func (window *Window) Run() {
-	window.startRenderLoop()
+func (window *Window) cellIndex(col int, row int) (int, error) {
+	if col >= window.Columns || col < 0 || row >= window.Rows || row < 0 {
+		return 0, fmt.Errorf("Requested invalid position (%v,%v) on board of dimensions %vx%v", col, row, window.Columns, window.Rows)
+	}
+	return col + window.Columns*row, nil
 }
-func (window *Window) startRenderLoop() {
-	err := window.sdlRenderer.SetDrawColor(200, 200, 225, 255)
+
+func (window *Window) renderCell(col int, row int) error {
+	index, err := window.cellIndex(col, row)
 	if err != nil {
-		log.Fatalln("Could not set render color", err)
+		return err
 	}
-	for {
-		window.sdlRenderer.Clear()
 
-		if event := sdl.PollEvent(); event != nil {
-			window.eventManager.ProcessInputEvent(event)
+	renderItems := window.cells[index]
+
+	destinationRect := sdl.Rect{
+		X: int32(col * window.tileWidthPixel),
+		Y: int32(row * window.tileHeightPixel),
+		W: int32(window.tileWidthPixel),
+		H: int32(window.tileHeightPixel),
+	}
+
+	for _, renderItem := range renderItems {
+		surface, err := window.font.RenderUTF8_Blended(renderItem.Glyph, renderItem.FColor)
+		if err != nil {
+			return err
 		}
+		defer surface.Free()
 
-		window.eventManager.runRenderHandlers(window.sdlRenderer)
+		texture, err := window.SdlRenderer.CreateTextureFromSurface(surface)
+		if err != nil {
+			return err
+		}
+		defer texture.Destroy()
 
-		window.sdlRenderer.Present()
+		// log.Println(destinationRect)
+		err = window.SdlRenderer.Copy(texture, nil, &destinationRect)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
+}
+
+func (window *Window) renderCells() error {
+	for col := 0; col < window.Columns; col++ {
+		for row := 0; row < window.Rows; row++ {
+			if err := window.renderCell(col, row); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (window *Window) AddToCell(col int, row int, glyph string, fColor sdl.Color) error {
+	renderItem := renderItem{Glyph: glyph, FColor: fColor}
+	index, err := window.cellIndex(col, row)
+	if err != nil {
+		return err
+	}
+	window.cells[index] = append(window.cells[index], renderItem)
+
+	return nil
+}
+
+func (window *Window) EraseCell(col, int, row int) error {
+	index, err := window.cellIndex(col, row)
+	if err != nil {
+		return err
+	}
+
+	window.cells[index] = make([]renderItem, 0, 0)
+
+	return nil
+}
+
+func (window *Window) ClearWindow() {
+	window.cells = make([][]renderItem, window.Columns*window.Rows, window.Columns*window.Rows)
+}
+
+// Render updates the display based on new information since last Render
+func (window *Window) Render() {
+	window.SdlRenderer.Clear()
+
+	window.renderCells()
+
+	window.SdlWindow.UpdateSurface()
+	window.SdlRenderer.Present()
 }

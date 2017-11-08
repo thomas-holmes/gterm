@@ -1,69 +1,47 @@
 package libs
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/thomas-holmes/sneaker/gterm"
+
 	"github.com/veandco/go-sdl2/sdl"
-	"github.com/veandco/go-sdl2/ttf"
 )
 
 type PanelManager struct {
 	heightPixels int
 	widthPixels  int
+	window       *gterm.Window
 	panels       []*Panel
 }
 
-func NewPanelManager() PanelManager {
-	return PanelManager{panels: make([]*Panel, 0, 0)}
+func NewPanelManager(window *gterm.Window) PanelManager {
+	return PanelManager{window: window, panels: make([]*Panel, 0, 0)}
 }
 
 // func (panel *Panel) draw(renderer *sdl.Renderer, font *ttf.Font, fontSize int, heightPixels int, widthPixels int) error {
-func (panelManager *PanelManager) RenderHandler() gterm.RenderHandler {
-	return func(renderer *sdl.Renderer) {
-		for _, panel := range panelManager.panels {
-			panel.draw(renderer)
-		}
+func (panelManager *PanelManager) RenderPanels() {
+	for _, panel := range panelManager.panels {
+		panel.draw(panelManager.window)
 	}
 }
 
 // Panel represents an application "drawable" region of the virtual terminal
 type Panel struct {
-	XPos         int
-	YPos         int
-	Width        int
-	Height       int
-	Z            int
-	Font         *ttf.Font
-	heightPixels int
-	widthPixels  int
-	contents     [][][]interface{}
+	XPos   int
+	YPos   int
+	Width  int
+	Height int
+	Z      int
+	dirty  bool
 }
 
-func (panelManager *PanelManager) NewPanel(xPos int, yPos int, width int, height int, z int, fontPath string, fontSize int) *Panel {
-	loadedFont, err := ttf.OpenFont(fontPath, fontSize)
-	if err != nil {
-		panic(err)
-	}
-	panelContents := make([][][]interface{}, width, width)
-	for i := range panelContents {
-		panelContents[i] = make([][]interface{}, height, height)
-	}
-	widthPixels, heightPixels, err := gterm.ComputeCellSizeFromFont(loadedFont)
-	if err != nil {
-		panic(err)
-	}
+func (panelManager *PanelManager) NewPanel(xPos int, yPos int, width int, height int, z int) *Panel {
 	panel := Panel{
-		XPos:         xPos,
-		YPos:         yPos,
-		Width:        width,
-		Height:       height,
-		Z:            z,
-		Font:         loadedFont,
-		widthPixels:  widthPixels,
-		heightPixels: heightPixels,
-		contents:     panelContents,
+		XPos:   xPos,
+		YPos:   yPos,
+		Width:  width,
+		Height: height,
+		Z:      z,
+		dirty:  true,
 	}
 
 	panelManager.panels = append(panelManager.panels, &panel)
@@ -84,51 +62,93 @@ func (panel *Panel) Update(xPos int, yPos int, width int, height int) {
 	panel.YPos = yPos
 	panel.Width = max(width, 2)
 	panel.Height = max(height, 2)
+
+	panel.dirty = true
 }
 
-func (panel *Panel) getContentsAt(xPos int, yPos int) []interface{} {
-	return panel.contents[xPos][yPos]
-}
+// A panel might look like:
+//   ┌──────────┐
+//   │          │
+//   │          │
+//   │          │
+//   │          │
+//   └──────────┘
 
-func (panel *Panel) renderRow(row int) string {
-	return fmt.Sprintf("%v%v%v", BoxVertical, strings.Repeat(" ", panel.Width-2), BoxVertical)
-}
+// Box drawing characters
+const BoxVertical = "│"
+const BoxHorizontal = "─"
+const BoxTopLeft = "┌"
+const BoxTopRight = "┐"
+const BoxBottomLeft = "└"
+const BoxBottomRight = "┘"
 
-func (panel *Panel) draw(renderer *sdl.Renderer) error {
-	panelRows := make([]string, panel.Height, panel.Height)
-	panelRows[0] = fmt.Sprintf("%v%v%v", BoxTopLeft, strings.Repeat(BoxHorizontal, panel.Width-2), BoxTopRight)
-	for row := 1; row < panel.Height; row++ {
-		panelRows[row] = panel.renderRow(row)
+func (panel *Panel) drawTopRow(window *gterm.Window) error {
+	color := sdl.Color{R: 0, G: 0, B: 0, A: 255}
+
+	leftCol := panel.XPos
+	rightCol := panel.XPos + panel.Width - 1
+	topRow := panel.YPos
+
+	if err := window.AddToCell(leftCol, topRow, BoxTopLeft, color); err != nil {
+		return err
 	}
-	panelRows[panel.Height-1] = fmt.Sprintf("%v%v%v", BoxBottomLeft, strings.Repeat(BoxHorizontal, panel.Width-2), BoxBottomRight)
-
-	boxColor := sdl.Color{R: 0, G: 0, B: 0, A: 255}
-	for rowIndex, row := range panelRows {
-		rendered, err := panel.Font.RenderUTF8_Blended(row, boxColor)
-		if err != nil {
-			return err
-		}
-		defer rendered.Free()
-		texture, err := renderer.CreateTextureFromSurface(rendered)
-		if err != nil {
-			return err
-		}
-		defer texture.Destroy()
-
-		_, _, width, height, err := texture.Query()
-		if err != nil {
-			return err
-		}
-		dest := sdl.Rect{
-			W: int32(width),
-			H: int32(height),
-			X: int32(panel.widthPixels * panel.XPos),
-			Y: int32(panel.heightPixels * (panel.YPos + rowIndex)),
-		}
-		err = renderer.Copy(texture, nil, &dest)
-		if err != nil {
+	for col := leftCol + 1; col < rightCol; col++ {
+		if err := window.AddToCell(col, topRow, BoxHorizontal, color); err != nil {
 			return err
 		}
 	}
+	err := window.AddToCell(rightCol, topRow, BoxTopRight, color)
+
+	return err
+}
+
+func (panel *Panel) drawBody(window *gterm.Window) error {
+	color := sdl.Color{R: 0, G: 0, B: 0, A: 255}
+	leftCol := panel.XPos
+	rightCol := panel.XPos + panel.Width - 1
+	topRow := panel.YPos
+	bottomRow := panel.YPos + panel.Height - 1
+
+	for row := topRow + 1; row < bottomRow; row++ {
+		if err := window.AddToCell(leftCol, row, BoxVertical, color); err != nil {
+			return err
+		}
+		if err := window.AddToCell(rightCol, row, BoxVertical, color); err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+func (panel *Panel) drawBottomRow(window *gterm.Window) error {
+	color := sdl.Color{R: 0, G: 0, B: 0, A: 255}
+
+	leftCol := panel.XPos
+	rightCol := panel.XPos + panel.Width - 1
+	bottomRow := panel.YPos + panel.Height - 1
+
+	window.AddToCell(leftCol, bottomRow, BoxBottomLeft, color)
+	for col := leftCol + 1; col < rightCol; col++ {
+		window.AddToCell(col, bottomRow, BoxHorizontal, color)
+	}
+	window.AddToCell(rightCol, bottomRow, BoxBottomRight, color)
+
+	return nil
+}
+
+func (panel *Panel) draw(window *gterm.Window) error {
+	if !panel.dirty {
+		return nil
+	}
+	window.ClearWindow()
+	if err := panel.drawTopRow(window); err != nil {
+		return err
+	}
+	if err := panel.drawBody(window); err != nil {
+		return err
+	}
+	err := panel.drawBottomRow(window)
+
+	panel.dirty = false
+	return err
 }

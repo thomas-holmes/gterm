@@ -1,42 +1,47 @@
-package gterm
+package libs
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"github.com/thomas-holmes/sneaker/gterm"
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 // EventManager
-type eventManager struct {
+type EventManager struct {
 	id             int
 	inputHandlers  map[int]InputHandler
 	renderHandlers []RenderHandler
+	window         *gterm.Window
 }
 
-func newEventManager() eventManager {
-	eventManager := eventManager{
+func NewEventManager(window *gterm.Window) EventManager {
+	eventManager := EventManager{
 		id:             0,
 		inputHandlers:  make(map[int]InputHandler),
 		renderHandlers: make([]RenderHandler, 1),
+		window:         window,
 	}
 
 	return eventManager
 }
 
 // RenderHandler supplies an SDL renderer for you draw on
-type RenderHandler func(renderer *sdl.Renderer)
+type RenderHandler func(window *gterm.Window)
 
 // RegisterRenderHandler register a rendering handler to draw to the screen
-func (eventManager *eventManager) RegisterRenderHandler(handler RenderHandler) {
+func (eventManager *EventManager) RegisterRenderHandler(handler RenderHandler) {
 	eventManager.renderHandlers = append(eventManager.renderHandlers, handler)
 }
 
-func (eventManager *eventManager) runRenderHandlers(renderer *sdl.Renderer) {
+func (eventManager *EventManager) RunRenderHandlers() {
 	for _, handler := range eventManager.renderHandlers {
 		if handler != nil {
-			handler(renderer)
+			handler(eventManager.window)
 		}
 	}
 }
 
 // RegisterInputHandler registers an InputHandler
-func (eventManager *eventManager) RegisterInputHandler(handler InputHandler) int {
+func (eventManager *EventManager) RegisterInputHandler(handler InputHandler) int {
 	eventManager.id++
 	eventManager.inputHandlers[eventManager.id] = handler
 	return eventManager.id
@@ -44,7 +49,7 @@ func (eventManager *eventManager) RegisterInputHandler(handler InputHandler) int
 
 // UnregisterInputHandler removes an input handler, returning true if an InputHandler
 // was registered with the provided id, false otherwise
-func (eventManager *eventManager) UnregisterInputHandler(id int) bool {
+func (eventManager *EventManager) UnregisterInputHandler(id int) bool {
 	_, ok := eventManager.inputHandlers[id]
 	if ok {
 		delete(eventManager.inputHandlers, id)
@@ -56,7 +61,7 @@ func (eventManager *eventManager) UnregisterInputHandler(id int) bool {
 
 // ProcessInputEvent provides the input event to each handler and returns the number of
 // handlers executed
-func (eventManager *eventManager) ProcessInputEvent(event sdl.Event) int {
+func (eventManager *EventManager) RunInputHandlers(event sdl.Event) int {
 	count := 0
 	for _, handler := range eventManager.inputHandlers {
 		handler(event)

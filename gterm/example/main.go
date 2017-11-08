@@ -18,10 +18,10 @@ func logOnKeyPress(event sdl.Event) {
 	}
 }
 
-func getFpsHandler() gterm.RenderHandler {
+func getFpsHandler() libs.RenderHandler {
 	frames := 0
 	last := time.Now().Second()
-	handler := func(renderer *sdl.Renderer) {
+	handler := func(window *gterm.Window) {
 		frames++
 		now := time.Now().Second()
 		if now != last {
@@ -33,7 +33,7 @@ func getFpsHandler() gterm.RenderHandler {
 	return handler
 }
 
-func panelAdjusterInputHandler(panel *libs.Panel) gterm.InputHandler {
+func panelAdjusterInputHandler(panel *libs.Panel) libs.InputHandler {
 	return func(event sdl.Event) {
 		switch e := event.(type) {
 		case *sdl.KeyDownEvent:
@@ -62,16 +62,35 @@ func panelAdjusterInputHandler(panel *libs.Panel) gterm.InputHandler {
 }
 
 func main() {
-	window := gterm.NewWindow(80, 24, 16, path.Join("assets", "font", "FiraMono-Regular.ttf"))
+	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16)
 
-	window.Init()
-	window.RegisterInputHandler(logOnKeyPress)
-	window.RegisterRenderHandler(getFpsHandler())
+	if err := window.Init(); err != nil {
+		log.Fatal(err)
+	}
 
-	panelManager := libs.NewPanelManager()
-	panel := panelManager.NewPanel(20, 2, 40, 10, 1, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16)
-	window.RegisterInputHandler(panelAdjusterInputHandler(panel))
-	window.RegisterRenderHandler(panelManager.RenderHandler())
+	panelManager := libs.NewPanelManager(window)
+	eventManager := libs.NewEventManager(window)
 
-	window.Run()
+	panel := panelManager.NewPanel(20, 2, 40, 10, 1)
+	eventManager.RegisterInputHandler(panelAdjusterInputHandler(panel))
+	eventManager.RegisterRenderHandler(getFpsHandler())
+
+	color := sdl.Color{R: 255, G: 0, B: 0, A: 0}
+	window.AddToCell(0, 0, "A", color)
+	window.AddToCell(1, 0, "B", color)
+	window.AddToCell(0, 1, "C", color)
+
+	quit := false
+	for !quit {
+		window.AddToCell(24, 12, "@", color)
+
+		if event := sdl.PollEvent(); event != nil {
+			eventManager.RunInputHandlers(event)
+		}
+		eventManager.RunRenderHandlers()
+
+		panelManager.RenderPanels()
+
+		window.Render()
+	}
 }
