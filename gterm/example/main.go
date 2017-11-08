@@ -11,7 +11,6 @@ import (
 )
 
 func logOnKeyPress(event sdl.Event) {
-	// log.Printf("%#v", event)
 	switch e := event.(type) {
 	case sdl.KeyDownEvent:
 		log.Println(e)
@@ -38,8 +37,6 @@ func panelAdjusterInputHandler(panel *libs.Panel) libs.InputHandler {
 		switch e := event.(type) {
 		case *sdl.KeyDownEvent:
 			switch e.Keysym.Sym {
-			case sdl.K_SPACE:
-				panel.Update(panel.XPos, panel.YPos+1, panel.Width, panel.Height)
 			case sdl.K_UP:
 				panel.Update(panel.XPos, panel.YPos-1, panel.Width, panel.Height)
 			case sdl.K_DOWN:
@@ -61,6 +58,45 @@ func panelAdjusterInputHandler(panel *libs.Panel) libs.InputHandler {
 	}
 }
 
+type Player struct {
+	XPos  int
+	YPos  int
+	Color sdl.Color
+	Glyph string
+}
+
+func (player *Player) handleInput(event sdl.Event) {
+	switch e := event.(type) {
+	case *sdl.KeyDownEvent:
+		switch e.Keysym.Sym {
+		case sdl.K_h:
+			player.XPos--
+		case sdl.K_j:
+			player.YPos++
+		case sdl.K_k:
+			player.YPos--
+		case sdl.K_l:
+			player.XPos++
+		case sdl.K_b:
+			player.XPos--
+			player.YPos++
+		case sdl.K_n:
+			player.XPos++
+			player.YPos++
+		case sdl.K_y:
+			player.XPos--
+			player.YPos--
+		case sdl.K_u:
+			player.XPos++
+			player.YPos--
+		}
+	}
+}
+
+func (player *Player) handleRender(window *gterm.Window) {
+	window.AddToCell(player.XPos, player.YPos, player.Glyph, player.Color)
+}
+
 func main() {
 	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16)
 
@@ -71,20 +107,17 @@ func main() {
 	panelManager := libs.NewPanelManager(window)
 	eventManager := libs.NewEventManager(window)
 
+	player := Player{10, 10, sdl.Color{R: 100, G: 50, B: 255, A: 255}, "@"}
+
 	panel := panelManager.NewPanel(10, 2, 20, 20, 1)
 	eventManager.RegisterInputHandler(panelAdjusterInputHandler(panel))
+	eventManager.RegisterInputHandler(player.handleInput)
 	eventManager.RegisterRenderHandler(getFpsHandler())
-
-	color := sdl.Color{R: 255, G: 0, B: 0, A: 0}
+	eventManager.RegisterRenderHandler(player.handleRender)
 
 	quit := false
 	for !quit {
 		window.ClearWindow()
-
-		window.AddToCell(0, 0, "A", color)
-		window.AddToCell(1, 0, "B", color)
-		window.AddToCell(0, 1, "C", color)
-		window.AddToCell(40, 12, "@", color)
 
 		if event := sdl.PollEvent(); event != nil {
 			eventManager.RunInputHandlers(event)
