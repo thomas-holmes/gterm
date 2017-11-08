@@ -20,7 +20,7 @@ func NewPanelManager(window *gterm.Window) PanelManager {
 }
 
 // func (panel *Panel) draw(renderer *sdl.Renderer, font *ttf.Font, fontSize int, heightPixels int, widthPixels int) error {
-func (panelManager *PanelManager) RenderPanels() {
+func (panelManager *PanelManager) HandleRender(window *gterm.Window) {
 	for _, panel := range panelManager.panels {
 		if err := panel.draw(panelManager.window); err != nil {
 			log.Fatalln(err)
@@ -87,37 +87,39 @@ const BoxBottomLeft = "└"
 const BoxBottomRight = "┘"
 
 func (panel *Panel) drawTopRow(window *gterm.Window) error {
-	color := sdl.Color{R: 0, G: 0, B: 0, A: 255}
+	bColor := sdl.Color{R: 0, G: 0, B: 0, A: 255}
+	fColor := sdl.Color{R: 20, G: 200, B: 50, A: 255}
 
 	leftCol := panel.XPos
 	rightCol := panel.XPos + panel.Width - 1
 	topRow := panel.YPos
 
-	if err := window.AddToCell(leftCol, topRow, BoxTopLeft, color); err != nil {
+	if err := window.AddToCell(leftCol, topRow, BoxTopLeft, fColor, bColor); err != nil {
 		return err
 	}
 	for col := leftCol + 1; col < rightCol; col++ {
-		if err := window.AddToCell(col, topRow, BoxHorizontal, color); err != nil {
+		if err := window.AddToCell(col, topRow, BoxHorizontal, fColor, bColor); err != nil {
 			return err
 		}
 	}
-	err := window.AddToCell(rightCol, topRow, BoxTopRight, color)
+	err := window.AddToCell(rightCol, topRow, BoxTopRight, fColor, bColor)
 
 	return err
 }
 
 func (panel *Panel) drawBody(window *gterm.Window) error {
-	color := sdl.Color{R: 0, G: 0, B: 0, A: 255}
+	bColor := sdl.Color{R: 0, G: 0, B: 0, A: 255}
+	fColor := sdl.Color{R: 20, G: 200, B: 50, A: 255}
 	leftCol := panel.XPos
 	rightCol := panel.XPos + panel.Width - 1
 	topRow := panel.YPos
 	bottomRow := panel.YPos + panel.Height - 1
 
 	for row := topRow + 1; row < bottomRow; row++ {
-		if err := window.AddToCell(leftCol, row, BoxVertical, color); err != nil {
+		if err := window.AddToCell(leftCol, row, BoxVertical, fColor, bColor); err != nil {
 			return err
 		}
-		if err := window.AddToCell(rightCol, row, BoxVertical, color); err != nil {
+		if err := window.AddToCell(rightCol, row, BoxVertical, fColor, bColor); err != nil {
 			return err
 		}
 	}
@@ -125,17 +127,18 @@ func (panel *Panel) drawBody(window *gterm.Window) error {
 	return nil
 }
 func (panel *Panel) drawBottomRow(window *gterm.Window) error {
-	color := sdl.Color{R: 0, G: 0, B: 0, A: 255}
+	bColor := sdl.Color{R: 0, G: 0, B: 0, A: 255}
+	fColor := sdl.Color{R: 20, G: 200, B: 50, A: 255}
 
 	leftCol := panel.XPos
 	rightCol := panel.XPos + panel.Width - 1
 	bottomRow := panel.YPos + panel.Height - 1
 
-	window.AddToCell(leftCol, bottomRow, BoxBottomLeft, color)
+	window.AddToCell(leftCol, bottomRow, BoxBottomLeft, fColor, bColor)
 	for col := leftCol + 1; col < rightCol; col++ {
-		window.AddToCell(col, bottomRow, BoxHorizontal, color)
+		window.AddToCell(col, bottomRow, BoxHorizontal, fColor, bColor)
 	}
-	window.AddToCell(rightCol, bottomRow, BoxBottomRight, color)
+	window.AddToCell(rightCol, bottomRow, BoxBottomRight, fColor, bColor)
 
 	return nil
 }

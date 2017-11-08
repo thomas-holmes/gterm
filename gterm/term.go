@@ -26,6 +26,7 @@ type Window struct {
 
 type renderItem struct {
 	FColor sdl.Color
+	BColor sdl.Color
 	Glyph  string
 }
 
@@ -121,7 +122,8 @@ func (window *Window) renderCell(col int, row int) error {
 	}
 
 	for _, renderItem := range renderItems {
-		surface, err := window.font.RenderUTF8_Blended(renderItem.Glyph, renderItem.FColor)
+		// surface, err := window.font.RenderUTF8_Blended(renderItem.Glyph, renderItem.FColor)
+		surface, err := window.font.RenderUTF8_Shaded(renderItem.Glyph, renderItem.FColor, renderItem.BColor)
 		if err != nil {
 			return err
 		}
@@ -154,8 +156,8 @@ func (window *Window) renderCells() error {
 	return nil
 }
 
-func (window *Window) AddToCell(col int, row int, glyph string, fColor sdl.Color) error {
-	renderItem := renderItem{Glyph: glyph, FColor: fColor}
+func (window *Window) AddToCell(col int, row int, glyph string, fColor sdl.Color, bColor sdl.Color) error {
+	renderItem := renderItem{Glyph: glyph, FColor: fColor, BColor: bColor}
 	index, err := window.cellIndex(col, row)
 	if err != nil {
 		return err
