@@ -3,6 +3,8 @@ package gterm
 import (
 	"fmt"
 	"log"
+	"path"
+	"strconv"
 
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
@@ -23,6 +25,7 @@ type Window struct {
 	SdlRenderer     *sdl.Renderer
 	backgroundColor sdl.Color
 	cells           [][]renderItem
+	fps             fpsCounter
 }
 
 type renderItem struct {
@@ -92,7 +95,7 @@ func (window *Window) Init() error {
 		return err
 	}
 
-	sdlRenderer, err := sdl.CreateRenderer(sdlWindow, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
+	sdlRenderer, err := sdl.CreateRenderer(sdlWindow, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
 		return err
 	}
@@ -104,6 +107,8 @@ func (window *Window) Init() error {
 
 	window.SdlWindow = sdlWindow
 	window.SdlRenderer = sdlRenderer
+
+	window.fps = newFpsCounter()
 
 	return nil
 }
@@ -203,7 +208,76 @@ func (window *Window) ClearWindow() {
 	window.cells = make([][]renderItem, window.Columns*window.Rows, window.Columns*window.Rows)
 }
 
+func (window *Window) ShouldRenderFps(shouldRender bool) {
+	window.fps.shouldRender(shouldRender)
+}
+
 // Render updates the display based on new information since last Render
+type fpsCounter struct {
+	renderFps     bool
+	framesElapsed int
+	currentFps    int
+	lastTicks     uint32
+	font          *ttf.Font
+	color         sdl.Color
+}
+
+func newFpsCounter() fpsCounter {
+	font, err := ttf.OpenFont(path.Join("assets/font/FiraMono-Regular.ttf"), 16)
+	if err != nil {
+		log.Println("Failed to open FPS font", err)
+	}
+	return fpsCounter{
+		lastTicks: sdl.GetTicks(),
+		color:     sdl.Color{R: 0, G: 255, B: 0, A: 255},
+		font:      font,
+	}
+}
+
+func (fps *fpsCounter) shouldRender(shouldRender bool) {
+	fps.renderFps = shouldRender
+}
+
+func (fps *fpsCounter) MaybeRender(window *Window) {
+	fps.framesElapsed++
+	now := sdl.GetTicks()
+
+	if fps.lastTicks < (now - 1000) {
+		fps.lastTicks = now
+		fps.currentFps = fps.framesElapsed
+		fps.framesElapsed = 0
+	}
+
+	if fps.renderFps {
+		surface, err := fps.font.RenderUTF8_Solid(strconv.Itoa(fps.currentFps), fps.color)
+		if err != nil {
+			log.Println("Failed to render FPS", err)
+		}
+		defer surface.Free()
+		texture, err := window.SdlRenderer.CreateTextureFromSurface(surface)
+		if err != nil {
+			log.Println("Failed to texturify FPS", err)
+		}
+		defer texture.Destroy()
+
+		_, _, width, height, err := texture.Query()
+		destination := sdl.Rect{X: int32(window.widthPixel) - width, Y: int32(0), W: width, H: height}
+
+		if err := window.SdlRenderer.Copy(texture, nil, &destination); err != nil {
+			log.Println("Couldn't copy FPS to renderer", err)
+		}
+	}
+}
+
+var lastDraw = sdl.GetTicks()
+var drawInterval = uint32(1000 / 144)
+
+func min(a uint32, b uint32) uint32 {
+	if a < b {
+		return a
+	}
+	return b
+}
 func (window *Window) Render() {
 	err := window.SdlRenderer.SetDrawColor(window.backgroundColor.R, window.backgroundColor.G, window.backgroundColor.B, window.backgroundColor.A)
 	if err != nil {
@@ -213,5 +287,16 @@ func (window *Window) Render() {
 
 	window.renderCells()
 
+	window.fps.MaybeRender(window) // Ok this is dumb
+
 	window.SdlRenderer.Present()
+
+	/* Software Vsync
+	nowTicks := sdl.GetTicks()
+	if lastDraw < (nowTicks - drawInterval) {
+		delay := drawInterval - min(0, (nowTicks-lastDraw))
+		sdl.Delay(delay)
+	}
+	*/
+
 }
