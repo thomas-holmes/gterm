@@ -4,6 +4,7 @@ import (
 	"path"
 
 	"github.com/thomas-holmes/sneaker/gterm"
+	"github.com/thomas-holmes/sneaker/gterm/example/muncher/game"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -32,12 +33,19 @@ func main() {
 
 	window.SetBackgroundColor(sdl.Color{R: 0, G: 0, B: 0, A: 0})
 
+	window.ShouldRenderFps(true)
+
+	player := game.Player{Column: 0, Row: 0, Glyph: "@", Color: red}
+
 	for !quit {
+		window.ClearWindow()
+
 		if event := sdl.PollEvent(); event != nil {
 			handleInput(event)
 		}
 
-		window.AddToCell(40, 12, "@", red)
+		player.Render(window)
+
 		window.Render()
 	}
 }
