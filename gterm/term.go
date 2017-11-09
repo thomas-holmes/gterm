@@ -86,8 +86,12 @@ func (window *Window) Init() error {
 	window.widthPixel = tileWidth * window.Columns
 
 	log.Printf("Creating window w:%v, h:%v", window.widthPixel, window.heightPixel)
-	sdlWindow, sdlRenderer, err := sdl.CreateWindowAndRenderer(window.widthPixel,
-		window.heightPixel, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
+	sdlWindow, err := sdl.CreateWindow("", sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, window.widthPixel, window.heightPixel, sdl.WINDOW_SHOWN)
+	if err != nil {
+		return err
+	}
+
+	sdlRenderer, err := sdl.CreateRenderer(sdlWindow, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
 		return err
 	}
