@@ -1,7 +1,6 @@
 package game
 
 import (
-	"github.com/thomas-holmes/sneaker/gterm"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -15,28 +14,62 @@ Once I separate the viewport from the world the player position likely won't
 move very often as roguelikes tend to keep the player centered.
 */
 
-// Player pepresents the player
-type Player struct {
-	Column int
-	Row    int
-	Glyph  string
-	Color  sdl.Color
+type PositionComponent struct {
+	yPos int
+	xPos int
 }
 
-// MoveTo updates the player to a new position
-func (player *Player) MoveTo(col int, row int) {
-	player.Column = col
-	player.Row = row
+type Positionable interface {
+	YPos() int
+	XPos() int
+	UpdatePosition(int, int)
 }
 
-// SetColor updates the render color of the player
-func (player *Player) SetColor(color sdl.Color) {
-	player.Color = color
+func (player *Player) XPos() int {
+	return player.xPos
 }
 
-// Render places the player on the gterm Window
-func (player Player) Render(window *gterm.Window) {
-	window.AddToCell(player.Column, player.Row, player.Glyph, player.Color)
+func (player *Player) YPos() int {
+	return player.yPos
+}
+
+func (player *Player) UpdatePosition(xPos int, yPos int) {
+	player.xPos = xPos
+	player.yPos = yPos
+}
+
+type RenderComponent struct {
+	renderGlyph string
+	renderColor sdl.Color
+}
+
+type Renderable interface {
+	RenderCol() int
+	RenderRow() int
+	RenderGlyph() string
+	RenderColor() sdl.Color
+}
+
+// RenderCol is currently a lie, just returns world position
+func (player *Player) RenderCol() int {
+	return player.xPos
+}
+
+// RenderRow is currently a lie, just returns world position
+func (player *Player) RenderRow() int {
+	return player.yPos
+}
+
+func (player *Player) RenderGlyph() string {
+	return player.renderGlyph
+}
+
+func (player *Player) RenderColor() sdl.Color {
+	return player.renderColor
+}
+
+type Inputtable interface {
+	HandleInput(event sdl.Event)
 }
 
 // HandleInput updates player position based on user input
@@ -45,21 +78,47 @@ func (player *Player) HandleInput(event sdl.Event) {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
 		case sdl.K_h:
-			player.MoveTo(player.Column-1, player.Row)
+			player.UpdatePosition(player.XPos()-1, player.YPos())
 		case sdl.K_j:
-			player.MoveTo(player.Column, player.Row+1)
+			player.UpdatePosition(player.XPos(), player.YPos()+1)
 		case sdl.K_k:
-			player.MoveTo(player.Column, player.Row-1)
+			player.UpdatePosition(player.XPos(), player.YPos()-1)
 		case sdl.K_l:
-			player.MoveTo(player.Column+1, player.Row)
+			player.UpdatePosition(player.XPos()+1, player.YPos())
 		case sdl.K_b:
-			player.MoveTo(player.Column-1, player.Row+1)
+			player.UpdatePosition(player.XPos()-1, player.YPos()+1)
 		case sdl.K_n:
-			player.MoveTo(player.Column+1, player.Row+1)
+			player.UpdatePosition(player.XPos()+1, player.YPos()+1)
 		case sdl.K_y:
-			player.MoveTo(player.Column-1, player.Row-1)
+			player.UpdatePosition(player.XPos()-1, player.YPos()-1)
 		case sdl.K_u:
-			player.MoveTo(player.Column+1, player.Row-1)
+			player.UpdatePosition(player.XPos()+1, player.YPos()-1)
 		}
 	}
+}
+
+// Player pepresents the player
+type Player struct {
+	RenderComponent
+	PositionComponent
+}
+
+func NewPlayer(xPos int, yPos int) Player {
+	player := Player{
+		RenderComponent: RenderComponent{
+			renderGlyph: "@",
+			renderColor: sdl.Color{R: 255, G: 0, B: 0, A: 0},
+		},
+		PositionComponent: PositionComponent{
+			xPos: xPos,
+			yPos: yPos,
+		},
+	}
+
+	return player
+}
+
+// SetColor updates the render color of the player
+func (player *Player) SetColor(color sdl.Color) {
+	player.renderColor = color
 }

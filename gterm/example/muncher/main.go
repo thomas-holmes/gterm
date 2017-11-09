@@ -24,6 +24,10 @@ func handleInput(event sdl.Event) {
 
 var red = sdl.Color{R: 255, G: 0, B: 0, A: 255}
 
+func render(window *gterm.Window, renderable game.Renderable) {
+	window.AddToCell(renderable.RenderCol(), renderable.RenderRow(), renderable.RenderGlyph(), renderable.RenderColor())
+}
+
 func main() {
 	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16)
 
@@ -35,17 +39,24 @@ func main() {
 
 	window.ShouldRenderFps(true)
 
-	player := game.Player{Column: 0, Row: 0, Glyph: "@", Color: red}
+	player := game.NewPlayer(0, 0)
+
+	inputtables := []game.Inputtable{&player}
+	renderables := []game.Renderable{&player}
 
 	for !quit {
 		window.ClearWindow()
 
 		if event := sdl.PollEvent(); event != nil {
 			handleInput(event)
-			player.HandleInput(event)
+			for _, inputtable := range inputtables {
+				inputtable.HandleInput(event)
+			}
 		}
 
-		player.Render(window)
+		for _, renderable := range renderables {
+			render(window, renderable)
+		}
 
 		window.Render()
 	}
