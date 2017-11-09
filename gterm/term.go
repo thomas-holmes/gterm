@@ -21,6 +21,7 @@ type Window struct {
 	font            *ttf.Font
 	SdlWindow       *sdl.Window
 	SdlRenderer     *sdl.Renderer
+	backgroundColor sdl.Color
 	cells           [][]renderItem
 }
 
@@ -91,7 +92,7 @@ func (window *Window) Init() error {
 		return err
 	}
 
-	sdlRenderer, err := sdl.CreateRenderer(sdlWindow, -1, sdl.RENDERER_ACCELERATED)
+	sdlRenderer, err := sdl.CreateRenderer(sdlWindow, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
 	if err != nil {
 		return err
 	}
@@ -105,6 +106,10 @@ func (window *Window) Init() error {
 	window.SdlRenderer = sdlRenderer
 
 	return nil
+}
+
+func (window *Window) SetBackgroundColor(color sdl.Color) {
+	window.backgroundColor = color
 }
 
 func (window *Window) cellIndex(col int, row int) (int, error) {
@@ -172,8 +177,8 @@ func (window *Window) renderCells() error {
 	return nil
 }
 
-func (window *Window) AddToCell(col int, row int, glyph string, fColor sdl.Color, bColor sdl.Color) error {
-	renderItem := renderItem{Glyph: glyph, FColor: fColor, BColor: bColor}
+func (window *Window) AddToCell(col int, row int, glyph string, fColor sdl.Color) error {
+	renderItem := renderItem{Glyph: glyph, FColor: fColor}
 	index, err := window.cellIndex(col, row)
 	if err != nil {
 		return err
@@ -200,6 +205,10 @@ func (window *Window) ClearWindow() {
 
 // Render updates the display based on new information since last Render
 func (window *Window) Render() {
+	err := window.SdlRenderer.SetDrawColor(window.backgroundColor.R, window.backgroundColor.G, window.backgroundColor.B, window.backgroundColor.A)
+	if err != nil {
+		log.Fatal(err)
+	}
 	window.SdlRenderer.Clear()
 
 	window.renderCells()

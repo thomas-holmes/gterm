@@ -87,28 +87,26 @@ const BoxBottomLeft = "└"
 const BoxBottomRight = "┘"
 
 func (panel *Panel) drawTopRow(window *gterm.Window) error {
-	bColor := sdl.Color{R: 0, G: 0, B: 0, A: 255}
 	fColor := sdl.Color{R: 20, G: 200, B: 50, A: 255}
 
 	leftCol := panel.XPos
 	rightCol := panel.XPos + panel.Width - 1
 	topRow := panel.YPos
 
-	if err := window.AddToCell(leftCol, topRow, BoxTopLeft, fColor, bColor); err != nil {
+	if err := window.AddToCell(leftCol, topRow, BoxTopLeft, fColor); err != nil {
 		return err
 	}
 	for col := leftCol + 1; col < rightCol; col++ {
-		if err := window.AddToCell(col, topRow, BoxHorizontal, fColor, bColor); err != nil {
+		if err := window.AddToCell(col, topRow, BoxHorizontal, fColor); err != nil {
 			return err
 		}
 	}
-	err := window.AddToCell(rightCol, topRow, BoxTopRight, fColor, bColor)
+	err := window.AddToCell(rightCol, topRow, BoxTopRight, fColor)
 
 	return err
 }
 
 func (panel *Panel) drawBody(window *gterm.Window) error {
-	bColor := sdl.Color{R: 0, G: 0, B: 0, A: 255}
 	fColor := sdl.Color{R: 20, G: 200, B: 50, A: 255}
 	leftCol := panel.XPos
 	rightCol := panel.XPos + panel.Width - 1
@@ -116,10 +114,10 @@ func (panel *Panel) drawBody(window *gterm.Window) error {
 	bottomRow := panel.YPos + panel.Height - 1
 
 	for row := topRow + 1; row < bottomRow; row++ {
-		if err := window.AddToCell(leftCol, row, BoxVertical, fColor, bColor); err != nil {
+		if err := window.AddToCell(leftCol, row, BoxVertical, fColor); err != nil {
 			return err
 		}
-		if err := window.AddToCell(rightCol, row, BoxVertical, fColor, bColor); err != nil {
+		if err := window.AddToCell(rightCol, row, BoxVertical, fColor); err != nil {
 			return err
 		}
 	}
@@ -127,18 +125,17 @@ func (panel *Panel) drawBody(window *gterm.Window) error {
 	return nil
 }
 func (panel *Panel) drawBottomRow(window *gterm.Window) error {
-	bColor := sdl.Color{R: 0, G: 0, B: 0, A: 255}
 	fColor := sdl.Color{R: 20, G: 200, B: 50, A: 255}
 
 	leftCol := panel.XPos
 	rightCol := panel.XPos + panel.Width - 1
 	bottomRow := panel.YPos + panel.Height - 1
 
-	window.AddToCell(leftCol, bottomRow, BoxBottomLeft, fColor, bColor)
+	window.AddToCell(leftCol, bottomRow, BoxBottomLeft, fColor)
 	for col := leftCol + 1; col < rightCol; col++ {
-		window.AddToCell(col, bottomRow, BoxHorizontal, fColor, bColor)
+		window.AddToCell(col, bottomRow, BoxHorizontal, fColor)
 	}
-	window.AddToCell(rightCol, bottomRow, BoxBottomRight, fColor, bColor)
+	window.AddToCell(rightCol, bottomRow, BoxBottomRight, fColor)
 
 	return nil
 }

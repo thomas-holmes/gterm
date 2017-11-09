@@ -66,7 +66,6 @@ type Player struct {
 	XPos   int
 	YPos   int
 	FColor sdl.Color
-	BColor sdl.Color
 	Glyph  string
 }
 
@@ -99,12 +98,12 @@ func (player *Player) handleInput(event sdl.Event) {
 }
 
 func (player *Player) handleRender(window *gterm.Window) {
-	window.AddToCell(player.XPos, player.YPos, player.Glyph, player.FColor, player.BColor)
+	window.AddToCell(player.XPos, player.YPos, player.Glyph, player.FColor)
 }
 
 func renderEverywhere(window *gterm.Window) {
 	for row := 0; row < window.Rows; row++ {
-		err := window.AddToCell(0, row, strings.Repeat(".", window.Columns), sdl.Color{R: 115, G: 115, B: 115, A: 255}, sdl.Color{R: 0, G: 0, B: 0, A: 0})
+		err := window.AddToCell(0, row, strings.Repeat(".", window.Columns), sdl.Color{R: 115, G: 115, B: 115, A: 255})
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -139,7 +138,7 @@ func main() {
 	panelManager := libs.NewPanelManager(window)
 	eventManager := libs.NewEventManager(window)
 
-	player := Player{10, 10, sdl.Color{R: 255, G: 25, B: 55, A: 255}, sdl.Color{R: 0, G: 0, B: 0, A: 0}, "@"}
+	player := Player{10, 10, sdl.Color{R: 255, G: 25, B: 55, A: 255}, "@"}
 
 	panel := panelManager.NewPanel(10, 2, 20, 20, 1)
 	eventManager.RegisterInputHandler(panelAdjusterInputHandler(panel))
