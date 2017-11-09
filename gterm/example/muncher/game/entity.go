@@ -38,3 +38,27 @@ func (player *Player) SetColor(color sdl.Color) {
 func (player Player) Render(window *gterm.Window) {
 	window.AddToCell(player.Column, player.Row, player.Glyph, player.Color)
 }
+
+func (player *Player) HandleInput(event sdl.Event) {
+	switch e := event.(type) {
+	case *sdl.KeyDownEvent:
+		switch e.Keysym.Sym {
+		case sdl.K_h:
+			player.MoveTo(player.Column-1, player.Row)
+		case sdl.K_j:
+			player.MoveTo(player.Column, player.Row+1)
+		case sdl.K_k:
+			player.MoveTo(player.Column, player.Row-1)
+		case sdl.K_l:
+			player.MoveTo(player.Column+1, player.Row)
+		case sdl.K_b:
+			player.MoveTo(player.Column-1, player.Row+1)
+		case sdl.K_n:
+			player.MoveTo(player.Column+1, player.Row+1)
+		case sdl.K_y:
+			player.MoveTo(player.Column-1, player.Row-1)
+		case sdl.K_u:
+			player.MoveTo(player.Column+1, player.Row-1)
+		}
+	}
+}

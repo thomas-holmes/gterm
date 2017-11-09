@@ -42,6 +42,7 @@ func main() {
 
 		if event := sdl.PollEvent(); event != nil {
 			handleInput(event)
+			player.HandleInput(event)
 		}
 
 		player.Render(window)
