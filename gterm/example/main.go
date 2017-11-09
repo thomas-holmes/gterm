@@ -148,6 +148,8 @@ func main() {
 	eventManager.RegisterRenderHandler(panelManager.HandleRender)
 	eventManager.RegisterRenderHandler(player.handleRender)
 
+	window.ShouldRenderFps(true)
+
 	for !quit {
 		window.ClearWindow()
 
