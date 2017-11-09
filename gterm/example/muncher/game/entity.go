@@ -39,6 +39,7 @@ func (player Player) Render(window *gterm.Window) {
 	window.AddToCell(player.Column, player.Row, player.Glyph, player.Color)
 }
 
+// HandleInput updates player position based on user input
 func (player *Player) HandleInput(event sdl.Event) {
 	switch e := event.(type) {
 	case *sdl.KeyDownEvent:
