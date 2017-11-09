@@ -111,6 +111,20 @@ func renderEverywhere(window *gterm.Window) {
 	}
 }
 
+func quitHandler(event sdl.Event) {
+	switch e := event.(type) {
+	case *sdl.KeyDownEvent:
+		switch e.Keysym.Sym {
+		case sdl.K_ESCAPE:
+			quit = true
+		}
+	case *sdl.QuitEvent:
+		quit = true
+	}
+}
+
+var quit = false
+
 func main() {
 	go http.ListenAndServe("localhost:6060", nil)
 
@@ -130,11 +144,11 @@ func main() {
 	panel := panelManager.NewPanel(10, 2, 20, 20, 1)
 	eventManager.RegisterInputHandler(panelAdjusterInputHandler(panel))
 	eventManager.RegisterInputHandler(player.handleInput)
+	eventManager.RegisterInputHandler(quitHandler)
 	eventManager.RegisterRenderHandler(getFpsHandler())
 	eventManager.RegisterRenderHandler(panelManager.HandleRender)
 	eventManager.RegisterRenderHandler(player.handleRender)
 
-	quit := false
 	for !quit {
 		window.ClearWindow()
 
