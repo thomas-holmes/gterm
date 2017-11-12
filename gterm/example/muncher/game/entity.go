@@ -1,6 +1,9 @@
 package game
 
 import (
+	"log"
+
+	"github.com/thomas-holmes/sneaker/gterm"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -34,13 +37,19 @@ func (player *Player) YPos() int {
 }
 
 func (player *Player) UpdatePosition(xPos int, yPos int) {
+	if err := player.window.ClearCell(player.xPos, player.yPos); err != nil {
+		log.Println("Failed to remove player", err)
+	}
 	player.xPos = xPos
 	player.yPos = yPos
+	player.dirty = true
 }
 
 type RenderComponent struct {
+	window      *gterm.Window
 	renderGlyph string
 	renderColor sdl.Color
+	dirty       bool
 }
 
 type Renderable interface {
@@ -48,6 +57,8 @@ type Renderable interface {
 	RenderRow() int
 	RenderGlyph() string
 	RenderColor() sdl.Color
+	ShouldRender() bool
+	Rendered()
 }
 
 // RenderCol is currently a lie, just returns world position
@@ -66,6 +77,14 @@ func (player *Player) RenderGlyph() string {
 
 func (player *Player) RenderColor() sdl.Color {
 	return player.renderColor
+}
+
+func (player *Player) ShouldRender() bool {
+	return player.dirty
+}
+
+func (player *Player) Rendered() {
+	player.dirty = false
 }
 
 type Inputtable interface {
@@ -103,11 +122,13 @@ type Player struct {
 	PositionComponent
 }
 
-func NewPlayer(xPos int, yPos int) Player {
+func NewPlayer(window *gterm.Window, xPos int, yPos int) Player {
 	player := Player{
 		RenderComponent: RenderComponent{
+			window:      window,
 			renderGlyph: "@",
 			renderColor: sdl.Color{R: 255, G: 0, B: 0, A: 0},
+			dirty:       true,
 		},
 		PositionComponent: PositionComponent{
 			xPos: xPos,

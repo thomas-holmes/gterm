@@ -193,13 +193,14 @@ func (window *Window) AddToCell(col int, row int, glyph string, fColor sdl.Color
 	return nil
 }
 
-func (window *Window) EraseCell(col, int, row int) error {
+func (window *Window) ClearCell(col int, row int) error {
+	log.Println("wat", col, row)
 	index, err := window.cellIndex(col, row)
 	if err != nil {
 		return err
 	}
 
-	window.cells[index] = make([]renderItem, 0, 0)
+	window.cells[index] = make([]renderItem, 0)
 
 	return nil
 }

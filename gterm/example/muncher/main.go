@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"path"
 
 	"github.com/thomas-holmes/sneaker/gterm"
@@ -25,7 +26,11 @@ func handleInput(event sdl.Event) {
 var red = sdl.Color{R: 255, G: 0, B: 0, A: 255}
 
 func render(window *gterm.Window, renderable game.Renderable) {
-	window.AddToCell(renderable.RenderCol(), renderable.RenderRow(), renderable.RenderGlyph(), renderable.RenderColor())
+	if renderable.ShouldRender() {
+		log.Println("Actually rendering", renderable)
+		window.AddToCell(renderable.RenderCol(), renderable.RenderRow(), renderable.RenderGlyph(), renderable.RenderColor())
+		renderable.Rendered()
+	}
 }
 
 func main() {
@@ -39,14 +44,12 @@ func main() {
 
 	window.ShouldRenderFps(true)
 
-	player := game.NewPlayer(0, 0)
+	player := game.NewPlayer(window, 0, 0)
 
 	inputtables := []game.Inputtable{&player}
 	renderables := []game.Renderable{&player}
 
 	for !quit {
-		window.ClearWindow()
-
 		if event := sdl.PollEvent(); event != nil {
 			handleInput(event)
 			for _, inputtable := range inputtables {
