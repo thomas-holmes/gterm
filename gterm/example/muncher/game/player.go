@@ -1,8 +1,6 @@
 package game
 
-import (
-	"github.com/veandco/go-sdl2/sdl"
-)
+import "github.com/veandco/go-sdl2/sdl"
 
 func (player *Player) UpdatePosition(xPos int, yPos int) {
 	player.World.ClearTile(player.XPos, player.YPos)
@@ -26,10 +24,6 @@ type Player struct {
 	YPos        int
 	RenderGlyph string
 	RenderColor sdl.Color
-}
-
-type Renderable interface {
-	Render(world *World)
 }
 
 func NewPlayer(world *World, xPos int, yPos int) Player {
