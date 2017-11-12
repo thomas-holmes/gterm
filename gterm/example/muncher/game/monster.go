@@ -15,8 +15,9 @@ type Monster struct {
 	Color sdl.Color
 }
 
-func NewMonster(xPos int, yPos int, glyph string, color sdl.Color, hp int) Monster {
+func NewMonster(id int, xPos int, yPos int, glyph string, color sdl.Color, hp int) Monster {
 	monster := Monster{
+		id:    id,
 		xPos:  xPos,
 		yPos:  yPos,
 		Glyph: glyph,

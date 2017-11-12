@@ -1,20 +1,22 @@
 package game
 
 import (
+	"log"
+
 	"github.com/veandco/go-sdl2/sdl"
 )
 
 func (player *Player) UpdatePosition(xPos int, yPos int, world *World) {
-	player.Broadcast(TileInvalidated, TileInvalidatedMessage{XPos: player.xPos, YPos: player.yPos})
 	if xPos >= 0 && xPos < world.Columns &&
 		yPos >= 0 && yPos < world.Rows &&
 		world.CanStandOnTile(xPos, yPos) {
+		oldX := player.xPos
+		oldY := player.yPos
 		player.xPos = xPos
 		player.yPos = yPos
-		player.Broadcast(TileInvalidated, TileInvalidatedMessage{XPos: player.xPos, YPos: player.yPos})
-		world.AddEntity(player)
+		player.Broadcast(MoveEntity, MoveEntityMessage{ID: player.ID(), OldX: oldX, OldY: oldY, NewX: xPos, NewY: yPos})
+		player.Broadcast(PlayerUpdate, nil)
 	}
-	player.Broadcast(PlayerUpdate, nil)
 }
 
 func (player *Player) Render(world *World) {
@@ -50,14 +52,17 @@ func (player *Player) ID() int {
 	return player.id
 }
 
-func NewPlayer(xPos int, yPos int) Player {
+func NewPlayer(id int, xPos int, yPos int) Player {
 	player := Player{
+		id:          id,
 		HP:          Health{Current: 5, Max: 5},
 		RenderGlyph: "@",
 		RenderColor: sdl.Color{R: 255, G: 0, B: 0, A: 0},
 		xPos:        xPos,
 		yPos:        yPos,
 	}
+
+	log.Printf("Made a player, %#v", player)
 	return player
 }
 

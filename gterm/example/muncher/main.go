@@ -44,10 +44,10 @@ func main() {
 
 	world := game.NewWorld(window, 40, 18)
 
-	player := game.NewPlayer(5, 5)
+	player := game.NewPlayer(world.GetNextID(), 5, 5)
 	player.Name = "Euclid"
 
-	monster := game.NewMonster(10, 10, "1", game.Green, 1)
+	monster := game.NewMonster(world.GetNextID(), 10, 10, "1", game.Green, 1)
 
 	world.BuildLevelFromMask(game.LevelMask)
 

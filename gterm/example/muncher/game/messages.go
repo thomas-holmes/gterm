@@ -7,11 +7,20 @@ type Message int
 const (
 	PlayerUpdate Message = iota
 	TileInvalidated
+	MoveEntity
 )
 
 type TileInvalidatedMessage struct {
 	XPos int
 	YPos int
+}
+
+type MoveEntityMessage struct {
+	ID   int
+	OldX int
+	OldY int
+	NewX int
+	NewY int
 }
 
 type Listener interface {

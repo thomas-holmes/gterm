@@ -8,7 +8,6 @@ import (
 )
 
 type Tile struct {
-	Contents        []Renderable
 	Dirty           bool
 	BackgroundColor sdl.Color
 	BackgroundGlyph string
@@ -30,14 +29,9 @@ func (tile Tile) RenderBackground(col int, row int, window *gterm.Window) {
 	}
 }
 
-func (tile *Tile) ClearContents() {
-	tile.Contents = tile.Contents[:0]
-	tile.Dirty = true
-}
-
-func (tile *Tile) AddRenderable(renderable Renderable) {
-	tile.Contents = append(tile.Contents, renderable)
-	tile.Dirty = true
+type Position struct {
+	XPos int
+	YPos int
 }
 
 type World struct {
@@ -48,6 +42,11 @@ type World struct {
 	Rows    int
 	Tiles   []Tile
 	Dirty   bool
+
+	nextID int
+
+	renderItems map[Position][]Renderable
+	entities    map[int]Entity
 }
 
 var LevelMask = []int{
@@ -71,6 +70,11 @@ var LevelMask = []int{
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 }
 
+func (world *World) GetNextID() int {
+	world.nextID++
+	return world.nextID
+}
+
 func (world *World) BuildLevelFromMask(mask []int) {
 	for index := range mask {
 		if mask[index] == 1 {
@@ -89,7 +93,7 @@ func (world *World) BuildLevel() {
 			if row == 0 || (row == world.Rows-1) || (col == 0 || col == world.Columns-1) {
 				world.Tiles[row*world.Columns+col].BackgroundGlyph = "#"
 				world.Tiles[row*world.Columns+col].Wall = true
-				world.Tiles[row*world.Columns+col].BackgroundColor = sdl.Color{R: 225, G: 225, B: 225, A: 255}
+
 				world.Tiles[row*world.Columns+col].Dirty = true
 			}
 		}
@@ -108,16 +112,14 @@ func (world *World) CanStandOnTile(column int, row int) bool {
 	return !world.GetTile(column, row).Wall
 }
 
-func (world *World) ClearTile(column int, row int) {
-	world.GetTile(column, row).ClearContents()
-}
-
 func (world *World) DirtyTile(column int, row int) {
 	world.GetTile(column, row).Dirty = true
 }
 
-func (world *World) AddRenderableToTile(column int, row int, renderable Renderable) {
-	world.GetTile(column, row).AddRenderable(renderable)
+func (world *World) AddRenderable(renderable Renderable) {
+	pos := Position{XPos: renderable.XPos(), YPos: renderable.YPos()}
+	slice := world.renderItems[pos]
+	world.renderItems[pos] = append(slice, renderable)
 }
 
 func (world *World) AddEntity(e Entity) {
@@ -129,33 +131,66 @@ func (world *World) AddEntity(e Entity) {
 
 	switch actual := e.(type) {
 	case Renderable:
-		log.Println("Got a player", actual)
-		world.AddRenderableToTile(actual.XPos(), actual.YPos(), actual)
+		world.AddRenderable(actual)
 	}
 }
 
 func (world *World) Render() {
 	for row := 0; row < world.Rows; row++ {
 		for col := 0; col < world.Columns; col++ {
-			tile := &world.Tiles[world.TileIndex(col, row)]
+			tile := world.GetTile(col, row)
 			if tile.Dirty {
-				world.Window.ClearCell(col, row)
-				tile.RenderBackground(col, row, world.Window)
-				for _, renderable := range tile.Contents {
-					renderable.Render(world)
+				pos := Position{XPos: col, YPos: row}
+				tile.RenderBackground(col, row, world.Window) // bad API, refactor
+				items := world.renderItems[pos]
+				for _, item := range items {
+					item.Render(world)
 				}
 				tile.Dirty = false
 			}
 		}
 	}
-	world.Dirty = false
+}
+func (world *World) MoveRenderable(message MoveEntityMessage) {
+	log.Printf("Got MoveEntity %v", message)
+	world.GetTile(message.OldX, message.OldY).Dirty = true
+	oldPos := Position{XPos: message.OldX, YPos: message.OldY}
+	slice := world.renderItems[oldPos]
+	foundIndex := -1
+	var foundItem Renderable
+	for index, item := range slice {
+		if item.ID() == message.ID {
+			foundIndex = index
+			foundItem = item
+			break
+		}
+	}
+	if foundIndex != -1 {
+		newSlice := append(slice[:foundIndex], slice[foundIndex+1:]...)
+		world.renderItems[oldPos] = newSlice
+	}
+
+	newPos := Position{XPos: message.NewX, YPos: message.NewY}
+	newSlice := world.renderItems[newPos]
+	newSlice = append(newSlice, foundItem)
+	world.renderItems[newPos] = newSlice
+
+	world.GetTile(message.NewX, message.NewY).Dirty = true
+	world.Window.ClearCell(message.OldX, message.OldY)
+	world.Window.ClearCell(message.NewX, message.NewY)
 }
 
 func (world *World) Notify(message Message, data interface{}) {
 	switch message {
 	case TileInvalidated:
 		if d, ok := data.(TileInvalidatedMessage); ok {
-			world.ClearTile(d.XPos, d.YPos)
+			log.Printf("Got invalidation %v", d)
+			tile := world.GetTile(d.XPos, d.YPos)
+			tile.Dirty = true
+		}
+	case MoveEntity:
+		if d, ok := data.(MoveEntityMessage); ok {
+			world.MoveRenderable(d)
 		}
 	}
 }
@@ -167,11 +202,13 @@ func NewWorld(window *gterm.Window, columns int, rows int) World {
 	}
 
 	world := World{
-		Window:  window,
-		Columns: columns,
-		Rows:    rows,
-		Dirty:   true,
-		Tiles:   tiles,
+		Window:      window,
+		Columns:     columns,
+		Rows:        rows,
+		Dirty:       true,
+		Tiles:       tiles,
+		renderItems: make(map[Position][]Renderable),
+		entities:    make(map[int]Entity),
 	}
 
 	world.MessageBus.Subscribe(&world)
