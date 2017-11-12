@@ -51,6 +51,8 @@ func main() {
 
 	hud := game.NewHud(&player, &world, 60, 0)
 
+	world.AddEntity(&player)
+
 	monster := game.Monster{
 		XPos:  10,
 		YPos:  10,

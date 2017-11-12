@@ -4,7 +4,13 @@ type Message int
 
 const (
 	PlayerUpdate Message = iota
+	TileInvalidated
 )
+
+type TileInvalidatedMessage struct {
+	XPos int
+	YPos int
+}
 
 type Listener interface {
 	Notify(message Message, data interface{})

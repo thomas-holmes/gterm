@@ -49,7 +49,7 @@ func (hud HUD) renderPlayerName(world *World) {
 
 func (hud HUD) renderPlayerPosition(world *World) {
 	world.Window.ClearCell(hud.XPos, hud.YPos+1)
-	position := fmt.Sprintf("(%v, %v)", hud.Player.XPos, hud.Player.YPos)
+	position := fmt.Sprintf("(%v, %v)", hud.Player.xPos, hud.Player.yPos)
 	world.Window.AddToCell(hud.XPos, hud.YPos+1, position, Yellow)
 }
 

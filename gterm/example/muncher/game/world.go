@@ -120,6 +120,15 @@ func (world *World) AddRenderableToTile(column int, row int, renderable Renderab
 	world.GetTile(column, row).AddRenderable(renderable)
 }
 
+func (world *World) AddEntity(e Entity) {
+	log.Printf("%#v %T", e, e)
+	switch actual := e.(type) {
+	case Renderable:
+		log.Println("Got a player", actual)
+		world.AddRenderableToTile(actual.XPos(), actual.YPos(), actual)
+	}
+}
+
 func (world *World) Render() {
 	for row := 0; row < world.Rows; row++ {
 		for col := 0; col < world.Columns; col++ {
