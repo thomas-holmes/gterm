@@ -109,7 +109,16 @@ func (world *World) GetTile(column int, row int) *Tile {
 }
 
 func (world *World) CanStandOnTile(column int, row int) bool {
-	return !world.GetTile(column, row).Wall
+	pos := Position{XPos: column, YPos: row}
+	renderItems := world.renderItems[pos]
+	canStandOn := true
+	for _, item := range renderItems {
+		if _, ok := item.(*Monster); ok {
+			canStandOn = false
+			break
+		}
+	}
+	return canStandOn && !world.GetTile(column, row).Wall
 }
 
 func (world *World) DirtyTile(column int, row int) {
