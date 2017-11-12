@@ -42,8 +42,11 @@ func main() {
 	world := game.NewWorld(window, 40, 18)
 
 	player := game.NewPlayer(&world, 5, 5)
+	player.Name = "Euclid"
 
 	world.BuildLevelFromMask(game.LevelMask)
+
+	hud := game.NewHud(&player, &world, 60, 0)
 
 	for !quit {
 		if event := sdl.PollEvent(); event != nil {
@@ -51,6 +54,8 @@ func main() {
 			player.HandleInput(event)
 		}
 		world.Render()
+
+		hud.Render(&world)
 
 		window.Render()
 	}

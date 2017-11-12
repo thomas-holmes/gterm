@@ -41,7 +41,9 @@ func (tile *Tile) AddRenderable(renderable Renderable) {
 }
 
 type World struct {
-	Window  *gterm.Window
+	Window     *gterm.Window
+	MessageBus MessageBus
+
 	Columns int
 	Rows    int
 	Tiles   []Tile

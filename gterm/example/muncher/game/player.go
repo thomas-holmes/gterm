@@ -11,6 +11,7 @@ func (player *Player) UpdatePosition(xPos int, yPos int) {
 		player.YPos = yPos
 	}
 	player.World.AddRenderableToTile(player.XPos, player.YPos, player)
+	player.World.MessageBus.Broadcast(PlayerUpdate, nil)
 }
 
 func (player *Player) Render(world *World) {
@@ -20,6 +21,7 @@ func (player *Player) Render(world *World) {
 // Player pepresents the player
 type Player struct {
 	World       *World
+	Name        string
 	XPos        int
 	YPos        int
 	RenderGlyph string
