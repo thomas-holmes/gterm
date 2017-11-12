@@ -1,5 +1,7 @@
 package game
 
+import "log"
+
 type Message int
 
 const (
@@ -14,6 +16,32 @@ type TileInvalidatedMessage struct {
 
 type Listener interface {
 	Notify(message Message, data interface{})
+}
+
+type Messaging struct {
+	messageBus *MessageBus
+}
+
+type Notifier interface {
+	SetMessageBus(messageBus *MessageBus)
+	RemoveMessageBus()
+	Broadcast(message Message, data interface{})
+}
+
+func (messaging *Messaging) SetMessageBus(messageBus *MessageBus) {
+	messaging.messageBus = messageBus
+}
+
+func (messaging *Messaging) Broadcast(message Message, data interface{}) {
+	if messaging.messageBus != nil {
+		messaging.messageBus.Broadcast(message, data)
+	} else {
+		log.Printf("Debug, no message bus for message [%v] data [%v]", message, data)
+	}
+}
+
+func (messaging *Messaging) RemoveMessageBus() {
+	messaging.messageBus = nil
 }
 
 type MessageBus struct {

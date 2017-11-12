@@ -122,6 +122,11 @@ func (world *World) AddRenderableToTile(column int, row int, renderable Renderab
 
 func (world *World) AddEntity(e Entity) {
 	log.Printf("%#v %T", e, e)
+
+	if n, ok := e.(Notifier); ok {
+		n.SetMessageBus(&world.MessageBus)
+	}
+
 	switch actual := e.(type) {
 	case Renderable:
 		log.Println("Got a player", actual)
@@ -146,6 +151,15 @@ func (world *World) Render() {
 	world.Dirty = false
 }
 
+func (world *World) Notify(message Message, data interface{}) {
+	switch message {
+	case TileInvalidated:
+		if d, ok := data.(TileInvalidatedMessage); ok {
+			world.ClearTile(d.XPos, d.YPos)
+		}
+	}
+}
+
 func NewWorld(window *gterm.Window, columns int, rows int) World {
 	tiles := make([]Tile, columns*rows, columns*rows)
 	for index := range tiles {
@@ -159,6 +173,8 @@ func NewWorld(window *gterm.Window, columns int, rows int) World {
 		Dirty:   true,
 		Tiles:   tiles,
 	}
+
+	world.MessageBus.Subscribe(&world)
 
 	return world
 }
