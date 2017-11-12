@@ -29,9 +29,16 @@ type Window struct {
 }
 
 type renderItem struct {
-	FColor sdl.Color
-	BColor sdl.Color
-	Glyph  string
+	FColor  sdl.Color
+	Glyph   string
+	Texture *sdl.Texture
+}
+
+func (renderItem *renderItem) Destroy() {
+	if renderItem.Texture != nil {
+		renderItem.Texture.Destroy()
+		renderItem.Texture = nil
+	}
 }
 
 // NewWindow constructs a window
@@ -139,21 +146,23 @@ func (window *Window) renderCell(col int, row int) error {
 		H: int32(window.tileHeightPixel),
 	}
 
-	for _, renderItem := range renderItems {
+	for index := range renderItems {
+		renderItem := &renderItems[index]
 		// surface, err := window.font.RenderUTF8_Blended(renderItem.Glyph, renderItem.FColor)
-		surface, err := window.font.RenderUTF8_Solid(renderItem.Glyph, renderItem.FColor)
-		if err != nil {
-			return err
-		}
-		defer surface.Free()
+		if renderItem.Texture == nil {
+			surface, err := window.font.RenderUTF8_Solid(renderItem.Glyph, renderItem.FColor)
+			if err != nil {
+				return err
+			}
+			defer surface.Free()
 
-		texture, err := window.SdlRenderer.CreateTextureFromSurface(surface)
-		if err != nil {
-			return err
+			texture, err := window.SdlRenderer.CreateTextureFromSurface(surface)
+			if err != nil {
+				return err
+			}
+			renderItem.Texture = texture
 		}
-		defer texture.Destroy()
-
-		_, _, width, height, err := texture.Query()
+		_, _, width, height, err := renderItem.Texture.Query()
 		if err != nil {
 			return err
 		}
@@ -162,7 +171,7 @@ func (window *Window) renderCell(col int, row int) error {
 		destinationRect.H = height
 
 		// log.Println(destinationRect)
-		err = window.SdlRenderer.Copy(texture, nil, &destinationRect)
+		err = window.SdlRenderer.Copy(renderItem.Texture, nil, &destinationRect)
 		if err != nil {
 			return err
 		}
@@ -194,13 +203,15 @@ func (window *Window) AddToCell(col int, row int, glyph string, fColor sdl.Color
 }
 
 func (window *Window) ClearCell(col int, row int) error {
-	log.Println("wat", col, row)
 	index, err := window.cellIndex(col, row)
 	if err != nil {
 		return err
 	}
 
-	window.cells[index] = make([]renderItem, 0)
+	for _, item := range window.cells[index] {
+		item.Destroy()
+	}
+	window.cells[index] = window.cells[index][:0]
 
 	return nil
 }

@@ -27,9 +27,7 @@ var red = sdl.Color{R: 255, G: 0, B: 0, A: 255}
 
 func render(window *gterm.Window, renderable game.Renderable) {
 	if renderable.ShouldRender() {
-		log.Println("Actually rendering", renderable)
-		window.AddToCell(renderable.RenderCol(), renderable.RenderRow(), renderable.RenderGlyph(), renderable.RenderColor())
-		renderable.Rendered()
+		renderable.Render(window)
 	}
 }
 
@@ -49,6 +47,7 @@ func main() {
 	inputtables := []game.Inputtable{&player}
 	renderables := []game.Renderable{&player}
 
+	renderEverywhere(window)
 	for !quit {
 		if event := sdl.PollEvent(); event != nil {
 			handleInput(event)
@@ -62,5 +61,16 @@ func main() {
 		}
 
 		window.Render()
+	}
+}
+
+func renderEverywhere(window *gterm.Window) {
+	for row := 0; row < window.Rows; row++ {
+		for col := 0; col < window.Columns; col++ {
+			err := window.AddToCell(col, row, "X", sdl.Color{R: 115, G: 115, B: 115, A: 255})
+			if err != nil {
+				log.Fatalln(err)
+			}
+		}
 	}
 }

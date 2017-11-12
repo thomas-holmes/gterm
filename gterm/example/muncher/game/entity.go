@@ -53,37 +53,16 @@ type RenderComponent struct {
 }
 
 type Renderable interface {
-	RenderCol() int
-	RenderRow() int
-	RenderGlyph() string
-	RenderColor() sdl.Color
 	ShouldRender() bool
-	Rendered()
-}
-
-// RenderCol is currently a lie, just returns world position
-func (player *Player) RenderCol() int {
-	return player.xPos
-}
-
-// RenderRow is currently a lie, just returns world position
-func (player *Player) RenderRow() int {
-	return player.yPos
-}
-
-func (player *Player) RenderGlyph() string {
-	return player.renderGlyph
-}
-
-func (player *Player) RenderColor() sdl.Color {
-	return player.renderColor
+	Render(window *gterm.Window)
 }
 
 func (player *Player) ShouldRender() bool {
 	return player.dirty
 }
 
-func (player *Player) Rendered() {
+func (player *Player) Render(window *gterm.Window) {
+	window.AddToCell(player.xPos, player.yPos, player.renderGlyph, player.renderColor)
 	player.dirty = false
 }
 
