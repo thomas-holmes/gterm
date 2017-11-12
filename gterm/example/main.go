@@ -127,7 +127,7 @@ var quit = false
 func main() {
 	go http.ListenAndServe("localhost:6060", nil)
 
-	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16)
+	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16, 0)
 
 	if err := window.Init(); err != nil {
 		log.Fatal(err)
