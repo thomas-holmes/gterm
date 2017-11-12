@@ -47,23 +47,14 @@ func main() {
 	player := game.NewPlayer(&world, 5, 5)
 	player.Name = "Euclid"
 
+	monster := game.NewMonster(10, 10, "1", game.Green, 1)
+
 	world.BuildLevelFromMask(game.LevelMask)
 
 	hud := game.NewHud(&player, &world, 60, 0)
 
 	world.AddEntity(&player)
-
-	monster := game.Monster{
-		XPos:  10,
-		YPos:  10,
-		Glyph: "1",
-		Color: game.Green,
-		HP: game.Health{
-			Current: 1,
-			Max:     1,
-		},
-		Dirty: true,
-	}
+	world.AddEntity(&monster)
 
 	for !quit {
 		if event := sdl.PollEvent(); event != nil {
@@ -73,8 +64,6 @@ func main() {
 		world.Render()
 
 		hud.Render(&world)
-
-		monster.Render(&world)
 
 		window.Render()
 	}
