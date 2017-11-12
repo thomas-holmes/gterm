@@ -2,7 +2,6 @@ package game
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -38,18 +37,55 @@ func (hud *HUD) Notify(message Message, data interface{}) {
 	}
 }
 
-var YELLOW = sdl.Color{R: 255, G: 255, B: 0, A: 255}
+var Green = sdl.Color{R: 0, G: 255, B: 0, A: 255}
+var Yellow = sdl.Color{R: 255, G: 255, B: 0, A: 255}
+var Orange = sdl.Color{R: 255, G: 192, B: 0, A: 255}
+var Red = sdl.Color{R: 255, G: 0, B: 0, A: 255}
+
+func (hud HUD) renderPlayerName(world *World) {
+	world.Window.ClearCell(hud.XPos, hud.YPos)
+	world.Window.AddToCell(hud.XPos, hud.YPos, hud.Player.Name, Yellow)
+}
+
+func (hud HUD) renderPlayerPosition(world *World) {
+	world.Window.ClearCell(hud.XPos, hud.YPos+1)
+	position := fmt.Sprintf("(%v, %v)", hud.Player.XPos, hud.Player.YPos)
+	world.Window.AddToCell(hud.XPos, hud.YPos+1, position, Yellow)
+}
+
+func playerHealthPercentage(player Player) float32 {
+	current := float32(player.HP.Current)
+	max := float32(player.HP.Max)
+	return current / max
+}
+
+func (hud HUD) renderPlayerHealth(world *World) {
+	world.Window.ClearCell(hud.XPos, hud.YPos+2)
+
+	hpColor := Red
+
+	pct := playerHealthPercentage(*hud.Player)
+	switch {
+	case pct >= 0.8:
+		hpColor = Green
+	case pct >= 0.6:
+		hpColor = Yellow
+	case pct >= 0.4:
+		hpColor = Orange
+	default:
+		hpColor = Red
+	}
+
+	hp := fmt.Sprintf("%v/%v", hud.Player.HP.Current, hud.Player.HP.Max)
+
+	world.Window.AddToCell(hud.XPos, hud.YPos+2, hp, hpColor)
+}
 
 func (hud *HUD) Render(world *World) {
 	if hud.Dirty {
-		log.Println("Hud is dirty")
-		world.Window.ClearCell(hud.XPos, hud.YPos)
-		world.Window.ClearCell(hud.XPos, hud.YPos+1)
-
-		world.Window.AddToCell(hud.XPos, hud.YPos, hud.Player.Name, YELLOW)
-
-		position := fmt.Sprintf("(%v, %v)", hud.Player.XPos, hud.Player.YPos)
-		world.Window.AddToCell(hud.XPos, hud.YPos+1, position, YELLOW)
+		hud.renderPlayerName(world)
+		hud.renderPlayerPosition(world)
+		hud.renderPlayerHealth(world)
 
 		hud.Dirty = false
 	}

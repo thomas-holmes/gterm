@@ -1,7 +1,5 @@
 package game
 
-import "log"
-
 type Message int
 
 const (
@@ -23,7 +21,6 @@ func (messageBus *MessageBus) Subscribe(listener Listener) {
 // Broadcast notifie all listeners. This is synchronous.
 func (messageBus MessageBus) Broadcast(message Message, data interface{}) {
 	for _, listener := range messageBus.Listeners {
-		log.Println("Broadcasting to", listener)
 		listener.Notify(message, data)
 	}
 }

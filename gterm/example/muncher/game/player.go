@@ -18,9 +18,15 @@ func (player *Player) Render(world *World) {
 	world.Window.AddToCell(player.XPos, player.YPos, player.RenderGlyph, player.RenderColor)
 }
 
+type Health struct {
+	Current int
+	Max     int
+}
+
 // Player pepresents the player
 type Player struct {
 	World       *World
+	HP          Health
 	Name        string
 	XPos        int
 	YPos        int
@@ -31,6 +37,7 @@ type Player struct {
 func NewPlayer(world *World, xPos int, yPos int) Player {
 	player := Player{
 		World:       world,
+		HP:          Health{Current: 5, Max: 5},
 		RenderGlyph: "@",
 		RenderColor: sdl.Color{R: 255, G: 0, B: 0, A: 0},
 		XPos:        xPos,
@@ -40,6 +47,36 @@ func NewPlayer(world *World, xPos int, yPos int) Player {
 	world.AddRenderableToTile(xPos, yPos, &player)
 
 	return player
+}
+
+func max(a int, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+func min(a int, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+func (player *Player) Damage(amount int) {
+	amount = max(amount, 0)
+
+	newHp := max(player.HP.Current-amount, 0)
+	player.HP.Current = newHp
+
+	player.World.MessageBus.Broadcast(PlayerUpdate, nil)
+}
+
+func (player *Player) Heal(amount int) {
+	amount = max(amount, 0)
+
+	newHp := min(player.HP.Current+amount, player.HP.Max)
+	player.HP.Current = newHp
+
+	player.World.MessageBus.Broadcast(PlayerUpdate, nil)
 }
 
 // HandleInput updates player position based on user input
@@ -63,6 +100,10 @@ func (player *Player) HandleInput(event sdl.Event) {
 			player.UpdatePosition(player.XPos-1, player.YPos-1)
 		case sdl.K_u:
 			player.UpdatePosition(player.XPos+1, player.YPos-1)
+		case sdl.K_1:
+			player.Damage(1)
+		case sdl.K_2:
+			player.Heal(1)
 		}
 	}
 }
