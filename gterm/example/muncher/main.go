@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"path"
 
 	"github.com/thomas-holmes/sneaker/gterm"
@@ -25,12 +24,6 @@ func handleInput(event sdl.Event) {
 
 var red = sdl.Color{R: 255, G: 0, B: 0, A: 255}
 
-func render(window *gterm.Window, renderable game.Renderable) {
-	if renderable.ShouldRender() {
-		renderable.Render(window)
-	}
-}
-
 func main() {
 	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16)
 
@@ -42,35 +35,19 @@ func main() {
 
 	window.ShouldRenderFps(true)
 
-	player := game.NewPlayer(window, 0, 0)
+	world := game.NewWorld(window, 40, 18)
 
-	inputtables := []game.Inputtable{&player}
-	renderables := []game.Renderable{&player}
+	player := game.NewPlayer(&world, 5, 5)
 
-	renderEverywhere(window)
+	world.BuildLevelFromMask(game.LevelMask)
+
 	for !quit {
 		if event := sdl.PollEvent(); event != nil {
 			handleInput(event)
-			for _, inputtable := range inputtables {
-				inputtable.HandleInput(event)
-			}
+			player.HandleInput(event)
 		}
-
-		for _, renderable := range renderables {
-			render(window, renderable)
-		}
+		world.Render()
 
 		window.Render()
-	}
-}
-
-func renderEverywhere(window *gterm.Window) {
-	for row := 0; row < window.Rows; row++ {
-		for col := 0; col < window.Columns; col++ {
-			err := window.AddToCell(col, row, "X", sdl.Color{R: 115, G: 115, B: 115, A: 255})
-			if err != nil {
-				log.Fatalln(err)
-			}
-		}
 	}
 }
