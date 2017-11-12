@@ -26,6 +26,8 @@ type Window struct {
 	backgroundColor sdl.Color
 	cells           [][]renderItem
 	fps             fpsCounter
+	fpsLimit        int
+	drawInterval    uint32
 }
 
 type renderItem struct {
@@ -42,17 +44,23 @@ func (renderItem *renderItem) Destroy() {
 }
 
 // NewWindow constructs a window
-func NewWindow(columns int, rows int, fontPath string, fontSize int) *Window {
+func NewWindow(columns int, rows int, fontPath string, fontSize int, fpsLimit int) *Window {
 
 	numCells := columns * rows
 	cells := make([][]renderItem, numCells, numCells)
+	drawInterval := uint32(0)
+	if fpsLimit != 0 {
+		drawInterval = uint32(1000 / fpsLimit)
+	}
 
 	window := &Window{
-		Columns:  columns,
-		Rows:     rows,
-		FontSize: fontSize,
-		fontPath: fontPath,
-		cells:    cells,
+		Columns:      columns,
+		Rows:         rows,
+		FontSize:     fontSize,
+		fontPath:     fontPath,
+		cells:        cells,
+		fpsLimit:     fpsLimit,
+		drawInterval: drawInterval,
 	}
 
 	return window
@@ -282,7 +290,6 @@ func (fps *fpsCounter) MaybeRender(window *Window) {
 }
 
 var lastDraw = sdl.GetTicks()
-var drawInterval = uint32(1000 / 144)
 
 func min(a uint32, b uint32) uint32 {
 	if a < b {
@@ -303,12 +310,11 @@ func (window *Window) Render() {
 
 	window.SdlRenderer.Present()
 
-	/* Software Vsync
-	nowTicks := sdl.GetTicks()
-	if lastDraw < (nowTicks - drawInterval) {
-		delay := drawInterval - min(0, (nowTicks-lastDraw))
-		sdl.Delay(delay)
+	if window.fpsLimit > 0 {
+		nowTicks := sdl.GetTicks()
+		if lastDraw < (nowTicks - window.drawInterval) {
+			delay := window.drawInterval - min(0, (nowTicks-lastDraw))
+			sdl.Delay(delay)
+		}
 	}
-	*/
-
 }

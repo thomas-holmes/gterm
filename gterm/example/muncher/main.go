@@ -6,6 +6,9 @@ import (
 	"github.com/thomas-holmes/sneaker/gterm"
 	"github.com/thomas-holmes/sneaker/gterm/example/muncher/game"
 	"github.com/veandco/go-sdl2/sdl"
+
+	"net/http"
+	_ "net/http/pprof"
 )
 
 var quit = false
@@ -25,7 +28,8 @@ func handleInput(event sdl.Event) {
 var red = sdl.Color{R: 255, G: 0, B: 0, A: 255}
 
 func main() {
-	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16)
+	// Disable FPS limit, generally, so I can monitor performance.
+	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16, 0)
 
 	window.Init()
 
@@ -50,4 +54,8 @@ func main() {
 
 		window.Render()
 	}
+}
+
+func init() {
+	go http.ListenAndServe("localhost:6060", nil)
 }
