@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"path"
 
 	"github.com/thomas-holmes/sneaker/gterm"
@@ -31,7 +32,9 @@ func main() {
 	// Disable FPS limit, generally, so I can monitor performance.
 	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16, 0)
 
-	window.Init()
+	if err := window.Init(); err != nil {
+		log.Fatalln("Failed to Init() window", err)
+	}
 
 	window.SetTitle("Muncher")
 
@@ -48,6 +51,18 @@ func main() {
 
 	hud := game.NewHud(&player, &world, 60, 0)
 
+	monster := game.Monster{
+		XPos:  10,
+		YPos:  10,
+		Glyph: "1",
+		Color: game.Green,
+		HP: game.Health{
+			Current: 1,
+			Max:     1,
+		},
+		Dirty: true,
+	}
+
 	for !quit {
 		if event := sdl.PollEvent(); event != nil {
 			handleInput(event)
@@ -56,6 +71,8 @@ func main() {
 		world.Render()
 
 		hud.Render(&world)
+
+		monster.Render(&world)
 
 		window.Render()
 	}

@@ -105,7 +105,7 @@ func renderEverywhere(window *gterm.Window) {
 	for row := 0; row < window.Rows; row++ {
 		err := window.AddToCell(0, row, strings.Repeat(".", window.Columns), sdl.Color{R: 115, G: 115, B: 115, A: 255})
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatalln("Failed to render everywhere", err)
 		}
 	}
 }

@@ -2,3 +2,4 @@
 *.prof
 *.out
 .vscode/
+debug
