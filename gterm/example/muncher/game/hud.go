@@ -53,18 +53,12 @@ func (hud HUD) renderPlayerPosition(world *World) {
 	world.Window.AddToCell(hud.XPos, hud.YPos+1, position, Yellow)
 }
 
-func playerHealthPercentage(player Player) float32 {
-	current := float32(player.HP.Current)
-	max := float32(player.HP.Max)
-	return current / max
-}
-
 func (hud HUD) renderPlayerHealth(world *World) {
 	world.Window.ClearCell(hud.XPos, hud.YPos+2)
 
 	hpColor := Red
 
-	pct := playerHealthPercentage(*hud.Player)
+	pct := hud.Player.HealthPercentage()
 	switch {
 	case pct >= 0.8:
 		hpColor = Green

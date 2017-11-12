@@ -48,19 +48,12 @@ func NewPlayer(world *World, xPos int, yPos int) Player {
 
 	return player
 }
+func (player Player) HealthPercentage() float32 {
+	current := float32(player.HP.Current)
+	max := float32(player.HP.Max)
+	return current / max
+}
 
-func max(a int, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-func min(a int, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
 func (player *Player) Damage(amount int) {
 	amount = max(amount, 0)
 
