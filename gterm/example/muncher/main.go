@@ -57,10 +57,12 @@ func main() {
 	world.AddEntity(&monster)
 
 	for !quit {
-		if event := sdl.PollEvent(); event != nil {
-			handleInput(event)
-			player.HandleInput(event, &world)
-		}
+		event := sdl.PollEvent()
+
+		handleInput(event)
+
+		world.HandleInput(event)
+
 		world.Render()
 
 		hud.Render(&world)

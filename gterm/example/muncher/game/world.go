@@ -125,6 +125,19 @@ func (world *World) DirtyTile(column int, row int) {
 	world.GetTile(column, row).Dirty = true
 }
 
+func (world *World) HandleInput(event sdl.Event) {
+	// TODO: Do better here, we should check keyboard/mouse/modifier/etc... state
+	if event != nil {
+		log.Println("An event?", event)
+		for _, entity := range world.entities {
+			log.Println("WE GOT ENTITIES BOI", entity)
+			if inputtable, ok := entity.(Inputtable); ok {
+				inputtable.HandleInput(event, world)
+			}
+		}
+	}
+}
+
 func (world *World) AddRenderable(renderable Renderable) {
 	pos := Position{XPos: renderable.XPos(), YPos: renderable.YPos()}
 	slice := world.renderItems[pos]
@@ -142,6 +155,8 @@ func (world *World) AddEntity(e Entity) {
 	case Renderable:
 		world.AddRenderable(actual)
 	}
+
+	world.entities[e.ID()] = e
 }
 
 func (world *World) Render() {
