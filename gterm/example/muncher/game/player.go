@@ -32,6 +32,7 @@ type Health struct {
 type Player struct {
 	id          int
 	HP          Health
+	Level       int
 	Name        string
 	xPos        int
 	yPos        int
@@ -56,6 +57,7 @@ func NewPlayer(id int, xPos int, yPos int) Player {
 	player := Player{
 		id:          id,
 		HP:          Health{Current: 5, Max: 5},
+		Level:       1,
 		RenderGlyph: "@",
 		RenderColor: sdl.Color{R: 255, G: 0, B: 0, A: 0},
 		xPos:        xPos,

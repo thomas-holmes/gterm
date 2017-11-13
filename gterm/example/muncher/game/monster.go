@@ -2,6 +2,7 @@ package game
 
 import (
 	"log"
+	"strconv"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -11,21 +12,22 @@ type Monster struct {
 	xPos  int
 	yPos  int
 	HP    Health
+	Level int
 	Glyph string
 	Color sdl.Color
 }
 
-func NewMonster(id int, xPos int, yPos int, glyph string, color sdl.Color, hp int) Monster {
+func NewMonster(id int, xPos int, yPos int, level int, color sdl.Color, hp int) Monster {
 	monster := Monster{
 		id:    id,
 		xPos:  xPos,
 		yPos:  yPos,
-		Glyph: glyph,
 		Color: color,
 		HP: Health{
 			Current: hp,
 			Max:     hp,
 		},
+		Level: level,
 	}
 
 	return monster
@@ -49,7 +51,8 @@ func (monster *Monster) UpdatePosition(xPos int, yPos int) {
 }
 
 func (monster *Monster) Render(world *World) {
-	if err := world.Window.AddToCell(monster.xPos, monster.yPos, monster.Glyph, monster.Color); err != nil {
+	glyph := strconv.Itoa(monster.Level)
+	if err := world.Window.AddToCell(monster.xPos, monster.yPos, glyph, monster.Color); err != nil {
 		log.Println("Failed to render monster", monster)
 	}
 }
