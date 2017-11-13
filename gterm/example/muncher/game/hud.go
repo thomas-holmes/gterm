@@ -63,6 +63,9 @@ func (hud HUD) renderPlayerHealth(world *World) {
 	}
 
 	hp := fmt.Sprintf("%v/%v", hud.Player.HP.Current, hud.Player.HP.Max)
+	if hud.Player.HP.Current == 0 {
+		hp += " *DEAD*"
+	}
 
 	world.Window.AddToCell(hud.XPos, hud.YPos+2, hp, hpColor)
 }
