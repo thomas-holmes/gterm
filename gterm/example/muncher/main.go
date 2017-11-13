@@ -30,7 +30,7 @@ var red = sdl.Color{R: 255, G: 0, B: 0, A: 255}
 
 func main() {
 	// Disable FPS limit, generally, so I can monitor performance.
-	window := gterm.NewWindow(150, 60, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16, 0)
+	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16, 0)
 
 	if err := window.Init(); err != nil {
 		log.Fatalln("Failed to Init() window", err)

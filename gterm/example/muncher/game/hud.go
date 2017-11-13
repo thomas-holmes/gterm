@@ -2,8 +2,6 @@ package game
 
 import (
 	"fmt"
-
-	"github.com/veandco/go-sdl2/sdl"
 )
 
 type HUD struct {
@@ -36,12 +34,6 @@ func (hud *HUD) Notify(message Message, data interface{}) {
 		hud.Dirty = true
 	}
 }
-
-var Green = sdl.Color{R: 0, G: 255, B: 0, A: 255}
-var Yellow = sdl.Color{R: 255, G: 255, B: 0, A: 255}
-var Orange = sdl.Color{R: 255, G: 192, B: 0, A: 255}
-var Red = sdl.Color{R: 255, G: 0, B: 0, A: 255}
-
 func (hud HUD) renderPlayerName(world *World) {
 	world.Window.ClearCell(hud.XPos, hud.YPos)
 	world.Window.AddToCell(hud.XPos, hud.YPos, hud.Player.Name, Yellow)
@@ -51,6 +43,12 @@ func (hud HUD) renderPlayerPosition(world *World) {
 	world.Window.ClearCell(hud.XPos, hud.YPos+1)
 	position := fmt.Sprintf("(%v, %v)", hud.Player.xPos, hud.Player.yPos)
 	world.Window.AddToCell(hud.XPos, hud.YPos+1, position, Yellow)
+}
+
+func (hud HUD) renderPlayerLevel(world *World) {
+	world.Window.ClearCell(hud.XPos, hud.YPos+2)
+	level := fmt.Sprintf("Level: %v", hud.Player.Level)
+	world.Window.AddToCell(hud.XPos, hud.YPos+2, level, Yellow)
 }
 
 func (hud HUD) renderPlayerHealth(world *World) {
@@ -80,6 +78,7 @@ func (hud *HUD) Render(world *World) {
 		hud.renderPlayerName(world)
 		hud.renderPlayerPosition(world)
 		hud.renderPlayerHealth(world)
+		hud.renderPlayerLevel(world)
 
 		hud.Dirty = false
 	}
