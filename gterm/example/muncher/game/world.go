@@ -108,17 +108,31 @@ func (world *World) GetTile(column int, row int) *Tile {
 	return tile
 }
 
-func (world *World) CanStandOnTile(column int, row int) bool {
+func (world *World) GetMonsterAtTile(column int, row int) *Monster {
 	pos := Position{XPos: column, YPos: row}
 	renderItems := world.renderItems[pos]
-	canStandOn := true
 	for _, item := range renderItems {
-		if _, ok := item.(*Monster); ok {
-			canStandOn = false
-			break
+		if monster, ok := item.(*Monster); ok {
+			return monster
 		}
 	}
-	return canStandOn && !world.GetTile(column, row).Wall
+	return nil
+}
+
+func (world *World) IsTileMonster(column int, row int) bool {
+	pos := Position{XPos: column, YPos: row}
+	renderItems := world.renderItems[pos]
+	isMonster := false
+	for _, item := range renderItems {
+		if _, ok := item.(*Monster); ok {
+			isMonster = true
+		}
+	}
+	return isMonster
+}
+
+func (world *World) CanStandOnTile(column int, row int) bool {
+	return !world.GetTile(column, row).Wall && !world.IsTileMonster(column, row)
 }
 
 func (world *World) DirtyTile(column int, row int) {
@@ -173,6 +187,31 @@ func (world *World) Render() {
 		}
 	}
 }
+
+func (world *World) RemoveEntity(entity Entity) {
+	delete(world.entities, entity.ID())
+
+	if renderable, ok := entity.(Renderable); ok {
+		pos := Position{XPos: renderable.XPos(), YPos: renderable.YPos()}
+
+		slice := world.renderItems[pos]
+
+		foundIndex := -1
+		for index, candidate := range slice {
+			if candidate.ID() == renderable.ID() {
+				foundIndex = index
+				break
+			}
+		}
+
+		if foundIndex == -1 {
+			return
+		}
+
+		world.renderItems[pos] = append(slice[:foundIndex], slice[foundIndex+1:]...)
+	}
+}
+
 func (world *World) MoveRenderable(message MoveEntityMessage) {
 	log.Printf("Got MoveEntity %v", message)
 	world.GetTile(message.OldX, message.OldY).Dirty = true
@@ -207,12 +246,22 @@ func (world *World) Notify(message Message, data interface{}) {
 	case TileInvalidated:
 		if d, ok := data.(TileInvalidatedMessage); ok {
 			log.Printf("Got invalidation %v", d)
+			world.Window.ClearCell(d.XPos, d.YPos)
 			tile := world.GetTile(d.XPos, d.YPos)
 			tile.Dirty = true
 		}
 	case MoveEntity:
 		if d, ok := data.(MoveEntityMessage); ok {
 			world.MoveRenderable(d)
+		}
+	case KillMonster:
+		if d, ok := data.(KillMonsterMessage); ok {
+			monster := world.entities[d.ID]
+			if m, ok := monster.(*Monster); ok {
+				log.Println("remove an entity", m)
+				world.RemoveEntity(m)
+				world.MessageBus.Broadcast(TileInvalidated, TileInvalidatedMessage{XPos: m.XPos(), YPos: m.YPos()})
+			}
 		}
 	}
 }

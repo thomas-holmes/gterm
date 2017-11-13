@@ -28,6 +28,25 @@ func handleInput(event sdl.Event) {
 
 var red = sdl.Color{R: 255, G: 0, B: 0, A: 255}
 
+func addMonsters(world *game.World) {
+	// For some reassigning a single var keeps giving same memory address. I guess it makes sense.
+	m1 := game.NewMonster(world.GetNextID(), 10, 6, 1, game.Green, 1)
+	world.AddEntity(&m1)
+	m2 := game.NewMonster(world.GetNextID(), 10, 7, 1, game.Green, 1)
+	world.AddEntity(&m2)
+	m3 := game.NewMonster(world.GetNextID(), 10, 8, 2, game.Green, 1)
+	world.AddEntity(&m3)
+	m4 := game.NewMonster(world.GetNextID(), 10, 9, 3, game.Green, 1)
+	world.AddEntity(&m4)
+	m5 := game.NewMonster(world.GetNextID(), 10, 10, 3, game.Green, 1)
+	world.AddEntity(&m5)
+	m6 := game.NewMonster(world.GetNextID(), 10, 11, 4, game.Green, 1)
+	world.AddEntity(&m6)
+	m7 := game.NewMonster(world.GetNextID(), 10, 12, 5, game.Green, 1)
+	world.AddEntity(&m7)
+
+}
+
 func main() {
 	// Disable FPS limit, generally, so I can monitor performance.
 	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16, 0)
@@ -43,18 +62,24 @@ func main() {
 	window.ShouldRenderFps(true)
 
 	world := game.NewWorld(window, 40, 18)
+	{
+		// TODO: Roll this up into some kind of registering a system function on the world
+		combat := game.CombatSystem{}
+
+		combat.SetMessageBus(&world.MessageBus)
+		world.MessageBus.Subscribe(combat)
+	}
 
 	player := game.NewPlayer(world.GetNextID(), 5, 5)
 	player.Name = "Euclid"
 
-	monster := game.NewMonster(world.GetNextID(), 10, 10, 1, game.Green, 1)
+	addMonsters(&world)
 
 	world.BuildLevelFromMask(game.LevelMask)
 
 	hud := game.NewHud(&player, &world, 60, 0)
 
 	world.AddEntity(&player)
-	world.AddEntity(&monster)
 
 	for !quit {
 		event := sdl.PollEvent()

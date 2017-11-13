@@ -45,12 +45,6 @@ func (hud HUD) renderPlayerPosition(world *World) {
 	world.Window.AddToCell(hud.XPos, hud.YPos+1, position, Yellow)
 }
 
-func (hud HUD) renderPlayerLevel(world *World) {
-	world.Window.ClearCell(hud.XPos, hud.YPos+2)
-	level := fmt.Sprintf("Level: %v", hud.Player.Level)
-	world.Window.AddToCell(hud.XPos, hud.YPos+2, level, Yellow)
-}
-
 func (hud HUD) renderPlayerHealth(world *World) {
 	world.Window.ClearCell(hud.XPos, hud.YPos+2)
 
@@ -71,6 +65,12 @@ func (hud HUD) renderPlayerHealth(world *World) {
 	hp := fmt.Sprintf("%v/%v", hud.Player.HP.Current, hud.Player.HP.Max)
 
 	world.Window.AddToCell(hud.XPos, hud.YPos+2, hp, hpColor)
+}
+
+func (hud HUD) renderPlayerLevel(world *World) {
+	world.Window.ClearCell(hud.XPos, hud.YPos+3)
+	level := fmt.Sprintf("Level: %v", hud.Player.Level)
+	world.Window.AddToCell(hud.XPos, hud.YPos+3, level, Yellow)
 }
 
 func (hud *HUD) Render(world *World) {

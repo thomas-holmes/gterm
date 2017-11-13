@@ -15,6 +15,7 @@ type Monster struct {
 	Level int
 	Glyph string
 	Color sdl.Color
+	Messaging
 }
 
 func NewMonster(id int, xPos int, yPos int, level int, color sdl.Color, hp int) Monster {
@@ -43,6 +44,10 @@ func (monster Monster) YPos() int {
 
 func (monster Monster) ID() int {
 	return monster.id
+}
+
+func (monster *Monster) Kill() {
+	monster.Broadcast(KillMonster, KillMonsterMessage{ID: monster.ID()})
 }
 
 func (monster *Monster) UpdatePosition(xPos int, yPos int) {

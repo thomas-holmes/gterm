@@ -8,14 +8,21 @@ import (
 
 func (player *Player) UpdatePosition(xPos int, yPos int, world *World) {
 	if xPos >= 0 && xPos < world.Columns &&
-		yPos >= 0 && yPos < world.Rows &&
-		world.CanStandOnTile(xPos, yPos) {
-		oldX := player.xPos
-		oldY := player.yPos
-		player.xPos = xPos
-		player.yPos = yPos
-		player.Broadcast(MoveEntity, MoveEntityMessage{ID: player.ID(), OldX: oldX, OldY: oldY, NewX: xPos, NewY: yPos})
-		player.Broadcast(PlayerUpdate, nil)
+		yPos >= 0 && yPos < world.Rows {
+		if world.IsTileMonster(xPos, yPos) {
+			monster := world.GetMonsterAtTile(xPos, yPos)
+			player.Broadcast(PlayerAttack, PlayerAttackMessage{
+				Player:  player,
+				Monster: monster,
+			})
+		} else if world.CanStandOnTile(xPos, yPos) {
+			oldX := player.xPos
+			oldY := player.yPos
+			player.xPos = xPos
+			player.yPos = yPos
+			player.Broadcast(MoveEntity, MoveEntityMessage{ID: player.ID(), OldX: oldX, OldY: oldY, NewX: xPos, NewY: yPos})
+			player.Broadcast(PlayerUpdate, nil)
+		}
 	}
 }
 
@@ -33,12 +40,23 @@ type Player struct {
 	id          int
 	HP          Health
 	Level       int
+	Experience  int
 	Name        string
 	xPos        int
 	yPos        int
 	RenderGlyph string
 	RenderColor sdl.Color
 	Messaging
+}
+
+func (player *Player) GainExp(exp int) {
+	player.Experience += exp
+	log.Println("Got some exp", exp)
+	if player.Experience >= player.Level {
+		player.Experience -= player.Level
+		player.Level++
+		player.Broadcast(PlayerUpdate, nil)
+	}
 }
 
 func (player *Player) XPos() int {
