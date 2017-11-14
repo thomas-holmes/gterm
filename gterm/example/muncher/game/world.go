@@ -114,7 +114,8 @@ func (world *World) AddRenderable(renderable Renderable) {
 }
 
 func (world *World) AddEntity(e Entity) {
-	log.Printf("%#v %T", e, e)
+	e.SetID(world.GetNextID())
+	log.Printf("Adding entity %+v", e)
 
 	if n, ok := e.(Notifier); ok {
 		n.SetMessageBus(&world.MessageBus)
@@ -170,7 +171,7 @@ func (world *World) RemoveEntity(entity Entity) {
 }
 
 func (world *World) MoveRenderable(message MoveEntityMessage) {
-	log.Printf("Got MoveEntity %v", message)
+	log.Printf("Got MoveEntity %+v", message)
 	world.GetTile(message.OldX, message.OldY).Dirty = true
 	oldPos := Position{XPos: message.OldX, YPos: message.OldY}
 	slice := world.renderItems[oldPos]
@@ -202,7 +203,7 @@ func (world *World) Notify(message Message, data interface{}) {
 	switch message {
 	case TileInvalidated:
 		if d, ok := data.(TileInvalidatedMessage); ok {
-			log.Printf("Got invalidation %v", d)
+			log.Printf("Got invalidation %+v", d)
 			world.Window.ClearCell(d.XPos, d.YPos)
 			tile := world.GetTile(d.XPos, d.YPos)
 			tile.Dirty = true

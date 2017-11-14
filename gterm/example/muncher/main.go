@@ -30,19 +30,19 @@ var red = sdl.Color{R: 255, G: 0, B: 0, A: 255}
 
 func addMonsters(world *game.World) {
 	// For some reassigning a single var keeps giving same memory address. I guess it makes sense.
-	m1 := game.NewMonster(world.GetNextID(), 10, 6, 1, game.Green, 1)
+	m1 := game.NewMonster(10, 6, 1, game.Green, 1)
 	world.AddEntity(&m1)
-	m2 := game.NewMonster(world.GetNextID(), 10, 7, 1, game.Green, 1)
+	m2 := game.NewMonster(10, 7, 1, game.Green, 1)
 	world.AddEntity(&m2)
-	m3 := game.NewMonster(world.GetNextID(), 10, 8, 2, game.Green, 1)
+	m3 := game.NewMonster(10, 8, 2, game.Green, 1)
 	world.AddEntity(&m3)
-	m4 := game.NewMonster(world.GetNextID(), 10, 9, 3, game.Green, 1)
+	m4 := game.NewMonster(10, 9, 3, game.Green, 1)
 	world.AddEntity(&m4)
-	m5 := game.NewMonster(world.GetNextID(), 10, 10, 3, game.Green, 1)
+	m5 := game.NewMonster(10, 10, 3, game.Green, 1)
 	world.AddEntity(&m5)
-	m6 := game.NewMonster(world.GetNextID(), 10, 11, 4, game.Green, 1)
+	m6 := game.NewMonster(10, 11, 4, game.Green, 1)
 	world.AddEntity(&m6)
-	m7 := game.NewMonster(world.GetNextID(), 10, 12, 5, game.Green, 1)
+	m7 := game.NewMonster(10, 12, 5, game.Green, 1)
 	world.AddEntity(&m7)
 
 }
@@ -70,16 +70,16 @@ func main() {
 		world.MessageBus.Subscribe(combat)
 	}
 
-	player := game.NewPlayer(world.GetNextID(), 5, 5)
+	player := game.NewPlayer(5, 5)
 	player.Name = "Euclid"
+
+	world.AddEntity(&player)
 
 	addMonsters(&world)
 
 	world.BuildLevelFromMask(LevelMask)
 
 	hud := game.NewHud(&player, &world, 60, 0)
-
-	world.AddEntity(&player)
 
 	for !quit {
 		event := sdl.PollEvent()

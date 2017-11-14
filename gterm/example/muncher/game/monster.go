@@ -18,9 +18,8 @@ type Monster struct {
 	Messaging
 }
 
-func NewMonster(id int, xPos int, yPos int, level int, color sdl.Color, hp int) Monster {
+func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster {
 	monster := Monster{
-		id:    id,
 		xPos:  xPos,
 		yPos:  yPos,
 		Color: color,
@@ -44,6 +43,10 @@ func (monster Monster) YPos() int {
 
 func (monster Monster) ID() int {
 	return monster.id
+}
+
+func (monster *Monster) SetID(id int) {
+	monster.id = id
 }
 
 func (monster *Monster) Kill() {

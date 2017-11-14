@@ -56,7 +56,7 @@ func (messaging *Messaging) Broadcast(message Message, data interface{}) {
 	if messaging.messageBus != nil {
 		messaging.messageBus.Broadcast(message, data)
 	} else {
-		log.Printf("Debug, no message bus for message [%v] data [%v]", message, data)
+		log.Printf("Debug, no message bus for message [%+v] data [%+v]", message, data)
 	}
 }
 

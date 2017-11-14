@@ -67,13 +67,16 @@ func (player *Player) YPos() int {
 	return player.yPos
 }
 
-func (player *Player) ID() int {
+func (player Player) ID() int {
 	return player.id
 }
 
-func NewPlayer(id int, xPos int, yPos int) Player {
+func (player *Player) SetID(id int) {
+	player.id = id
+}
+
+func NewPlayer(xPos int, yPos int) Player {
 	player := Player{
-		id:          id,
 		HP:          Health{Current: 5, Max: 5},
 		Level:       1,
 		RenderGlyph: "@",
