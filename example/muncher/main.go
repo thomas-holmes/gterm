@@ -5,8 +5,8 @@ import (
 	"math/rand"
 	"path"
 
-	"github.com/thomas-holmes/sneaker/gterm"
-	"github.com/thomas-holmes/sneaker/gterm/example/muncher/game"
+	"github.com/thomas-holmes/gterm"
+	"github.com/thomas-holmes/gterm/example/muncher/game"
 	"github.com/veandco/go-sdl2/sdl"
 
 	"net/http"

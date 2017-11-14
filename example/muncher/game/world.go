@@ -3,7 +3,7 @@ package game
 import (
 	"log"
 
-	"github.com/thomas-holmes/sneaker/gterm"
+	"github.com/thomas-holmes/gterm"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
