@@ -22,6 +22,23 @@ func NewTile() Tile {
 	}
 }
 
+func (tile *Tile) Render(col int, row int, world *World) {
+	if !tile.Dirty {
+		return
+	}
+
+	pos := Position{XPos: col, YPos: row}
+	items := world.renderItems[pos]
+	if len(items) > 0 {
+		for _, item := range items {
+			item.Render(world)
+		}
+	} else {
+		tile.RenderBackground(col, row, world.Window) // bad API, refactor
+	}
+	tile.Dirty = false
+}
+
 func (tile Tile) RenderBackground(col int, row int, window *gterm.Window) {
 	err := window.AddToCell(col, row, tile.BackgroundGlyph, tile.BackgroundColor)
 	if err != nil {

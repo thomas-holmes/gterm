@@ -111,6 +111,7 @@ func (world *World) AddRenderable(renderable Renderable) {
 	pos := Position{XPos: renderable.XPos(), YPos: renderable.YPos()}
 	slice := world.renderItems[pos]
 	world.GetTile(pos.XPos, pos.YPos).Dirty = true
+	world.Window.ClearCell(pos.XPos, pos.YPos)
 	world.renderItems[pos] = append(slice, renderable)
 }
 
@@ -134,15 +135,7 @@ func (world *World) Render() {
 	for row := 0; row < world.Rows; row++ {
 		for col := 0; col < world.Columns; col++ {
 			tile := world.GetTile(col, row)
-			if tile.Dirty {
-				pos := Position{XPos: col, YPos: row}
-				tile.RenderBackground(col, row, world.Window) // bad API, refactor
-				items := world.renderItems[pos]
-				for _, item := range items {
-					item.Render(world)
-				}
-				tile.Dirty = false
-			}
+			tile.Render(col, row, world)
 		}
 	}
 }
