@@ -94,22 +94,21 @@ func main() {
 
 	world.AddEntity(&player)
 
-	addMonsters(&world)
+	addMonsters(world)
 
 	world.BuildLevelFromMask(LevelMask)
 
-	hud := game.NewHud(&player, &world, 60, 0)
+	hud := game.NewHud(&player, world, 60, 0)
 
 	for !quit {
 		event := sdl.PollEvent()
 
-		handleInput(event, &world)
-
+		handleInput(event, world)
 		world.HandleInput(event)
 
 		world.Render()
 
-		hud.Render(&world)
+		hud.Render(world)
 
 		window.Render()
 	}

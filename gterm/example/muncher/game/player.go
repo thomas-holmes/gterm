@@ -46,6 +46,7 @@ type Player struct {
 	yPos        int
 	RenderGlyph string
 	RenderColor sdl.Color
+
 	Messaging
 }
 
@@ -102,6 +103,10 @@ func (player *Player) Damage(amount int) {
 	player.HP.Current = newHp
 
 	player.Broadcast(PlayerUpdate, nil)
+	if newHp == 0 {
+		player.Broadcast(PlayerDead, nil)
+	}
+
 }
 
 func (player *Player) Heal(amount int) {

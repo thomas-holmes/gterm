@@ -23,6 +23,10 @@ type World struct {
 
 	nextID int
 
+	pop *PopUp
+
+	Suspended bool
+
 	renderItems map[Position][]Renderable
 	entities    map[int]Entity
 }
@@ -92,12 +96,23 @@ func (world *World) CanStandOnTile(column int, row int) bool {
 	return !world.GetTile(column, row).Wall && !world.IsTileMonster(column, row)
 }
 
+func (world *World) Suspend() {
+	world.Suspended = true
+}
+
+func (world *World) Resume() {
+	world.Suspended = false
+}
+
 func (world *World) DirtyTile(column int, row int) {
 	world.GetTile(column, row).Dirty = true
 }
 
 func (world *World) HandleInput(event sdl.Event) {
 	// TODO: Do better here, we should check keyboard/mouse/modifier/etc... state
+	if world.Suspended {
+		return
+	}
 	if event != nil {
 		for _, entity := range world.entities {
 			if inputtable, ok := entity.(Inputtable); ok {
@@ -105,6 +120,22 @@ func (world *World) HandleInput(event sdl.Event) {
 			}
 		}
 	}
+}
+
+func (world *World) ShowPopUp(pop PopUp) {
+	pop.SetMessageBus(&world.MessageBus)
+	world.pop = &pop
+	world.pop.Show()
+}
+
+func (world *World) ClosePopUp() {
+	if world.pop == nil {
+		return
+	}
+
+	world.pop.Hide()
+	world.pop.RemoveMessageBus()
+	world.pop = nil
 }
 
 func (world *World) AddRenderable(renderable Renderable) {
@@ -132,10 +163,14 @@ func (world *World) AddEntity(e Entity) {
 }
 
 func (world *World) Render() {
-	for row := 0; row < world.Rows; row++ {
-		for col := 0; col < world.Columns; col++ {
-			tile := world.GetTile(col, row)
-			tile.Render(col, row, world)
+	if world.Suspended {
+		world.pop.Render(world.Window)
+	} else {
+		for row := 0; row < world.Rows; row++ {
+			for col := 0; col < world.Columns; col++ {
+				tile := world.GetTile(col, row)
+				tile.Render(col, row, world)
+			}
 		}
 	}
 }
@@ -215,10 +250,19 @@ func (world *World) Notify(message Message, data interface{}) {
 				world.MessageBus.Broadcast(TileInvalidated, TileInvalidatedMessage{XPos: m.XPos(), YPos: m.YPos()})
 			}
 		}
+	case PopUpShown:
+		log.Println("Suspend the world")
+		world.Suspend()
+	case PopUpHidden:
+		log.Println("Resuming")
+		world.Resume()
+	case PlayerDead:
+		pop := NewPopUp(10, 5, 40, 6, Red, "YOU ARE VERY DEAD", "I AM SO SORRY :(")
+		world.ShowPopUp(pop)
 	}
 }
 
-func NewWorld(window *gterm.Window, columns int, rows int) World {
+func NewWorld(window *gterm.Window, columns int, rows int) *World {
 	tiles := make([]Tile, columns*rows, columns*rows)
 	for index := range tiles {
 		tiles[index] = NewTile()
@@ -236,5 +280,5 @@ func NewWorld(window *gterm.Window, columns int, rows int) World {
 
 	world.MessageBus.Subscribe(&world)
 
-	return world
+	return &world
 }
