@@ -80,6 +80,12 @@ func (world *World) GetMonsterAtTile(column int, row int) *Monster {
 	return nil
 }
 
+func (world World) IsTileOccupied(column int, row int) bool {
+	pos := Position{XPos: column, YPos: row}
+	renderItems := world.renderItems[pos]
+	return len(renderItems) > 0
+}
+
 func (world *World) IsTileMonster(column int, row int) bool {
 	pos := Position{XPos: column, YPos: row}
 	renderItems := world.renderItems[pos]
@@ -93,14 +99,16 @@ func (world *World) IsTileMonster(column int, row int) bool {
 }
 
 func (world *World) CanStandOnTile(column int, row int) bool {
-	return !world.GetTile(column, row).Wall && !world.IsTileMonster(column, row)
+	return !world.GetTile(column, row).Wall && !world.IsTileOccupied(column, row)
 }
 
 func (world *World) Suspend() {
+	log.Println("Suspending world")
 	world.Suspended = true
 }
 
 func (world *World) Resume() {
+	log.Println("Resuming world")
 	world.Suspended = false
 }
 
@@ -251,10 +259,10 @@ func (world *World) Notify(message Message, data interface{}) {
 			}
 		}
 	case PopUpShown:
-		log.Println("Suspend the world")
+		log.Println("World, PopUp Shown")
 		world.Suspend()
 	case PopUpHidden:
-		log.Println("Resuming")
+		log.Println("World, PopUp Hidden")
 		world.Resume()
 	case PlayerDead:
 		pop := NewPopUp(10, 5, 40, 6, Red, "YOU ARE VERY DEAD", "I AM SO SORRY :(")
