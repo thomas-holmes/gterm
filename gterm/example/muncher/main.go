@@ -48,7 +48,9 @@ func spawnRandomMonster(world *game.World) {
 }
 
 func addMonsters(world *game.World) {
-	// For some reassigning a single var keeps giving same memory address. I guess it makes sense.
+	// For some reassigning a single var keeps giving same memory address.
+	// I guess go is copying the NewMonster into the same stack allocated struct.
+	// I think this makes sense but I'm annoyed that I didn't realize it would happen.
 	m1 := game.NewMonster(10, 6, 1, game.Green, 1)
 	world.AddEntity(&m1)
 	m2 := game.NewMonster(10, 7, 1, game.Green, 1)
