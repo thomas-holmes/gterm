@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math/rand"
 	"path"
 
 	"github.com/thomas-holmes/sneaker/gterm"
@@ -14,12 +15,14 @@ import (
 
 var quit = false
 
-func handleInput(event sdl.Event) {
+func handleInput(event sdl.Event, world *game.World) {
 	switch e := event.(type) {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
 		case sdl.K_ESCAPE:
 			quit = true
+		case sdl.K_5:
+			spawnRandomMonster(world)
 		}
 	case *sdl.QuitEvent:
 		quit = true
@@ -27,6 +30,22 @@ func handleInput(event sdl.Event) {
 }
 
 var red = sdl.Color{R: 255, G: 0, B: 0, A: 255}
+
+func spawnRandomMonster(world *game.World) {
+	for tries := 0; tries < 100; tries++ {
+		x := rand.Intn(world.Columns)
+		y := rand.Intn(world.Rows)
+
+		if world.CanStandOnTile(x, y) {
+			level := rand.Intn(8) + 1
+			monster := game.NewMonster(x, y, level, game.Green, level)
+			world.AddEntity(&monster)
+			return
+		}
+
+		log.Println("Faield to find valid position for monster after 100 attempts")
+	}
+}
 
 func addMonsters(world *game.World) {
 	// For some reassigning a single var keeps giving same memory address. I guess it makes sense.
@@ -84,7 +103,7 @@ func main() {
 	for !quit {
 		event := sdl.PollEvent()
 
-		handleInput(event)
+		handleInput(event, &world)
 
 		world.HandleInput(event)
 

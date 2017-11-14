@@ -110,6 +110,7 @@ func (world *World) HandleInput(event sdl.Event) {
 func (world *World) AddRenderable(renderable Renderable) {
 	pos := Position{XPos: renderable.XPos(), YPos: renderable.YPos()}
 	slice := world.renderItems[pos]
+	world.GetTile(pos.XPos, pos.YPos).Dirty = true
 	world.renderItems[pos] = append(slice, renderable)
 }
 
