@@ -154,11 +154,12 @@ func (window *Window) renderCell(col int, row int) error {
 		H: int32(window.tileHeightPixel),
 	}
 
+	white := sdl.Color{R: 255, G: 255, B: 255, A: 255}
 	for index := range renderItems {
 		renderItem := &renderItems[index]
 		// surface, err := window.font.RenderUTF8_Blended(renderItem.Glyph, renderItem.FColor)
 		if renderItem.Texture == nil {
-			surface, err := window.font.RenderUTF8_Solid(renderItem.Glyph, renderItem.FColor)
+			surface, err := window.font.RenderUTF8_Solid(renderItem.Glyph, white)
 			if err != nil {
 				return err
 			}
@@ -168,6 +169,7 @@ func (window *Window) renderCell(col int, row int) error {
 			if err != nil {
 				return err
 			}
+			texture.SetColorMod(renderItem.FColor.R, renderItem.FColor.G, renderItem.FColor.B)
 			renderItem.Texture = texture
 		}
 		_, _, width, height, err := renderItem.Texture.Query()

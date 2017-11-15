@@ -16,6 +16,8 @@ type World struct {
 	Window     *gterm.Window
 	MessageBus MessageBus
 
+	Player *Player
+
 	Columns int
 	Rows    int
 	Tiles   []Tile
@@ -177,7 +179,23 @@ func (world *World) Render() {
 		for row := 0; row < world.Rows; row++ {
 			for col := 0; col < world.Columns; col++ {
 				tile := world.GetTile(col, row)
+
+				wasVisible := tile.WasVisible
+				isVisible := tile.Visible(col, row, *world)
+
+				if !wasVisible && isVisible {
+					tile.Dirty = true
+				}
+
 				tile.Render(col, row, world)
+
+				// lol this is awful
+				if !isVisible {
+					world.Window.ClearCell(col, row)
+				} else {
+					log.Printf("Found visible tile at (%v,%v)", col, row)
+				}
+				tile.WasVisible = isVisible
 			}
 		}
 	}

@@ -95,6 +95,7 @@ func main() {
 	player.Name = "Euclid"
 
 	world.AddEntity(&player)
+	world.Player = &player
 
 	addMonsters(world)
 
