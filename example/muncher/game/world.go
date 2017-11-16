@@ -187,7 +187,7 @@ func (world *World) Render() {
 					tile.Dirty = true
 				}
 
-				tile.Render(col, row, world)
+				tile.Render(world)
 
 				// lol this is awful
 				if !isVisible {
@@ -289,8 +289,10 @@ func (world *World) Notify(message Message, data interface{}) {
 
 func NewWorld(window *gterm.Window, columns int, rows int) *World {
 	tiles := make([]Tile, columns*rows, columns*rows)
-	for index := range tiles {
-		tiles[index] = NewTile()
+	for row := 0; row < rows; row++ {
+		for col := 0; col < columns; col++ {
+			tiles[row*columns+col] = NewTile(col, row)
+		}
 	}
 
 	world := World{
