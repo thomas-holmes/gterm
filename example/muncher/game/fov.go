@@ -100,31 +100,24 @@ func computeOctant(x0 int, y0 int, x1 int, y1 int) int {
 		if y1 > y0 {
 			if (y1 - y0) < (x1 - x0) {
 				return 0
-			} else {
-				return 1
 			}
-		} else {
-			if (y0 - y1) < (x1 - x0) {
-				return 7
-			} else {
-				return 6
-			}
+			return 1
 		}
-	} else {
-		if y1 > y0 {
-			if (y1 - y0) < (x0 - x1) {
-				return 3
-			} else {
-				return 2
-			}
-		} else {
-			if (y0 - y1) < (x0 - x1) {
-				return 4
-			} else {
-				return 5
-			}
+		if (y0 - y1) < (x1 - x0) {
+			return 7
 		}
+		return 6
 	}
+	if y1 > y0 {
+		if (y1 - y0) < (x0 - x1) {
+			return 3
+		}
+		return 2
+	}
+	if (y0 - y1) < (x0 - x1) {
+		return 4
+	}
+	return 5
 }
 
 func toOctantZero(octant int, x int, y int) (int, int) {
