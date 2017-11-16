@@ -2,6 +2,7 @@ package game
 
 import (
 	"log"
+	"strconv"
 
 	"github.com/thomas-holmes/gterm"
 	"github.com/veandco/go-sdl2/sdl"
@@ -15,6 +16,7 @@ type Position struct {
 type World struct {
 	Window     *gterm.Window
 	MessageBus MessageBus
+	VisionMap  *VisionMap
 
 	Player *Player
 
@@ -172,30 +174,44 @@ func (world *World) AddEntity(e Entity) {
 	world.entities[e.ID()] = e
 }
 
+// This is getting incredibly gross and fragile.
+// I need to come up with a better rendering method.
+// I think the easiest thing to do will be to improve
+// the perf of gterm so that I can call render every time
+// and have it not tank the frame rate by ~100x
 func (world *World) Render() {
 	if world.Suspended {
 		world.pop.Render(world.Window)
 	} else {
+		world.VisionMap.UpdateVision(6, world.Player, world)
+
 		for row := 0; row < world.Rows; row++ {
 			for col := 0; col < world.Columns; col++ {
 				tile := world.GetTile(col, row)
 
-				wasVisible := tile.WasVisible
-				isVisible := tile.Visible(col, row, *world)
+				visibility := world.VisionMap.VisibilityAt(col, row)
 
-				if !wasVisible && isVisible {
+				if visibility == Visible && !tile.WasVisible {
 					tile.Dirty = true
 				}
 
-				tile.Render(world)
-
-				// lol this is awful
-				if !isVisible {
+				if visibility == Visible {
+					tile.Render(world)
+					tile.WasVisible = true
+				} else {
 					world.Window.ClearCell(col, row)
+					tile.WasVisible = false
 				}
-
-				tile.WasVisible = isVisible
 			}
+		}
+	}
+}
+
+func (world *World) OverlayVisionMap() {
+	blue := sdl.Color{R: 0, G: 0, B: 200, A: 255}
+	for y := 0; y < world.Rows; y++ {
+		for x := 0; x < world.Columns; x++ {
+			world.Window.AddToCell(x, y, strconv.Itoa(int(world.VisionMap.Map[y*world.Columns+x])), blue)
 		}
 	}
 }
@@ -294,9 +310,11 @@ func NewWorld(window *gterm.Window, columns int, rows int) *World {
 			tiles[row*columns+col] = NewTile(col, row)
 		}
 	}
+	vision := NewVisionMap(columns, rows)
 
 	world := World{
 		Window:      window,
+		VisionMap:   &vision,
 		Columns:     columns,
 		Rows:        rows,
 		Dirty:       true,
