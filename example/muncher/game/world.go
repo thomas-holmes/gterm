@@ -192,9 +192,8 @@ func (world *World) Render() {
 				// lol this is awful
 				if !isVisible {
 					world.Window.ClearCell(col, row)
-				} else {
-					log.Printf("Found visible tile at (%v,%v)", col, row)
 				}
+
 				tile.WasVisible = isVisible
 			}
 		}
