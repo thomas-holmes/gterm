@@ -26,7 +26,7 @@ func (vision *VisionMap) UpdateVision(viewDistance int, player *Player, world *W
 	playerX := player.XPos()
 	playerY := player.YPos()
 
-	// Go one bast the min/max so we update cells we are moving away from
+	// Go beyond the min/max so we update cells we are moving away from
 	minX := max(playerX-viewDistance-2, 0)
 	maxX := min(playerX+viewDistance+2, vision.Columns)
 
