@@ -163,6 +163,7 @@ func (window *Window) cellIndex(col int, row int) (int, error) {
 	return col + window.Columns*row, nil
 }
 
+// TODO: This totally doesn't render words any more so the HUD and Popup are broken.
 func (window *Window) renderCell(col int, row int) error {
 	index, err := window.cellIndex(col, row)
 	if err != nil {
