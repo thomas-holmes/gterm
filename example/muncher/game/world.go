@@ -179,26 +179,21 @@ func (world *World) RenderAt(x int, y int, out rune, color sdl.Color) {
 // the perf of gterm so that I can call render every time
 // and have it not tank the frame rate by ~100x
 func (world *World) Render() {
-	if world.Suspended {
-		world.pop.Render(world.Window)
-	} else {
-		world.VisionMap.UpdateVision(6, world.Player, world)
+	world.VisionMap.UpdateVision(6, world.Player, world)
 
-		for row := 0; row < world.Rows; row++ {
-			for col := 0; col < world.Columns; col++ {
-				tile := world.GetTile(col, row)
+	for row := 0; row < world.Rows; row++ {
+		for col := 0; col < world.Columns; col++ {
+			tile := world.GetTile(col, row)
 
-				visibility := world.VisionMap.VisibilityAt(col, row)
+			visibility := world.VisionMap.VisibilityAt(col, row)
 
-				if visibility == Visible {
-					tile.Render(world)
-					tile.WasVisible = true
-				} else {
-					world.Window.ClearCell(col, row)
-					tile.WasVisible = false
-				}
+			if visibility == Visible {
+				tile.Render(world)
 			}
 		}
+	}
+	if world.pop != nil && world.pop.Shown {
+		world.pop.Render(world.Window)
 	}
 }
 
@@ -268,7 +263,7 @@ func (world *World) Notify(message Message, data interface{}) {
 	switch message {
 	case TileInvalidated:
 		if d, ok := data.(TileInvalidatedMessage); ok {
-			log.Printf("Got invalidation %+v", d)
+			// log.Printf("Got invalidation %+v", d)
 			world.Window.ClearCell(d.XPos, d.YPos)
 		}
 	case PlayerMove:
