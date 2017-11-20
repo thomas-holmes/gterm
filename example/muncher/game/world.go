@@ -2,7 +2,6 @@ package game
 
 import (
 	"log"
-	"strconv"
 
 	"github.com/thomas-holmes/gterm"
 	"github.com/veandco/go-sdl2/sdl"
@@ -23,7 +22,6 @@ type World struct {
 	Columns int
 	Rows    int
 	Tiles   []Tile
-	Dirty   bool
 
 	CameraWidth  int
 	CameraHeight int
@@ -50,10 +48,9 @@ func (world *World) BuildLevelFromMask(mask []int) {
 		if mask[index] == 1 {
 			tile := &world.Tiles[index]
 
-			tile.BackgroundGlyph = "#"
+			tile.BackgroundGlyph = '#'
 			tile.Wall = true
 			tile.BackgroundColor = sdl.Color{R: 225, G: 225, B: 225, A: 255}
-			tile.Dirty = true
 		}
 	}
 }
@@ -61,10 +58,8 @@ func (world *World) BuildLevel() {
 	for row := 0; row < world.Rows; row++ {
 		for col := 0; col < world.Columns; col++ {
 			if row == 0 || (row == world.Rows-1) || (col == 0 || col == world.Columns-1) {
-				world.Tiles[row*world.Columns+col].BackgroundGlyph = "#"
+				world.Tiles[row*world.Columns+col].BackgroundGlyph = '#'
 				world.Tiles[row*world.Columns+col].Wall = true
-
-				world.Tiles[row*world.Columns+col].Dirty = true
 			}
 		}
 	}
@@ -121,10 +116,6 @@ func (world *World) Resume() {
 	world.Suspended = false
 }
 
-func (world *World) DirtyTile(column int, row int) {
-	world.GetTile(column, row).Dirty = true
-}
-
 func (world *World) HandleInput(event sdl.Event) {
 	// TODO: Do better here, we should check keyboard/mouse/modifier/etc... state
 	if world.Suspended {
@@ -158,7 +149,6 @@ func (world *World) ClosePopUp() {
 func (world *World) AddRenderable(renderable Renderable) {
 	pos := Position{XPos: renderable.XPos(), YPos: renderable.YPos()}
 	slice := world.renderItems[pos]
-	world.GetTile(pos.XPos, pos.YPos).Dirty = true
 	world.Window.ClearCell(pos.XPos, pos.YPos)
 	world.renderItems[pos] = append(slice, renderable)
 }
@@ -179,7 +169,7 @@ func (world *World) AddEntity(e Entity) {
 	world.entities[e.ID()] = e
 }
 
-func (world *World) RenderAt(x int, y int, out string, color sdl.Color) {
+func (world *World) RenderAt(x int, y int, out rune, color sdl.Color) {
 	world.Window.AddToCell(x+world.CameraX, y+world.CameraY, out, color)
 }
 
@@ -200,10 +190,6 @@ func (world *World) Render() {
 
 				visibility := world.VisionMap.VisibilityAt(col, row)
 
-				if visibility == Visible && !tile.WasVisible {
-					tile.Dirty = true
-				}
-
 				if visibility == Visible {
 					tile.Render(world)
 					tile.WasVisible = true
@@ -217,12 +203,14 @@ func (world *World) Render() {
 }
 
 func (world *World) OverlayVisionMap() {
-	blue := sdl.Color{R: 0, G: 0, B: 200, A: 255}
-	for y := 0; y < world.Rows; y++ {
-		for x := 0; x < world.Columns; x++ {
-			world.Window.AddToCell(x, y, strconv.Itoa(int(world.VisionMap.Map[y*world.Columns+x])), blue)
+	/*
+		blue := sdl.Color{R: 0, G: 0, B: 200, A: 255}
+		for y := 0; y < world.Rows; y++ {
+			for x := 0; x < world.Columns; x++ {
+					world.Window.AddToCell(x, y, strconv.Itoa(int(world.VisionMap.Map[y*world.Columns+x])), blue)
+			}
 		}
-	}
+	*/
 }
 
 func (world *World) RemoveEntity(entity Entity) {
@@ -251,7 +239,6 @@ func (world *World) RemoveEntity(entity Entity) {
 
 func (world *World) MovePlayer(message PlayerMoveMessage) {
 	log.Printf("Got MoveEntity %+v", message)
-	world.GetTile(message.OldX, message.OldY).Dirty = true
 	oldPos := Position{XPos: message.OldX, YPos: message.OldY}
 	slice := world.renderItems[oldPos]
 	foundIndex := -1
@@ -273,7 +260,6 @@ func (world *World) MovePlayer(message PlayerMoveMessage) {
 	newSlice = append(newSlice, foundItem)
 	world.renderItems[newPos] = newSlice
 
-	world.GetTile(message.NewX, message.NewY).Dirty = true
 	world.Window.ClearCell(message.OldX, message.OldY)
 	world.Window.ClearCell(message.NewX, message.NewY)
 }
@@ -284,8 +270,6 @@ func (world *World) Notify(message Message, data interface{}) {
 		if d, ok := data.(TileInvalidatedMessage); ok {
 			log.Printf("Got invalidation %+v", d)
 			world.Window.ClearCell(d.XPos, d.YPos)
-			tile := world.GetTile(d.XPos, d.YPos)
-			tile.Dirty = true
 		}
 	case PlayerMove:
 		if d, ok := data.(PlayerMoveMessage); ok {
@@ -326,7 +310,6 @@ func NewWorld(window *gterm.Window, columns int, rows int) *World {
 		VisionMap: &vision,
 		Columns:   columns,
 		Rows:      rows,
-		Dirty:     true,
 		Tiles:     tiles,
 
 		// TODO: Actually do something useful with the camera settings

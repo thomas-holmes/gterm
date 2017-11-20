@@ -44,7 +44,7 @@ type Player struct {
 	Name        string
 	xPos        int
 	yPos        int
-	RenderGlyph string
+	RenderGlyph rune
 	RenderColor sdl.Color
 
 	Messaging
@@ -80,7 +80,7 @@ func NewPlayer(xPos int, yPos int) Player {
 	player := Player{
 		HP:          Health{Current: 5, Max: 5},
 		Level:       1,
-		RenderGlyph: "@",
+		RenderGlyph: '@',
 		RenderColor: sdl.Color{R: 255, G: 0, B: 0, A: 0},
 		xPos:        xPos,
 		yPos:        yPos,

@@ -7,9 +7,8 @@ import (
 type Tile struct {
 	XPos            int
 	YPos            int
-	Dirty           bool
 	BackgroundColor sdl.Color
-	BackgroundGlyph string
+	BackgroundGlyph rune
 	Wall            bool
 	WasVisible      bool
 }
@@ -18,17 +17,12 @@ func NewTile(x int, y int) Tile {
 	return Tile{
 		XPos:            x,
 		YPos:            y,
-		Dirty:           true,
 		BackgroundColor: sdl.Color{R: 192, G: 192, B: 192, A: 255},
-		BackgroundGlyph: ".",
+		BackgroundGlyph: '.',
 	}
 }
 
 func (tile *Tile) Render(world *World) {
-	if !tile.Dirty {
-		return
-	}
-
 	pos := Position{XPos: tile.XPos, YPos: tile.YPos}
 	items := world.renderItems[pos]
 	if len(items) > 0 {
@@ -38,7 +32,6 @@ func (tile *Tile) Render(world *World) {
 	} else {
 		tile.RenderBackground(world) // bad API, refactor
 	}
-	tile.Dirty = false
 }
 
 func cellDistance(xPos1 int, yPos1 int, xPos2 int, yPos2 int) (x int, y int) {

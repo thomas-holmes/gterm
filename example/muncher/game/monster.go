@@ -12,7 +12,7 @@ type Monster struct {
 	yPos  int
 	HP    Health
 	Level int
-	Glyph string
+	Glyph rune
 	Color sdl.Color
 	Messaging
 }
@@ -58,6 +58,6 @@ func (monster *Monster) UpdatePosition(xPos int, yPos int) {
 }
 
 func (monster *Monster) Render(world *World) {
-	glyph := strconv.Itoa(monster.Level)
+	glyph := []rune(strconv.Itoa(monster.Level))[0]
 	world.RenderAt(monster.xPos, monster.yPos, glyph, monster.Color)
 }

@@ -26,26 +26,18 @@ type Window struct {
 	backgroundColor sdl.Color
 	cells           [][]renderItem
 	fps             fpsCounter
+	fontTexture     *sdl.Texture
 	fpsLimit        int
 	drawInterval    uint32
 }
 
 type renderItem struct {
-	FColor  sdl.Color
-	Glyph   string
-	Texture *sdl.Texture
-}
-
-func (renderItem *renderItem) Destroy() {
-	if renderItem.Texture != nil {
-		renderItem.Texture.Destroy()
-		renderItem.Texture = nil
-	}
+	FColor sdl.Color
+	Glyph  rune
 }
 
 // NewWindow constructs a window
 func NewWindow(columns int, rows int, fontPath string, fontSize int, fpsLimit int) *Window {
-
 	numCells := columns * rows
 	cells := make([][]renderItem, numCells, numCells)
 	drawInterval := uint32(0)
@@ -64,6 +56,32 @@ func NewWindow(columns int, rows int, fontPath string, fontSize int, fpsLimit in
 	}
 
 	return window
+}
+
+func (window *Window) createFontAtlas(font *ttf.Font) (*sdl.Texture, error) {
+	str := ""
+	for i := 32; i < 126; i++ {
+		str += string(i)
+	}
+
+	surface, err := font.RenderUTF8_Solid(str, sdl.Color{R: 255, G: 255, B: 255, A: 255})
+	if err != nil {
+		return nil, err
+	}
+
+	tex, err := window.SdlRenderer.CreateTextureFromSurface(surface)
+	if err != nil {
+		return nil, err
+	}
+
+	_, _, width, height, err := tex.Query()
+	if err != nil {
+		log.Panicln("Failed to query texture", err)
+	}
+	log.Printf("Computed texture width of %v and height of %v", width, height)
+	log.Printf("Computed tile width of %v and height of %v", window.tileWidthPixel, window.tileHeightPixel)
+
+	return tex, err
 }
 
 func computeCellSize(font *ttf.Font) (width int, height int, err error) {
@@ -123,6 +141,12 @@ func (window *Window) Init() error {
 	window.SdlWindow = sdlWindow
 	window.SdlRenderer = sdlRenderer
 
+	texture, err := window.createFontAtlas(openedFont)
+	if err != nil {
+		return err
+	}
+	window.fontTexture = texture
+
 	window.fps = newFpsCounter()
 
 	return nil
@@ -147,41 +171,32 @@ func (window *Window) renderCell(col int, row int) error {
 
 	renderItems := window.cells[index]
 
-	destinationRect := sdl.Rect{
-		X: int32(col * window.tileWidthPixel),
-		Y: int32(row * window.tileHeightPixel),
-		W: int32(window.tileWidthPixel),
-		H: int32(window.tileHeightPixel),
-	}
-
-	white := sdl.Color{R: 255, G: 255, B: 255, A: 255}
 	for index := range renderItems {
 		renderItem := &renderItems[index]
 		// surface, err := window.font.RenderUTF8_Blended(renderItem.Glyph, renderItem.FColor)
-		if renderItem.Texture == nil {
-			surface, err := window.font.RenderUTF8_Solid(renderItem.Glyph, white)
-			if err != nil {
-				return err
-			}
-			defer surface.Free()
+		charOffset := int(renderItem.Glyph - ' ')
 
-			texture, err := window.SdlRenderer.CreateTextureFromSurface(surface)
-			if err != nil {
-				return err
-			}
-			texture.SetColorMod(renderItem.FColor.R, renderItem.FColor.G, renderItem.FColor.B)
-			renderItem.Texture = texture
+		sourceRect := sdl.Rect{
+			X: int32(charOffset * window.tileWidthPixel),
+			Y: int32(0),
+			W: int32(window.tileWidthPixel),
+			H: int32(window.tileHeightPixel),
 		}
-		_, _, width, height, err := renderItem.Texture.Query()
+
 		if err != nil {
 			return err
 		}
 
-		destinationRect.W = width
-		destinationRect.H = height
+		destinationRect := sdl.Rect{
+			X: int32(col * window.tileWidthPixel),
+			Y: int32(row * window.tileHeightPixel),
+			W: int32(window.tileWidthPixel),
+			H: int32(window.tileHeightPixel),
+		}
 
+		window.fontTexture.SetColorMod(renderItem.FColor.R, renderItem.FColor.G, renderItem.FColor.B)
 		// log.Println(destinationRect)
-		err = window.SdlRenderer.Copy(renderItem.Texture, nil, &destinationRect)
+		err = window.SdlRenderer.Copy(window.fontTexture, &sourceRect, &destinationRect)
 		if err != nil {
 			return err
 		}
@@ -201,7 +216,7 @@ func (window *Window) renderCells() error {
 	return nil
 }
 
-func (window *Window) AddToCell(col int, row int, glyph string, fColor sdl.Color) error {
+func (window *Window) AddToCell(col int, row int, glyph rune, fColor sdl.Color) error {
 	renderItem := renderItem{Glyph: glyph, FColor: fColor}
 	index, err := window.cellIndex(col, row)
 	if err != nil {
@@ -218,9 +233,6 @@ func (window *Window) ClearCell(col int, row int) error {
 		return err
 	}
 
-	for _, item := range window.cells[index] {
-		item.Destroy()
-	}
 	window.cells[index] = window.cells[index][:0]
 
 	return nil
@@ -291,6 +303,17 @@ func (fps *fpsCounter) MaybeRender(window *Window) {
 	}
 }
 
+func (window *Window) renderDebugFontTexture() {
+	_, _, width, height, err := window.fontTexture.Query()
+	if err != nil {
+		log.Panicln("Couldn't render debug font texture", err)
+	}
+
+	destRect := sdl.Rect{X: int32(0), Y: int32(window.heightPixel) - height, W: width, H: height}
+	window.SdlRenderer.Copy(window.fontTexture, nil, &destRect)
+
+}
+
 var lastDraw = sdl.GetTicks()
 
 func min(a uint32, b uint32) uint32 {
@@ -309,6 +332,8 @@ func (window *Window) Render() {
 	window.renderCells()
 
 	window.fps.MaybeRender(window) // Ok this is dumb
+
+	window.renderDebugFontTexture()
 
 	window.SdlRenderer.Present()
 

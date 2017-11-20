@@ -104,6 +104,8 @@ func main() {
 	hud := game.NewHud(&player, world, 60, 0)
 
 	for !quit {
+		window.ClearWindow()
+
 		event := sdl.PollEvent()
 
 		handleInput(event, world)

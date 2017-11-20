@@ -73,28 +73,32 @@ func (pop *PopUp) Hide() {
 }
 
 func (pop *PopUp) RenderBorder(window *gterm.Window) {
-	leftX := pop.XPos
-	rightX := pop.XPos + pop.Width - 1
+	/*
+		leftX := pop.XPos
+		rightX := pop.XPos + pop.Width - 1
 
-	topY := pop.YPos
-	bottomY := pop.YPos + pop.Height - 1
+		topY := pop.YPos
+		bottomY := pop.YPos + pop.Height - 1
 
-	for y := topY; y <= bottomY; y++ {
-		for x := leftX; x <= rightX; x++ {
-			if y == topY || y == bottomY || x == leftX || x == rightX {
-				window.AddToCell(x, y, "%", pop.ContentColor)
+		for y := topY; y <= bottomY; y++ {
+			for x := leftX; x <= rightX; x++ {
+				if y == topY || y == bottomY || x == leftX || x == rightX {
+					window.AddToCell(x, y, "%", pop.ContentColor)
+				}
 			}
 		}
-	}
+	*/
 }
 
 func (pop PopUp) RenderContents(window *gterm.Window) {
-	xOffset := pop.XPos + pop.ContentRelativeX
-	yOffset := pop.YPos + pop.ContentRelativeY
+	/*
+		xOffset := pop.XPos + pop.ContentRelativeX
+		yOffset := pop.YPos + pop.ContentRelativeY
 
-	for i, content := range pop.Content {
-		window.AddToCell(xOffset, yOffset+i, content, pop.ContentColor)
-	}
+		for i, content := range pop.Content {
+			window.AddToCell(xOffset, yOffset+i, content, pop.ContentColor)
+		}
+	*/
 }
 
 func (pop *PopUp) Render(window *gterm.Window) {
