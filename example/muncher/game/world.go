@@ -25,6 +25,11 @@ type World struct {
 	Tiles   []Tile
 	Dirty   bool
 
+	CameraWidth  int
+	CameraHeight int
+	CameraX      int
+	CameraY      int
+
 	nextID int
 
 	pop *PopUp
@@ -174,6 +179,10 @@ func (world *World) AddEntity(e Entity) {
 	world.entities[e.ID()] = e
 }
 
+func (world *World) RenderAt(x int, y int, out string, color sdl.Color) {
+	world.Window.AddToCell(x+world.CameraX, y+world.CameraY, out, color)
+}
+
 // This is getting incredibly gross and fragile.
 // I need to come up with a better rendering method.
 // I think the easiest thing to do will be to improve
@@ -240,7 +249,7 @@ func (world *World) RemoveEntity(entity Entity) {
 	}
 }
 
-func (world *World) MoveRenderable(message MoveEntityMessage) {
+func (world *World) MovePlayer(message PlayerMoveMessage) {
 	log.Printf("Got MoveEntity %+v", message)
 	world.GetTile(message.OldX, message.OldY).Dirty = true
 	oldPos := Position{XPos: message.OldX, YPos: message.OldY}
@@ -278,9 +287,9 @@ func (world *World) Notify(message Message, data interface{}) {
 			tile := world.GetTile(d.XPos, d.YPos)
 			tile.Dirty = true
 		}
-	case MoveEntity:
-		if d, ok := data.(MoveEntityMessage); ok {
-			world.MoveRenderable(d)
+	case PlayerMove:
+		if d, ok := data.(PlayerMoveMessage); ok {
+			world.MovePlayer(d)
 		}
 	case KillMonster:
 		if d, ok := data.(KillMonsterMessage); ok {
@@ -313,12 +322,19 @@ func NewWorld(window *gterm.Window, columns int, rows int) *World {
 	vision := NewVisionMap(columns, rows)
 
 	world := World{
-		Window:      window,
-		VisionMap:   &vision,
-		Columns:     columns,
-		Rows:        rows,
-		Dirty:       true,
-		Tiles:       tiles,
+		Window:    window,
+		VisionMap: &vision,
+		Columns:   columns,
+		Rows:      rows,
+		Dirty:     true,
+		Tiles:     tiles,
+
+		// TODO: Actually do something useful with the camera settings
+		CameraX:      0,
+		CameraY:      0,
+		CameraWidth:  columns,
+		CameraHeight: rows,
+
 		renderItems: make(map[Position][]Renderable),
 		entities:    make(map[int]Entity),
 	}

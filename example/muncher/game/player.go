@@ -20,14 +20,14 @@ func (player *Player) UpdatePosition(xPos int, yPos int, world *World) {
 			oldY := player.yPos
 			player.xPos = xPos
 			player.yPos = yPos
-			player.Broadcast(MoveEntity, MoveEntityMessage{ID: player.ID(), OldX: oldX, OldY: oldY, NewX: xPos, NewY: yPos})
+			player.Broadcast(PlayerMove, PlayerMoveMessage{ID: player.ID(), OldX: oldX, OldY: oldY, NewX: xPos, NewY: yPos})
 			player.Broadcast(PlayerUpdate, nil)
 		}
 	}
 }
 
 func (player *Player) Render(world *World) {
-	world.Window.AddToCell(player.xPos, player.yPos, player.RenderGlyph, player.RenderColor)
+	world.RenderAt(player.xPos, player.yPos, player.RenderGlyph, player.RenderColor)
 }
 
 type Health struct {

@@ -1,9 +1,6 @@
 package game
 
 import (
-	"log"
-
-	"github.com/thomas-holmes/gterm"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -39,7 +36,7 @@ func (tile *Tile) Render(world *World) {
 			item.Render(world)
 		}
 	} else {
-		tile.RenderBackground(world.Window) // bad API, refactor
+		tile.RenderBackground(world) // bad API, refactor
 	}
 	tile.Dirty = false
 }
@@ -58,9 +55,6 @@ func (tile Tile) Visible(xPos int, yPos int, world World) bool {
 	return true
 }
 
-func (tile Tile) RenderBackground(window *gterm.Window) {
-	err := window.AddToCell(tile.XPos, tile.YPos, tile.BackgroundGlyph, tile.BackgroundColor)
-	if err != nil {
-		log.Println("Failed to render background", err)
-	}
+func (tile Tile) RenderBackground(world *World) {
+	world.RenderAt(tile.XPos, tile.YPos, tile.BackgroundGlyph, tile.BackgroundColor)
 }

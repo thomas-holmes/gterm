@@ -1,7 +1,6 @@
 package game
 
 import (
-	"log"
 	"strconv"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -60,7 +59,5 @@ func (monster *Monster) UpdatePosition(xPos int, yPos int) {
 
 func (monster *Monster) Render(world *World) {
 	glyph := strconv.Itoa(monster.Level)
-	if err := world.Window.AddToCell(monster.xPos, monster.yPos, glyph, monster.Color); err != nil {
-		log.Println("Failed to render monster", monster)
-	}
+	world.RenderAt(monster.xPos, monster.yPos, glyph, monster.Color)
 }

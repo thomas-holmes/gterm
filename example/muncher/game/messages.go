@@ -8,6 +8,7 @@ const (
 	PlayerUpdate Message = iota
 	TileInvalidated
 	MoveEntity
+	PlayerMove
 	PlayerAttack
 	PlayerDead
 	KillMonster
@@ -21,6 +22,14 @@ type TileInvalidatedMessage struct {
 }
 
 type MoveEntityMessage struct {
+	ID   int
+	OldX int
+	OldY int
+	NewX int
+	NewY int
+}
+
+type PlayerMoveMessage struct {
 	ID   int
 	OldX int
 	OldY int
