@@ -173,7 +173,6 @@ func (window *Window) renderCell(col int, row int) error {
 
 	for index := range renderItems {
 		renderItem := &renderItems[index]
-		// surface, err := window.font.RenderUTF8_Blended(renderItem.Glyph, renderItem.FColor)
 		charOffset := int(renderItem.Glyph - ' ')
 
 		sourceRect := sdl.Rect{
