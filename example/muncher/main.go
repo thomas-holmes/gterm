@@ -104,16 +104,19 @@ func main() {
 	hud := game.NewHud(&player, world, 60, 0)
 
 	for !quit {
-		window.ClearWindow()
 
 		event := sdl.PollEvent()
 
-		handleInput(event, world)
-		world.HandleInput(event)
+		if event != nil {
+			window.ClearWindow()
 
-		world.Render()
+			handleInput(event, world)
+			world.HandleInput(event)
 
-		hud.Render(world)
+			world.Render()
+
+			hud.Render(world)
+		}
 
 		window.Render()
 	}

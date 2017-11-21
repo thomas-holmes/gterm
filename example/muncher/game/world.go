@@ -2,6 +2,7 @@ package game
 
 import (
 	"log"
+	"strconv"
 
 	"github.com/thomas-holmes/gterm"
 	"github.com/veandco/go-sdl2/sdl"
@@ -149,7 +150,6 @@ func (world *World) ClosePopUp() {
 func (world *World) AddRenderable(renderable Renderable) {
 	pos := Position{XPos: renderable.XPos(), YPos: renderable.YPos()}
 	slice := world.renderItems[pos]
-	world.Window.ClearCell(pos.XPos, pos.YPos)
 	world.renderItems[pos] = append(slice, renderable)
 }
 
@@ -170,14 +170,13 @@ func (world *World) AddEntity(e Entity) {
 }
 
 func (world *World) RenderAt(x int, y int, out rune, color sdl.Color) {
-	world.Window.AddToCell(x+world.CameraX, y+world.CameraY, out, color)
+	err := world.Window.AddToCell(x+world.CameraX, y+world.CameraY, out, color)
+	if err != nil {
+		log.Panicf("Could not add cell", err)
+	}
 }
 
-// This is getting incredibly gross and fragile.
-// I need to come up with a better rendering method.
-// I think the easiest thing to do will be to improve
-// the perf of gterm so that I can call render every time
-// and have it not tank the frame rate by ~100x
+// Render redrwas everything!
 func (world *World) Render() {
 	world.VisionMap.UpdateVision(6, world.Player, world)
 
@@ -186,26 +185,22 @@ func (world *World) Render() {
 			tile := world.GetTile(col, row)
 
 			visibility := world.VisionMap.VisibilityAt(col, row)
-
-			if visibility == Visible {
-				tile.Render(world)
-			}
+			tile.Render(world, visibility)
 		}
 	}
+
 	if world.pop != nil && world.pop.Shown {
 		world.pop.Render(world.Window)
 	}
 }
 
 func (world *World) OverlayVisionMap() {
-	/*
-		blue := sdl.Color{R: 0, G: 0, B: 200, A: 255}
-		for y := 0; y < world.Rows; y++ {
-			for x := 0; x < world.Columns; x++ {
-					world.Window.AddToCell(x, y, strconv.Itoa(int(world.VisionMap.Map[y*world.Columns+x])), blue)
-			}
+	blue := sdl.Color{R: 0, G: 0, B: 200, A: 255}
+	for y := 0; y < world.Rows; y++ {
+		for x := 0; x < world.Columns; x++ {
+			world.Window.AddToCell(x, y, []rune(strconv.Itoa(int(world.VisionMap.Map[y*world.Columns+x])))[0], blue)
 		}
-	*/
+	}
 }
 
 func (world *World) RemoveEntity(entity Entity) {
@@ -254,9 +249,6 @@ func (world *World) MovePlayer(message PlayerMoveMessage) {
 	newSlice := world.renderItems[newPos]
 	newSlice = append(newSlice, foundItem)
 	world.renderItems[newPos] = newSlice
-
-	world.Window.ClearCell(message.OldX, message.OldY)
-	world.Window.ClearCell(message.NewX, message.NewY)
 }
 
 func (world *World) Notify(message Message, data interface{}) {

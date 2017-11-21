@@ -9,7 +9,7 @@ type Visibility int
 const (
 	Unseen Visibility = iota
 	Visible
-	Seen // Unused
+	Seen
 )
 
 type VisionMap struct {
@@ -18,7 +18,7 @@ type VisionMap struct {
 	Map     []Visibility
 }
 
-func (vision VisionMap) VisibilityAt(x int, y int) Visibility {
+func (vision *VisionMap) VisibilityAt(x int, y int) Visibility {
 	return vision.Map[y*vision.Columns+x]
 }
 
@@ -36,11 +36,20 @@ func (vision *VisionMap) UpdateVision(viewDistance int, player *Player, world *W
 	for y := minY; y < maxY; y++ {
 		for x := minX; x < maxX; x++ {
 			// TODO: This is gross, but whatever.
+			previousVision := vision.VisibilityAt(x, y)
+			newVision := Unseen
+
 			if abs(x-playerX) > viewDistance || abs(y-playerY) > viewDistance {
-				vision.Map[y*vision.Columns+x] = Unseen
+				newVision = Unseen
 			} else {
-				vision.Map[y*vision.Columns+x] = CheckVision(playerX, playerY, x, y, world)
+				newVision = CheckVision(playerX, playerY, x, y, world)
 			}
+
+			if (newVision == Unseen) && ((previousVision == Visible) || (previousVision == Seen)) {
+				newVision = Seen
+			}
+
+			vision.Map[y*vision.Columns+x] = newVision
 		}
 	}
 }
