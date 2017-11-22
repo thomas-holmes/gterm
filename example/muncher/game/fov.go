@@ -16,10 +16,22 @@ const (
 type VisionMap struct {
 	Columns int
 	Rows    int
-	Map     []Visibility
+	Current int64
+	Map     []int64
 }
 
-func (vision *VisionMap) VisibilityAt(x int, y int) Visibility {
+func (vision VisionMap) VisibilityAt(x int, y int) Visibility {
+	switch vision.lastSeenAt(x, y) {
+	case vision.Current:
+		return Visible
+	case 0:
+		return Unseen
+	default:
+		return Seen
+	}
+}
+
+func (vision VisionMap) lastSeenAt(x int, y int) int64 {
 	return vision.Map[y*vision.Columns+x]
 }
 
@@ -35,20 +47,17 @@ func (vision *VisionMap) UpdateVision(viewDistance int, player *Player, world *W
 	minY := max(playerY-viewDistance-2, 0)
 	maxY := min(playerY+viewDistance+2, vision.Rows)
 
+	vision.Current++
+	current := vision.Current
+
 	for y := minY; y < maxY; y++ {
 		for x := minX; x < maxX; x++ {
 			// TODO: This is gross, but whatever.
-			previousVision := vision.VisibilityAt(x, y)
-			newVision := Unseen
+			previousVision := vision.lastSeenAt(x, y)
+			newVision := previousVision
 
-			if abs(x-playerX) > viewDistance || abs(y-playerY) > viewDistance {
-				newVision = Unseen
-			} else {
-				newVision = CheckVision(playerX, playerY, x, y, world)
-			}
-
-			if (newVision == Unseen) && ((previousVision == Visible) || (previousVision == Seen)) {
-				newVision = Seen
+			if vision.CheckVision(playerX, playerY, x, y, world) {
+				newVision = current
 			}
 
 			vision.Map[y*vision.Columns+x] = newVision
@@ -56,27 +65,28 @@ func (vision *VisionMap) UpdateVision(viewDistance int, player *Player, world *W
 	}
 }
 
-func CheckVision(playerX int, playerY int, candidateX int, candidateY int, world *World) Visibility {
+func (vision *VisionMap) CheckVision(playerX int, playerY int, candidateX int, candidateY int, world *World) bool {
 	cells := PlotLine(playerX, playerY, candidateX, candidateY)
 
 	foundWall := false
 
 	for _, cell := range cells {
 		if foundWall {
-			return Unseen
+			return false
 		}
-		if world.GetTile(cell.XPos, cell.YPos).Wall {
+		tile := world.GetTile(cell.XPos, cell.YPos)
+		if tile.Wall {
 			foundWall = true
 		}
 	}
-	return Visible
+	return true
 }
 
 func NewVisionMap(columns int, rows int) VisionMap {
 	return VisionMap{
 		Columns: columns,
 		Rows:    rows,
-		Map:     make([]Visibility, columns*rows),
+		Map:     make([]int64, columns*rows),
 	}
 }
 
