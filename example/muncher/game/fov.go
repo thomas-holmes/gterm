@@ -16,8 +16,8 @@ const (
 type VisionMap struct {
 	Columns int
 	Rows    int
-	Current int64
-	Map     []int64
+	Current int
+	Map     []int
 }
 
 func (vision VisionMap) VisibilityAt(x int, y int) Visibility {
@@ -31,7 +31,7 @@ func (vision VisionMap) VisibilityAt(x int, y int) Visibility {
 	}
 }
 
-func (vision VisionMap) lastSeenAt(x int, y int) int64 {
+func (vision VisionMap) lastSeenAt(x int, y int) int {
 	return vision.Map[y*vision.Columns+x]
 }
 
@@ -41,11 +41,11 @@ func (vision *VisionMap) UpdateVision(viewDistance int, player *Player, world *W
 	playerY := player.YPos()
 
 	// Go beyond the min/max so we update cells we are moving away from
-	minX := max(playerX-viewDistance-2, 0)
-	maxX := min(playerX+viewDistance+2, vision.Columns)
+	minX := max(playerX-viewDistance, 0)
+	maxX := min(playerX+viewDistance, vision.Columns)
 
-	minY := max(playerY-viewDistance-2, 0)
-	maxY := min(playerY+viewDistance+2, vision.Rows)
+	minY := max(playerY-viewDistance, 0)
+	maxY := min(playerY+viewDistance, vision.Rows)
 
 	vision.Current++
 	current := vision.Current
@@ -79,7 +79,11 @@ func (vision *VisionMap) CheckVision(playerX int, playerY int, candidateX int, c
 		if foundWall {
 			return false
 		}
+		// Either a wall or on the way to a wall, so we can see it.
+		vision.Map[cell.YPos*world.VisionMap.Columns+cell.XPos] = world.VisionMap.Current
+
 		tile := world.GetTile(cell.XPos, cell.YPos)
+
 		if tile.Wall {
 			foundWall = true
 		}
@@ -91,7 +95,7 @@ func NewVisionMap(columns int, rows int) VisionMap {
 	return VisionMap{
 		Columns: columns,
 		Rows:    rows,
-		Map:     make([]int64, columns*rows),
+		Map:     make([]int, columns*rows),
 	}
 }
 
