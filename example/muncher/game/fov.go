@@ -16,8 +16,8 @@ const (
 type VisionMap struct {
 	Columns int
 	Rows    int
-	Current int
-	Map     []int
+	Current int64
+	Map     []int64
 }
 
 func (vision VisionMap) VisibilityAt(x int, y int) Visibility {
@@ -31,7 +31,7 @@ func (vision VisionMap) VisibilityAt(x int, y int) Visibility {
 	}
 }
 
-func (vision VisionMap) lastSeenAt(x int, y int) int {
+func (vision VisionMap) lastSeenAt(x int, y int) int64 {
 	return vision.Map[y*vision.Columns+x]
 }
 
@@ -95,7 +95,7 @@ func NewVisionMap(columns int, rows int) VisionMap {
 	return VisionMap{
 		Columns: columns,
 		Rows:    rows,
-		Map:     make([]int, columns*rows),
+		Map:     make([]int64, columns*rows),
 	}
 }
 
