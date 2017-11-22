@@ -227,6 +227,16 @@ func (window *Window) PutRune(col int, row int, glyph rune, fColor sdl.Color) er
 	return nil
 }
 
+func (window *Window) PutString(col int, row int, content string, fColor sdl.Color) error {
+	for step, rune := range content {
+		if err := window.PutRune(col+step, row, rune, fColor); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (window *Window) ClearCell(col int, row int) error {
 	index, err := window.cellIndex(col, row)
 	if err != nil {

@@ -91,10 +91,7 @@ func (pop PopUp) RenderContents(window *gterm.Window) {
 	yOffset := pop.YPos + pop.ContentRelativeY
 
 	for line, content := range pop.Content {
-		runes := []rune(content)
-		for i, r := range runes {
-			window.PutRune(xOffset+i, yOffset+line, r, pop.ContentColor)
-		}
+		window.PutString(xOffset, yOffset+line, content, pop.ContentColor)
 	}
 }
 

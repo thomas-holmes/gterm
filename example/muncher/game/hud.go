@@ -33,18 +33,12 @@ func (hud *HUD) Notify(message Message, data interface{}) {
 	}
 }
 func (hud HUD) renderPlayerName(world *World) {
-	runes := []rune(hud.Player.Name)
-	for i, r := range runes {
-		world.Window.PutRune(hud.XPos+i, hud.YPos, r, Yellow)
-	}
+	world.Window.PutString(hud.XPos, hud.YPos, world.Player.Name, Yellow)
 }
 
 func (hud HUD) renderPlayerPosition(world *World) {
 	position := fmt.Sprintf("(%v, %v)", hud.Player.xPos, hud.Player.yPos)
-	runes := []rune(position)
-	for i, r := range runes {
-		world.Window.PutRune(hud.XPos+i, hud.YPos+1, r, Yellow)
-	}
+	world.Window.PutString(hud.XPos, hud.YPos+1, position, Yellow)
 }
 
 func (hud HUD) renderPlayerHealth(world *World) {
@@ -67,18 +61,12 @@ func (hud HUD) renderPlayerHealth(world *World) {
 		hp += " *DEAD*"
 	}
 
-	runes := []rune(hp)
-	for i, r := range runes {
-		world.Window.PutRune(hud.XPos+i, hud.YPos+2, r, hpColor)
-	}
+	world.Window.PutString(hud.XPos, hud.YPos+2, hp, hpColor)
 }
 
 func (hud HUD) renderPlayerLevel(world *World) {
 	level := fmt.Sprintf("Level: %v", hud.Player.Level)
-	runes := []rune(level)
-	for i, r := range runes {
-		world.Window.PutRune(hud.XPos+i, hud.YPos+3, r, Yellow)
-	}
+	world.Window.PutString(hud.XPos, hud.YPos+3, level, Yellow)
 }
 
 func (hud *HUD) Render(world *World) {
