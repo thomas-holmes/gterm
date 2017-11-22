@@ -125,7 +125,7 @@ func main() {
 			turnCount++
 		}
 
-		window.Render()
+		window.Refresh()
 	}
 }
 

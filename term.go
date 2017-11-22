@@ -322,7 +322,8 @@ func min(a uint32, b uint32) uint32 {
 	}
 	return b
 }
-func (window *Window) Render() {
+
+func (window *Window) Refresh() {
 	err := window.SdlRenderer.SetDrawColor(window.backgroundColor.R, window.backgroundColor.G, window.backgroundColor.B, window.backgroundColor.A)
 	if err != nil {
 		log.Fatal(err)
