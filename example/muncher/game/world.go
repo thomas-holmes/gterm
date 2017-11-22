@@ -172,7 +172,7 @@ func (world *World) AddEntity(e Entity) {
 }
 
 func (world *World) RenderAt(x int, y int, out rune, color sdl.Color) {
-	err := world.Window.AddToCell(x+world.CameraX, y+world.CameraY, out, color)
+	err := world.Window.PutRune(x+world.CameraX, y+world.CameraY, out, color)
 	if err != nil {
 		log.Panicf("Could not add cell", err)
 	}
@@ -203,7 +203,7 @@ func (world *World) OverlayVisionMap() {
 	blue := sdl.Color{R: 0, G: 0, B: 200, A: 255}
 	for y := 0; y < world.Rows; y++ {
 		for x := 0; x < world.Columns; x++ {
-			world.Window.AddToCell(x, y, []rune(strconv.Itoa(int(world.VisionMap.Map[y*world.Columns+x])))[0], blue)
+			world.Window.PutRune(x, y, []rune(strconv.Itoa(int(world.VisionMap.Map[y*world.Columns+x])))[0], blue)
 		}
 	}
 }

@@ -80,7 +80,7 @@ func (pop *PopUp) RenderBorder(window *gterm.Window) {
 	for y := topY; y <= bottomY; y++ {
 		for x := leftX; x <= rightX; x++ {
 			if y == topY || y == bottomY || x == leftX || x == rightX {
-				window.AddToCell(x, y, '%', pop.ContentColor)
+				window.PutRune(x, y, '%', pop.ContentColor)
 			}
 		}
 	}
@@ -93,7 +93,7 @@ func (pop PopUp) RenderContents(window *gterm.Window) {
 	for line, content := range pop.Content {
 		runes := []rune(content)
 		for i, r := range runes {
-			window.AddToCell(xOffset+i, yOffset+line, r, pop.ContentColor)
+			window.PutRune(xOffset+i, yOffset+line, r, pop.ContentColor)
 		}
 	}
 }

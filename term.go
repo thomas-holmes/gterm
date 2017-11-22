@@ -216,7 +216,7 @@ func (window *Window) renderCells() error {
 	return nil
 }
 
-func (window *Window) AddToCell(col int, row int, glyph rune, fColor sdl.Color) error {
+func (window *Window) PutRune(col int, row int, glyph rune, fColor sdl.Color) error {
 	renderItem := renderItem{Glyph: glyph, FColor: fColor}
 	index, err := window.cellIndex(col, row)
 	if err != nil {
