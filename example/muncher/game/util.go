@@ -1,6 +1,11 @@
 package game
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"log"
+	"time"
+
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 func max(a int, b int) int {
 	if a > b {
@@ -25,4 +30,10 @@ func abs(a int) int {
 		return a
 	}
 	return -1 * a
+}
+
+func timeMe(start time.Time, name string) {
+	elapsed := time.Since(start)
+	log.Printf("%v %s", name, elapsed)
+
 }

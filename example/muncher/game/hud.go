@@ -1,6 +1,9 @@
 package game
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 type HUD struct {
 	World  *World
@@ -79,6 +82,7 @@ func (hud HUD) renderPlayerLevel(world *World) {
 }
 
 func (hud *HUD) Render(world *World) {
+	defer timeMe(time.Now(), "HUD.Render")
 	hud.renderPlayerName(world)
 	hud.renderPlayerPosition(world)
 	hud.renderPlayerHealth(world)

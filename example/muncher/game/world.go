@@ -3,6 +3,7 @@ package game
 import (
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/thomas-holmes/gterm"
 	"github.com/veandco/go-sdl2/sdl"
@@ -55,6 +56,7 @@ func (world *World) BuildLevelFromMask(mask []int) {
 		}
 	}
 }
+
 func (world *World) BuildLevel() {
 	for row := 0; row < world.Rows; row++ {
 		for col := 0; col < world.Columns; col++ {
@@ -180,14 +182,17 @@ func (world *World) RenderAt(x int, y int, out rune, color sdl.Color) {
 func (world *World) Render() {
 	world.VisionMap.UpdateVision(6, world.Player, world)
 
-	for row := 0; row < world.Rows; row++ {
-		for col := 0; col < world.Columns; col++ {
-			tile := world.GetTile(col, row)
+	func() {
+		defer timeMe(time.Now(), "World.Render.TileLoop")
+		for row := 0; row < world.Rows; row++ {
+			for col := 0; col < world.Columns; col++ {
+				tile := world.GetTile(col, row)
 
-			visibility := world.VisionMap.VisibilityAt(col, row)
-			tile.Render(world, visibility)
+				visibility := world.VisionMap.VisibilityAt(col, row)
+				tile.Render(world, visibility)
+			}
 		}
-	}
+	}()
 
 	if world.pop != nil && world.pop.Shown {
 		world.pop.Render(world.Window)
@@ -228,7 +233,6 @@ func (world *World) RemoveEntity(entity Entity) {
 }
 
 func (world *World) MovePlayer(message PlayerMoveMessage) {
-	log.Printf("Got MoveEntity %+v", message)
 	oldPos := Position{XPos: message.OldX, YPos: message.OldY}
 	slice := world.renderItems[oldPos]
 	foundIndex := -1
@@ -240,6 +244,7 @@ func (world *World) MovePlayer(message PlayerMoveMessage) {
 			break
 		}
 	}
+
 	if foundIndex != -1 {
 		newSlice := append(slice[:foundIndex], slice[foundIndex+1:]...)
 		world.renderItems[oldPos] = newSlice

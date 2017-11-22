@@ -2,6 +2,7 @@ package game
 
 import (
 	"log"
+	"time"
 )
 
 type Visibility int
@@ -23,6 +24,7 @@ func (vision *VisionMap) VisibilityAt(x int, y int) Visibility {
 }
 
 func (vision *VisionMap) UpdateVision(viewDistance int, player *Player, world *World) {
+	defer timeMe(time.Now(), "VisionMap.UpdateVision")
 	playerX := player.XPos()
 	playerY := player.YPos()
 

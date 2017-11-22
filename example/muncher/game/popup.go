@@ -1,6 +1,8 @@
 package game
 
 import (
+	"time"
+
 	"github.com/thomas-holmes/gterm"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -97,6 +99,7 @@ func (pop PopUp) RenderContents(window *gterm.Window) {
 }
 
 func (pop *PopUp) Render(window *gterm.Window) {
+	defer timeMe(time.Now(), "PopUp.Render")
 	pop.ClearUnderlying()
 	pop.RenderBorder(window)
 	pop.RenderContents(window)

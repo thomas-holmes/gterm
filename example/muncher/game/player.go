@@ -21,7 +21,6 @@ func (player *Player) UpdatePosition(xPos int, yPos int, world *World) {
 			player.xPos = xPos
 			player.yPos = yPos
 			player.Broadcast(PlayerMove, PlayerMoveMessage{ID: player.ID(), OldX: oldX, OldY: oldY, NewX: xPos, NewY: yPos})
-			player.Broadcast(PlayerUpdate, nil)
 		}
 	}
 }
