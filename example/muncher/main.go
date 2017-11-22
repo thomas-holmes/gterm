@@ -4,6 +4,7 @@ import (
 	"log"
 	"math/rand"
 	"path"
+	"time"
 
 	"github.com/thomas-holmes/gterm"
 	"github.com/thomas-holmes/gterm/example/muncher/game"
@@ -14,6 +15,16 @@ import (
 )
 
 var quit = false
+
+func eventActionable(event sdl.Event) bool {
+	switch event.(type) {
+	case *sdl.KeyDownEvent:
+		return true
+	case *sdl.QuitEvent:
+		return true
+	}
+	return false
+}
 
 func handleInput(event sdl.Event, world *game.World) {
 	switch e := event.(type) {
@@ -55,9 +66,16 @@ func addMonsters(world *game.World) {
 
 }
 
+func timeFunc(code func(), name string) {
+	before := time.Now()
+	code()
+	elapsed := time.Since(before)
+	log.Printf("%v, %s", name, elapsed)
+}
+
 func main() {
 	// Disable FPS limit, generally, so I can monitor performance.
-	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16, 0)
+	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16, 60)
 
 	if err := window.Init(); err != nil {
 		log.Fatalln("Failed to Init() window", err)
@@ -90,19 +108,21 @@ func main() {
 
 	hud := game.NewHud(&player, world, 60, 0)
 
+	var turnCount int64
+
 	for !quit {
 
 		event := sdl.PollEvent()
-
-		if event != nil {
+		if turnCount == 0 || eventActionable(event) {
 			window.ClearWindow()
 
 			handleInput(event, world)
 			world.HandleInput(event)
 
-			world.Render()
+			timeFunc(world.Render, "World Render")
 
 			hud.Render(world)
+			turnCount++
 		}
 
 		window.Render()
