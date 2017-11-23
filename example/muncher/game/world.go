@@ -232,6 +232,14 @@ func (world *World) RemoveEntity(entity Entity) {
 	}
 }
 
+func (world *World) BumpCameraX(amount int) {
+	world.CameraX += amount
+}
+
+func (world *World) BumpCameraY(amount int) {
+	world.CameraY += amount
+}
+
 func (world *World) MovePlayer(message PlayerMoveMessage) {
 	oldPos := Position{XPos: message.OldX, YPos: message.OldY}
 	slice := world.renderItems[oldPos]

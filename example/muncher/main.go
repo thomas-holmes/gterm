@@ -34,6 +34,14 @@ func handleInput(event sdl.Event, world *game.World) {
 			quit = true
 		case sdl.K_5:
 			spawnRandomMonster(world)
+		case sdl.K_MINUS:
+			world.BumpCameraX(-1)
+		case sdl.K_EQUALS:
+			world.BumpCameraX(1)
+		case sdl.K_LEFTBRACKET:
+			world.BumpCameraY(-1)
+		case sdl.K_RIGHTBRACKET:
+			world.BumpCameraY(1)
 		}
 	case *sdl.QuitEvent:
 		quit = true
