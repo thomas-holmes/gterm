@@ -127,6 +127,9 @@ func main() {
 			handleInput(event, world)
 			world.HandleInput(event)
 
+			world.VisionMap.UpdateVision(6, world.Player, world)
+			world.ScentMap.UpdateScents(*world.VisionMap)
+
 			timeFunc(world.Render, "World Render")
 
 			hud.Render(world)

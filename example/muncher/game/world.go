@@ -191,20 +191,15 @@ func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 
 // Render redrwas everything!
 func (world *World) Render() {
-	world.VisionMap.UpdateVision(6, world.Player, world)
-	world.ScentMap.UpdateScents(*world.VisionMap)
+	defer timeMe(time.Now(), "World.Render.TileLoop")
+	for row := max(0, 0-world.CameraY); row < min(world.Rows, world.Rows-world.CameraY); row++ {
+		for col := max(0, 0-world.CameraX); col < min(world.Columns, world.Columns-world.CameraX); col++ {
+			tile := world.GetTile(col, row)
 
-	func() {
-		defer timeMe(time.Now(), "World.Render.TileLoop")
-		for row := max(0, 0-world.CameraY); row < min(world.Rows, world.Rows-world.CameraY); row++ {
-			for col := max(0, 0-world.CameraX); col < min(world.Columns, world.Columns-world.CameraX); col++ {
-				tile := world.GetTile(col, row)
-
-				visibility := world.VisionMap.VisibilityAt(col, row)
-				tile.Render(world, visibility)
-			}
+			visibility := world.VisionMap.VisibilityAt(col, row)
+			tile.Render(world, visibility)
 		}
-	}()
+	}
 
 	if world.pop != nil && world.pop.Shown {
 		world.pop.Render(world.Window)
