@@ -24,11 +24,16 @@ type Window struct {
 	SdlWindow       *sdl.Window
 	SdlRenderer     *sdl.Renderer
 	backgroundColor sdl.Color
-	cells           [][]renderItem
+	cells           []cell
 	fps             fpsCounter
 	fontTexture     *sdl.Texture
 	drawInterval    uint32
 	vsync           bool
+}
+
+type cell struct {
+	bgColor     sdl.Color
+	renderItems []renderItem
 }
 
 type renderItem struct {
@@ -39,7 +44,7 @@ type renderItem struct {
 // NewWindow constructs a window
 func NewWindow(columns int, rows int, fontPath string, fontSize int, vsync bool) *Window {
 	numCells := columns * rows
-	cells := make([][]renderItem, numCells, numCells)
+	cells := make([]cell, numCells, numCells)
 	drawInterval := uint32(0)
 
 	window := &Window{
@@ -171,7 +176,8 @@ func (window *Window) renderCell(col int, row int) error {
 		return err
 	}
 
-	renderItems := window.cells[index]
+	cell := window.cells[index]
+	renderItems := cell.renderItems
 
 	for index := range renderItems {
 		renderItem := &renderItems[index]
@@ -222,7 +228,7 @@ func (window *Window) PutRune(col int, row int, glyph rune, fColor sdl.Color) er
 	if err != nil {
 		return err
 	}
-	window.cells[index] = append(window.cells[index], renderItem)
+	window.cells[index].renderItems = append(window.cells[index].renderItems, renderItem)
 
 	return nil
 }
@@ -243,13 +249,13 @@ func (window *Window) ClearCell(col int, row int) error {
 		return err
 	}
 
-	window.cells[index] = window.cells[index][:0]
+	window.cells[index] = cell{}
 
 	return nil
 }
 
 func (window *Window) ClearWindow() {
-	window.cells = make([][]renderItem, window.Columns*window.Rows, window.Columns*window.Rows)
+	window.cells = make([]cell, window.Columns*window.Rows, window.Columns*window.Rows)
 }
 
 func (window *Window) ShouldRenderFps(shouldRender bool) {
