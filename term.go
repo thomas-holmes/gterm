@@ -179,6 +179,10 @@ func (window *Window) renderCell(col int, row int) error {
 	cell := window.cells[index]
 	renderItems := cell.renderItems
 
+	if cell.bgColor.A != 0 {
+		window.drawBackground(col, row, cell.bgColor)
+	}
+
 	for index := range renderItems {
 		renderItem := &renderItems[index]
 		charOffset := int(renderItem.Glyph - ' ')
@@ -222,20 +226,23 @@ func (window *Window) renderCells() error {
 	return nil
 }
 
-func (window *Window) PutRune(col int, row int, glyph rune, fColor sdl.Color) error {
+var NoColor = sdl.Color{R: 0, G: 0, B: 0, A: 0}
+
+func (window *Window) PutRune(col int, row int, glyph rune, fColor sdl.Color, bColor sdl.Color) error {
 	renderItem := renderItem{Glyph: glyph, FColor: fColor}
 	index, err := window.cellIndex(col, row)
 	if err != nil {
 		return err
 	}
 	window.cells[index].renderItems = append(window.cells[index].renderItems, renderItem)
+	window.cells[index].bgColor = bColor
 
 	return nil
 }
 
 func (window *Window) PutString(col int, row int, content string, fColor sdl.Color) error {
 	for step, rune := range content {
-		if err := window.PutRune(col+step, row, rune, fColor); err != nil {
+		if err := window.PutRune(col+step, row, rune, fColor, NoColor); err != nil {
 			return err
 		}
 	}
@@ -350,8 +357,9 @@ func min(a uint32, b uint32) uint32 {
 	return b
 }
 
-func (window *Window) RenderBackgroundSquare(x int, y int) {
-	window.SdlRenderer.SetDrawColor(255, 200, 200, 255)
+func (window *Window) drawBackground(x int, y int, color sdl.Color) {
+	r, g, b, a := uint8(color.R), uint8(color.G), uint8(color.B), uint8(color.A)
+	window.SdlRenderer.SetDrawColor(r, g, b, a)
 	destinationRect := sdl.Rect{
 		X: int32(x * window.tileWidthPixel),
 		Y: int32(y * window.tileHeightPixel),

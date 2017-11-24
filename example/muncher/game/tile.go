@@ -1,6 +1,7 @@
 package game
 
 import (
+	"github.com/thomas-holmes/gterm"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -47,5 +48,5 @@ func (tile Tile) RenderBackground(world *World, visibility Visibility) {
 		color.B /= 2
 	}
 
-	world.RenderRuneAt(tile.XPos, tile.YPos, tile.BackgroundGlyph, color)
+	world.RenderRuneAt(tile.XPos, tile.YPos, tile.BackgroundGlyph, color, gterm.NoColor)
 }

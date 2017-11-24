@@ -2,6 +2,7 @@ package game
 
 import (
 	"log"
+	"math/rand"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -25,8 +26,18 @@ func (player *Player) UpdatePosition(xPos int, yPos int, world *World) {
 	}
 }
 
+func getRandomColor() sdl.Color {
+	return sdl.Color{
+		R: uint8(rand.Intn(256)),
+		G: uint8(rand.Intn(256)),
+		B: uint8(rand.Intn(256)),
+		A: 255,
+	}
+}
+
 func (player *Player) Render(world *World) {
-	world.RenderRuneAt(player.xPos, player.yPos, player.RenderGlyph, player.RenderColor)
+	discoColor := getRandomColor()
+	world.RenderRuneAt(player.xPos, player.yPos, player.RenderGlyph, player.RenderColor, discoColor)
 }
 
 type Health struct {

@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"strconv"
 
+	"github.com/thomas-holmes/gterm"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -85,5 +86,5 @@ func (monster *Monster) UpdatePosition(xPos int, yPos int) {
 
 func (monster *Monster) Render(world *World) {
 	glyph := []rune(strconv.Itoa(monster.Level))[0]
-	world.RenderRuneAt(monster.xPos, monster.yPos, glyph, monster.Color)
+	world.RenderRuneAt(monster.xPos, monster.yPos, glyph, monster.Color, gterm.NoColor)
 }

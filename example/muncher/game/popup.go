@@ -80,7 +80,7 @@ func (pop *PopUp) RenderBorder(window *gterm.Window) {
 	for y := topY; y <= bottomY; y++ {
 		for x := leftX; x <= rightX; x++ {
 			if y == topY || y == bottomY || x == leftX || x == rightX {
-				window.PutRune(x, y, '%', pop.ContentColor)
+				window.PutRune(x, y, '%', pop.ContentColor, gterm.NoColor)
 			}
 		}
 	}
