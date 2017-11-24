@@ -4,7 +4,6 @@ import (
 	"log"
 	"math/rand"
 	"path"
-	"time"
 
 	"github.com/thomas-holmes/gterm"
 	"github.com/thomas-holmes/gterm/example/muncher/game"
@@ -67,18 +66,10 @@ func spawnRandomMonster(world *game.World) {
 }
 
 func addMonsters(world *game.World) {
-	for i, level := range []int{1, 1, 2, 3, 3, 4, 5} {
+	for i, level := range []int{1} {
 		m := game.NewMonster(10, 6+i, level, game.Green, 1)
 		world.AddEntity(&m)
 	}
-
-}
-
-func timeFunc(code func(), name string) {
-	before := time.Now()
-	code()
-	elapsed := time.Since(before)
-	log.Printf("%v, %s", name, elapsed)
 }
 
 func main() {
@@ -104,7 +95,9 @@ func main() {
 		world.MessageBus.Subscribe(combat)
 	}
 
-	player := game.NewPlayer(20, 9)
+	player := game.NewPlayer(1, 1)
+	world.BumpCameraX(19)
+	world.BumpCameraY(8)
 	player.Name = "Euclid"
 
 	world.AddEntity(&player)
@@ -127,10 +120,9 @@ func main() {
 			handleInput(event, world)
 			world.HandleInput(event)
 
-			world.VisionMap.UpdateVision(6, world.Player, world)
-			world.ScentMap.UpdateScents(*world.VisionMap)
+			world.Update()
 
-			timeFunc(world.Render, "World Render")
+			world.Render()
 
 			hud.Render(world)
 			turnCount++

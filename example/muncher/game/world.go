@@ -189,6 +189,19 @@ func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 	}
 }
 
+func (world *World) Update() {
+	world.VisionMap.UpdateVision(6, world.Player, world)
+	world.ScentMap.UpdateScents(*world.VisionMap)
+
+	for _, e := range world.entities {
+		switch m := e.(type) {
+		case *Monster:
+			log.Printf("Got a monster, %v", m)
+			m.Pursue(world.ScentMap)
+		}
+	}
+}
+
 // Render redrwas everything!
 func (world *World) Render() {
 	defer timeMe(time.Now(), "World.Render.TileLoop")
@@ -259,6 +272,7 @@ func (world *World) BumpCameraY(amount int) {
 	world.CameraY += amount
 }
 
+// TODO: Dedup this with move entity, maybe?
 func (world *World) MovePlayer(message PlayerMoveMessage) {
 	oldPos := Position{XPos: message.OldX, YPos: message.OldY}
 	slice := world.renderItems[oldPos]
@@ -285,6 +299,32 @@ func (world *World) MovePlayer(message PlayerMoveMessage) {
 	world.renderItems[newPos] = newSlice
 }
 
+// TODO: Dedup this with move player
+func (world *World) MoveEntity(message MoveEntityMessage) {
+	log.Printf("Moving an entity, %#v", message)
+	oldPos := Position{XPos: message.OldX, YPos: message.OldY}
+	slice := world.renderItems[oldPos]
+	foundIndex := -1
+	var foundItem Renderable
+	for index, item := range slice {
+		if item.ID() == message.ID {
+			foundIndex = index
+			foundItem = item
+			break
+		}
+	}
+
+	if foundIndex != -1 {
+		newSlice := append(slice[:foundIndex], slice[foundIndex+1:]...)
+		world.renderItems[oldPos] = newSlice
+	}
+
+	newPos := Position{XPos: message.NewX, YPos: message.NewY}
+	newSlice := world.renderItems[newPos]
+	newSlice = append(newSlice, foundItem)
+	world.renderItems[newPos] = newSlice
+}
+
 func (world *World) Notify(message Message, data interface{}) {
 	switch message {
 	case TileInvalidated:
@@ -295,6 +335,10 @@ func (world *World) Notify(message Message, data interface{}) {
 	case PlayerMove:
 		if d, ok := data.(PlayerMoveMessage); ok {
 			world.MovePlayer(d)
+		}
+	case MoveEntity:
+		if d, ok := data.(MoveEntityMessage); ok {
+			world.MoveEntity(d)
 		}
 	case KillMonster:
 		if d, ok := data.(KillMonsterMessage); ok {

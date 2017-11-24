@@ -1,6 +1,8 @@
 package game
 
 import (
+	"log"
+	"math/rand"
 	"strconv"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -30,6 +32,30 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 	}
 
 	return monster
+}
+
+func (monster *Monster) Pursue(scent ScentMap) {
+	candidates := scent.track(monster.xPos, monster.yPos)
+
+	log.Printf("Monster %#v found tracking candidates: %v", *monster, candidates)
+
+	if len(candidates) > 0 {
+		randomIndex := rand.Intn(len(candidates))
+		choice := candidates[randomIndex]
+
+		oldX := monster.xPos
+		oldY := monster.yPos
+		monster.xPos = choice.XPos
+		monster.yPos = choice.YPos
+
+		monster.Broadcast(MoveEntity, MoveEntityMessage{
+			ID:   monster.id,
+			OldX: oldX,
+			OldY: oldY,
+			NewX: monster.xPos,
+			NewY: monster.yPos,
+		})
+	}
 }
 
 func (monster Monster) XPos() int {

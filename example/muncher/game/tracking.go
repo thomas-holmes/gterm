@@ -38,7 +38,7 @@ func (scentMap ScentMap) track(xPos int, yPos int) []Position {
 	candidates := make([]Position, 0, 8)
 	strongest := MinScent + 1 // Skip 0s
 	for y := minY; y < maxY; y++ {
-		for x := minX; x < maxX; y++ {
+		for x := minX; x < maxX; x++ {
 			strength := scentMap.getScent(x, y)
 
 			if strength > strongest {
