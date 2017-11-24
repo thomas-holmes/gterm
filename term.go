@@ -27,8 +27,8 @@ type Window struct {
 	cells           [][]renderItem
 	fps             fpsCounter
 	fontTexture     *sdl.Texture
-	fpsLimit        int
 	drawInterval    uint32
+	vsync           bool
 }
 
 type renderItem struct {
@@ -37,13 +37,10 @@ type renderItem struct {
 }
 
 // NewWindow constructs a window
-func NewWindow(columns int, rows int, fontPath string, fontSize int, fpsLimit int) *Window {
+func NewWindow(columns int, rows int, fontPath string, fontSize int, vsync bool) *Window {
 	numCells := columns * rows
 	cells := make([][]renderItem, numCells, numCells)
 	drawInterval := uint32(0)
-	if fpsLimit != 0 {
-		drawInterval = uint32(1000 / fpsLimit)
-	}
 
 	window := &Window{
 		Columns:      columns,
@@ -51,7 +48,7 @@ func NewWindow(columns int, rows int, fontPath string, fontSize int, fpsLimit in
 		FontSize:     fontSize,
 		fontPath:     fontPath,
 		cells:        cells,
-		fpsLimit:     fpsLimit,
+		vsync:        vsync,
 		drawInterval: drawInterval,
 	}
 
@@ -128,7 +125,11 @@ func (window *Window) Init() error {
 		return err
 	}
 
-	sdlRenderer, err := sdl.CreateRenderer(sdlWindow, -1, sdl.RENDERER_ACCELERATED)
+	var flags uint32 = sdl.RENDERER_ACCELERATED
+	if window.vsync {
+		flags = sdl.RENDERER_PRESENTVSYNC
+	}
+	sdlRenderer, err := sdl.CreateRenderer(sdlWindow, -1, flags)
 	if err != nil {
 		return err
 	}
@@ -347,12 +348,4 @@ func (window *Window) Refresh() {
 	window.renderDebugFontTexture()
 
 	window.SdlRenderer.Present()
-
-	if window.fpsLimit > 0 {
-		nowTicks := sdl.GetTicks()
-		if lastDraw < (nowTicks - window.drawInterval) {
-			delay := window.drawInterval - min(0, (nowTicks-lastDraw))
-			sdl.Delay(delay)
-		}
-	}
 }
