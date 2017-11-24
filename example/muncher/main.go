@@ -41,6 +41,8 @@ func handleInput(event sdl.Event, world *game.World) {
 			world.BumpCameraY(-1)
 		case sdl.K_RIGHTBRACKET:
 			world.BumpCameraY(1)
+		case sdl.K_BACKSLASH:
+			world.ToggleScentOverlay()
 		}
 	case *sdl.QuitEvent:
 		quit = true
@@ -122,9 +124,10 @@ func main() {
 
 			world.Update(turnCount)
 
-			world.Render()
+			world.Render(turnCount)
 
 			hud.Render(world)
+
 			turnCount++
 		}
 

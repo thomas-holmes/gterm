@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -37,7 +36,8 @@ type World struct {
 
 	pop *PopUp
 
-	Suspended bool
+	Suspended        bool
+	showScentOverlay bool
 
 	renderItems map[Position][]Renderable
 	entities    map[int]Entity
@@ -177,7 +177,7 @@ func (world *World) AddEntity(e Entity) {
 func (world *World) RenderRuneAt(x int, y int, out rune, fColor sdl.Color, bColor sdl.Color) {
 	err := world.Window.PutRune(x+world.CameraX, y+world.CameraY, out, fColor, bColor)
 	if err != nil {
-		log.Printf("Out of bounds %s", err)
+		// log.Printf("Out of bounds %s", err)
 		// log.Panicf("Could not add cell", err)
 	}
 }
@@ -185,7 +185,7 @@ func (world *World) RenderRuneAt(x int, y int, out rune, fColor sdl.Color, bColo
 func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 	err := world.Window.PutString(x+world.CameraX, y+world.CameraY, out, color)
 	if err != nil {
-		log.Printf("Out of bounds %s", err)
+		// log.Printf("Out of bounds %s", err)
 		// log.Panicf("Could not add cell", err)
 	}
 }
@@ -204,7 +204,7 @@ func (world *World) Update(turn int64) {
 }
 
 // Render redrwas everything!
-func (world *World) Render() {
+func (world *World) Render(turnCount int64) {
 	defer timeMe(time.Now(), "World.Render.TileLoop")
 	for row := max(0, 0-world.CameraY); row < min(world.Rows, world.Rows-world.CameraY); row++ {
 		for col := max(0, 0-world.CameraX); col < min(world.Columns, world.Columns-world.CameraX); col++ {
@@ -218,6 +218,10 @@ func (world *World) Render() {
 	if world.pop != nil && world.pop.Shown {
 		world.pop.Render(world.Window)
 	}
+
+	if world.showScentOverlay {
+		world.OverlayScentMap(turnCount)
+	}
 }
 
 func (world *World) OverlayVisionMap() {
@@ -229,13 +233,38 @@ func (world *World) OverlayVisionMap() {
 	}
 }
 
+var ScentColors = []sdl.Color{
+	sdl.Color{R: 175, G: 50, B: 50, A: 55},
+	sdl.Color{R: 225, G: 25, B: 25, A: 55},
+	sdl.Color{R: 255, G: 0, B: 0, A: 55},
+	sdl.Color{R: 100, G: 175, B: 50, A: 55},
+	sdl.Color{R: 50, G: 255, B: 100, A: 55},
+	sdl.Color{R: 0, G: 150, B: 175, A: 55},
+	sdl.Color{R: 0, G: 50, B: 255, A: 55},
+}
+
+func (world *World) ToggleScentOverlay() {
+	world.showScentOverlay = !world.showScentOverlay
+}
+
 func (world *World) OverlayScentMap(turn int64) {
 	purple := sdl.Color{R: 200, G: 0, B: 200, A: 255}
 	for y := 0; y < world.Rows; y++ {
 		for x := 0; x < world.Columns; x++ {
 			scent := world.ScentMap.getScent(x, y)
+
+			if x == 5 && y == 5 {
+				maxScent := turn * 32
+				log.Printf("max scent %v, found scent: %v", maxScent, scent)
+			}
+
+			bgColorIndex := min64((turn*32)-scent, 6)
+			// log.Printf("scent %v, calculated %v", scent, bgColorIndex)
+
+			bgColor := ScentColors[bgColorIndex]
+
 			if scent > (turn-10)*32 {
-				world.RenderStringAt(x, y, fmt.Sprint(scent), purple)
+				world.RenderRuneAt(x, y, ' ', purple, bgColor)
 			}
 		}
 	}
