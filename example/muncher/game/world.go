@@ -19,6 +19,8 @@ type World struct {
 	MessageBus MessageBus
 	VisionMap  *VisionMap
 
+	ScentMap ScentMap
+
 	Player *Player
 
 	Columns int
@@ -171,8 +173,16 @@ func (world *World) AddEntity(e Entity) {
 	world.entities[e.ID()] = e
 }
 
-func (world *World) RenderAt(x int, y int, out rune, color sdl.Color) {
+func (world *World) RenderRuneAt(x int, y int, out rune, color sdl.Color) {
 	err := world.Window.PutRune(x+world.CameraX, y+world.CameraY, out, color)
+	if err != nil {
+		log.Printf("Out of bounds %s", err)
+		// log.Panicf("Could not add cell", err)
+	}
+}
+
+func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
+	err := world.Window.PutString(x+world.CameraX, y+world.CameraY, out, color)
 	if err != nil {
 		log.Printf("Out of bounds %s", err)
 		// log.Panicf("Could not add cell", err)
@@ -182,6 +192,7 @@ func (world *World) RenderAt(x int, y int, out rune, color sdl.Color) {
 // Render redrwas everything!
 func (world *World) Render() {
 	world.VisionMap.UpdateVision(6, world.Player, world)
+	world.ScentMap.UpdateScents(*world.VisionMap)
 
 	func() {
 		defer timeMe(time.Now(), "World.Render.TileLoop")
@@ -204,7 +215,19 @@ func (world *World) OverlayVisionMap() {
 	blue := sdl.Color{R: 0, G: 0, B: 200, A: 255}
 	for y := 0; y < world.Rows; y++ {
 		for x := 0; x < world.Columns; x++ {
-			world.Window.PutRune(x, y, []rune(strconv.Itoa(int(world.VisionMap.Map[y*world.Columns+x])))[0], blue)
+			world.RenderRuneAt(x, y, []rune(strconv.Itoa(int(world.VisionMap.Map[y*world.Columns+x])))[0], blue)
+		}
+	}
+}
+
+func (world *World) OverlayScentMap() {
+	purple := sdl.Color{R: 200, G: 0, B: 200, A: 255}
+	for y := 0; y < world.Rows; y++ {
+		for x := 0; x < world.Columns; x++ {
+			scent := world.ScentMap.getScent(x, y)
+			if scent > MinScent {
+				world.RenderStringAt(x, y, strconv.Itoa(scent), purple)
+			}
 		}
 	}
 }
@@ -311,6 +334,7 @@ func NewWorld(window *gterm.Window, columns int, rows int) *World {
 	world := World{
 		Window:    window,
 		VisionMap: &vision,
+		ScentMap:  newScentMap(columns, rows),
 		Columns:   columns,
 		Rows:      rows,
 		Tiles:     tiles,

@@ -83,7 +83,7 @@ func timeFunc(code func(), name string) {
 
 func main() {
 	// Disable FPS limit, generally, so I can monitor performance.
-	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16, false)
+	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16, true)
 
 	if err := window.Init(); err != nil {
 		log.Fatalln("Failed to Init() window", err)

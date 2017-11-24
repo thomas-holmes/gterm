@@ -47,5 +47,5 @@ func (tile Tile) RenderBackground(world *World, visibility Visibility) {
 		color.B /= 2
 	}
 
-	world.RenderAt(tile.XPos, tile.YPos, tile.BackgroundGlyph, color)
+	world.RenderRuneAt(tile.XPos, tile.YPos, tile.BackgroundGlyph, color)
 }

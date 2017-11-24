@@ -26,7 +26,7 @@ func (player *Player) UpdatePosition(xPos int, yPos int, world *World) {
 }
 
 func (player *Player) Render(world *World) {
-	world.RenderAt(player.xPos, player.yPos, player.RenderGlyph, player.RenderColor)
+	world.RenderRuneAt(player.xPos, player.yPos, player.RenderGlyph, player.RenderColor)
 }
 
 type Health struct {

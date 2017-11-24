@@ -59,5 +59,5 @@ func (monster *Monster) UpdatePosition(xPos int, yPos int) {
 
 func (monster *Monster) Render(world *World) {
 	glyph := []rune(strconv.Itoa(monster.Level))[0]
-	world.RenderAt(monster.xPos, monster.yPos, glyph, monster.Color)
+	world.RenderRuneAt(monster.xPos, monster.yPos, glyph, monster.Color)
 }
