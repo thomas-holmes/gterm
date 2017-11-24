@@ -61,7 +61,7 @@ func (window *Window) createFontAtlas(font *ttf.Font) (*sdl.Texture, error) {
 		str += string(i)
 	}
 
-	surface, err := font.RenderUTF8_Solid(str, sdl.Color{R: 255, G: 255, B: 255, A: 255})
+	surface, err := font.RenderUTF8_Blended(str, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +196,6 @@ func (window *Window) renderCell(col int, row int) error {
 		}
 
 		window.fontTexture.SetColorMod(renderItem.FColor.R, renderItem.FColor.G, renderItem.FColor.B)
-		// log.Println(destinationRect)
 		err = window.SdlRenderer.Copy(window.fontTexture, &sourceRect, &destinationRect)
 		if err != nil {
 			return err
@@ -294,22 +293,32 @@ func (fps *fpsCounter) MaybeRender(window *Window) {
 	}
 
 	if fps.renderFps {
-		surface, err := fps.font.RenderUTF8_Solid(strconv.Itoa(fps.currentFps), fps.color)
-		if err != nil {
-			log.Println("Failed to render FPS", err)
-		}
-		defer surface.Free()
-		texture, err := window.SdlRenderer.CreateTextureFromSurface(surface)
-		if err != nil {
-			log.Println("Failed to texturify FPS", err)
-		}
-		defer texture.Destroy()
+		fpsString := strconv.Itoa(fps.currentFps)
+		xStart := window.widthPixel - (len(fpsString) * window.tileWidthPixel)
 
-		_, _, width, height, err := texture.Query()
-		destination := sdl.Rect{X: int32(window.widthPixel) - width, Y: int32(0), W: width, H: height}
+		destination := sdl.Rect{
+			X: 0,
+			Y: 0,
+			W: int32(window.tileWidthPixel),
+			H: int32(window.tileHeightPixel),
+		}
+		source := sdl.Rect{
+			X: 0,
+			Y: 0,
+			W: int32(window.tileWidthPixel),
+			H: int32(window.tileHeightPixel),
+		}
 
-		if err := window.SdlRenderer.Copy(texture, nil, &destination); err != nil {
-			log.Println("Couldn't copy FPS to renderer", err)
+		r, g, b := uint8(fps.color.R), uint8(fps.color.G), uint8(fps.color.B)
+
+		for i, rune := range fpsString {
+			destination.X = int32(xStart + (window.tileWidthPixel * i))
+			source.X = int32(rune-' ') * int32(window.tileWidthPixel)
+
+			window.fontTexture.SetColorMod(r, g, b)
+			if err := window.SdlRenderer.Copy(window.fontTexture, &source, &destination); err != nil {
+				log.Println("Couldn't copy FPS to renderer", err)
+			}
 		}
 	}
 }
