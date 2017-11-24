@@ -104,7 +104,7 @@ func main() {
 		world.MessageBus.Subscribe(combat)
 	}
 
-	player := game.NewPlayer(5, 5)
+	player := game.NewPlayer(20, 9)
 	player.Name = "Euclid"
 
 	world.AddEntity(&player)

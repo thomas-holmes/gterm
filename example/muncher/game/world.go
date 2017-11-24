@@ -174,7 +174,8 @@ func (world *World) AddEntity(e Entity) {
 func (world *World) RenderAt(x int, y int, out rune, color sdl.Color) {
 	err := world.Window.PutRune(x+world.CameraX, y+world.CameraY, out, color)
 	if err != nil {
-		log.Panicf("Could not add cell", err)
+		log.Printf("Out of bounds %s", err)
+		// log.Panicf("Could not add cell", err)
 	}
 }
 
@@ -184,8 +185,8 @@ func (world *World) Render() {
 
 	func() {
 		defer timeMe(time.Now(), "World.Render.TileLoop")
-		for row := 0; row < world.Rows; row++ {
-			for col := 0; col < world.Columns; col++ {
+		for row := max(0, 0-world.CameraY); row < min(world.Rows, world.Rows-world.CameraY); row++ {
+			for col := max(0, 0-world.CameraX); col < min(world.Columns, world.Columns-world.CameraX); col++ {
 				tile := world.GetTile(col, row)
 
 				visibility := world.VisionMap.VisibilityAt(col, row)
@@ -259,6 +260,8 @@ func (world *World) MovePlayer(message PlayerMoveMessage) {
 	}
 
 	newPos := Position{XPos: message.NewX, YPos: message.NewY}
+	world.BumpCameraX(-(message.NewX - oldPos.XPos))
+	world.BumpCameraY(-(message.NewY - oldPos.YPos))
 	newSlice := world.renderItems[newPos]
 	newSlice = append(newSlice, foundItem)
 	world.renderItems[newPos] = newSlice
