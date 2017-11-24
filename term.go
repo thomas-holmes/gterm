@@ -292,7 +292,7 @@ func (fps *fpsCounter) MaybeRender(window *Window) {
 		fps.framesElapsed = 0
 	}
 
-	// This is basically a big dup of the code above in renderCell
+	// TODO: This is basically a big dup of the code above in renderCell
 	if fps.renderFps {
 		fpsString := strconv.Itoa(fps.currentFps)
 		xStart := window.widthPixel - (len(fpsString) * window.tileWidthPixel)
