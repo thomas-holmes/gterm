@@ -344,6 +344,17 @@ func min(a uint32, b uint32) uint32 {
 	return b
 }
 
+func (window *Window) RenderBackgroundSquare(x int, y int) {
+	window.SdlRenderer.SetDrawColor(255, 200, 200, 255)
+	destinationRect := sdl.Rect{
+		X: int32(x * window.tileWidthPixel),
+		Y: int32(y * window.tileHeightPixel),
+		W: int32(window.tileWidthPixel),
+		H: int32(window.tileHeightPixel),
+	}
+	window.SdlRenderer.FillRect(&destinationRect)
+}
+
 func (window *Window) Refresh() {
 	err := window.SdlRenderer.SetDrawColor(window.backgroundColor.R, window.backgroundColor.G, window.backgroundColor.B, window.backgroundColor.A)
 	if err != nil {
