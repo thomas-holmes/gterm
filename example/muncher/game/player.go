@@ -4,6 +4,7 @@ import (
 	"log"
 	"math/rand"
 
+	"github.com/thomas-holmes/gterm"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -36,8 +37,8 @@ func getRandomColor() sdl.Color {
 }
 
 func (player *Player) Render(world *World) {
-	discoColor := getRandomColor()
-	world.RenderRuneAt(player.xPos, player.yPos, player.RenderGlyph, player.RenderColor, discoColor)
+	playerBg := gterm.NoColor // playerBg := getRandomColor()
+	world.RenderRuneAt(player.xPos, player.yPos, player.RenderGlyph, player.RenderColor, playerBg)
 }
 
 type Health struct {
