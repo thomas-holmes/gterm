@@ -2,6 +2,7 @@ package game
 
 import (
 	"log"
+	"math"
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -36,4 +37,10 @@ func timeMe(start time.Time, name string) {
 	elapsed := time.Since(start)
 	log.Printf("%v %s", name, elapsed)
 
+}
+
+func distance(x0 int, y0 int, x1 int, y1 int) int {
+	x := x1 - x0
+	y := y1 - y0
+	return int(math.Sqrt(float64(x*x) + float64(y*y)))
 }

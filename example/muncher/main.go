@@ -120,7 +120,7 @@ func main() {
 			handleInput(event, world)
 			world.HandleInput(event)
 
-			world.Update()
+			world.Update(turnCount)
 
 			world.Render()
 

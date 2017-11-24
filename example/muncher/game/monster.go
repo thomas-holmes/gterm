@@ -34,8 +34,8 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 	return monster
 }
 
-func (monster *Monster) Pursue(scent ScentMap) {
-	candidates := scent.track(monster.xPos, monster.yPos)
+func (monster *Monster) Pursue(turn int64, scent ScentMap) {
+	candidates := scent.track(turn, monster.xPos, monster.yPos)
 
 	log.Printf("Monster %#v found tracking candidates: %v", *monster, candidates)
 

@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -189,15 +190,15 @@ func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 	}
 }
 
-func (world *World) Update() {
+func (world *World) Update(turn int64) {
 	world.VisionMap.UpdateVision(6, world.Player, world)
-	world.ScentMap.UpdateScents(*world.VisionMap)
+	world.ScentMap.UpdateScents(turn, *world.VisionMap, *world.Player)
 
 	for _, e := range world.entities {
 		switch m := e.(type) {
 		case *Monster:
 			log.Printf("Got a monster, %v", m)
-			m.Pursue(world.ScentMap)
+			m.Pursue(turn, world.ScentMap)
 		}
 	}
 }
@@ -228,13 +229,13 @@ func (world *World) OverlayVisionMap() {
 	}
 }
 
-func (world *World) OverlayScentMap() {
+func (world *World) OverlayScentMap(turn int64) {
 	purple := sdl.Color{R: 200, G: 0, B: 200, A: 255}
 	for y := 0; y < world.Rows; y++ {
 		for x := 0; x < world.Columns; x++ {
 			scent := world.ScentMap.getScent(x, y)
-			if scent > MinScent {
-				world.RenderStringAt(x, y, strconv.Itoa(scent), purple)
+			if scent > (turn-10)*32 {
+				world.RenderStringAt(x, y, fmt.Sprint(scent), purple)
 			}
 		}
 	}
