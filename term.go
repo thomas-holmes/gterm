@@ -27,6 +27,7 @@ type Window struct {
 	cells           []cell
 	fps             fpsCounter
 	fontTexture     *sdl.Texture
+	fontAtlas       *sdl.Texture
 	drawInterval    uint32
 	vsync           bool
 }
@@ -60,6 +61,55 @@ func NewWindow(columns int, rows int, fontPath string, fontSize int, vsync bool)
 	return window
 }
 
+var testTexture *sdl.Texture
+
+func (window *Window) testMakeTextureAtlas() {
+	width, height, err := window.font.SizeUTF8("@")
+	if err != nil {
+		log.Panicf("Couldn't compute size of @")
+	}
+
+	texture, err := window.SdlRenderer.CreateTexture(sdl.PIXELFORMAT_ARGB8888, sdl.TEXTUREACCESS_STREAMING, width*(126-32), height)
+	if err != nil {
+		log.Panicln("Couldn't create texture", err)
+	}
+	log.Printf("Making a better texture atlas with width %v, and height %v", width*(126-32), height)
+
+	region, lockPitch, err := texture.Lock(nil)
+	if err != nil {
+		log.Panicln("failed to lock", err)
+	}
+	for i := 32; i < 126; i++ {
+		str := string(i)
+		surface, err := window.font.RenderUTF8_Blended(str, sdl.Color{R: 255, G: 255, B: 255, A: 255})
+		if err != nil {
+			log.Panicln("Failed to create surface", err)
+		}
+		if i == 32 {
+			bm, _ := surface.GetBlendMode()
+			texture.SetBlendMode(bm)
+			am, _ := surface.GetAlphaMod()
+			texture.SetAlphaMod(am)
+		}
+
+		count := int32(0)
+		offset := int32(0)
+		charOffset := int32(i-32) * int32(width*4)
+		for _, b := range surface.Pixels() {
+			if count == surface.Pitch {
+				offset += int32(lockPitch)
+				count = 0
+			}
+			region[count+offset+charOffset] = b
+			count++
+		}
+
+	}
+	texture.Unlock()
+
+	testTexture = texture
+}
+
 func (window *Window) createFontAtlas(font *ttf.Font) (*sdl.Texture, error) {
 	str := ""
 	for i := 32; i < 126; i++ {
@@ -76,6 +126,8 @@ func (window *Window) createFontAtlas(font *ttf.Font) (*sdl.Texture, error) {
 		return nil, err
 	}
 
+	window.testMakeTextureAtlas()
+
 	_, _, width, height, err := tex.Query()
 	if err != nil {
 		log.Panicln("Failed to query texture", err)
@@ -87,11 +139,16 @@ func (window *Window) createFontAtlas(font *ttf.Font) (*sdl.Texture, error) {
 }
 
 func computeCellSize(font *ttf.Font) (width int, height int, err error) {
-	atGlyph, err := font.RenderUTF8_Blended("@", sdl.Color{R: 255, G: 255, B: 255, A: 255})
+	// atGlyph, err := font.RenderUTF8_Blended("@", sdl.Color{R: 255, G: 255, B: 255, A: 255})
+	// if err != nil {
+	// 	return 0, 0, err
+	// }
+	w, h, err := font.SizeUTF8("@")
 	if err != nil {
+		log.Printf("Computed cell size of w: %v, h: %v", w, h)
 		return 0, 0, err
 	}
-	return int(atGlyph.W), int(atGlyph.H), nil
+	return w, h, nil
 }
 
 func (window *Window) SetTitle(title string) {
@@ -152,6 +209,7 @@ func (window *Window) Init() error {
 		return err
 	}
 	window.fontTexture = texture
+	window.fontAtlas = testTexture
 
 	window.fps = newFpsCounter()
 
@@ -205,8 +263,10 @@ func (window *Window) renderCell(col int, row int) error {
 			H: int32(window.tileHeightPixel),
 		}
 
-		window.fontTexture.SetColorMod(renderItem.FColor.R, renderItem.FColor.G, renderItem.FColor.B)
-		err = window.SdlRenderer.Copy(window.fontTexture, &sourceRect, &destinationRect)
+		atlas := window.fontTexture
+		atlas = window.fontAtlas
+		atlas.SetColorMod(renderItem.FColor.R, renderItem.FColor.G, renderItem.FColor.B)
+		err = window.SdlRenderer.Copy(atlas, &sourceRect, &destinationRect)
 		if err != nil {
 			return err
 		}
@@ -329,8 +389,8 @@ func (fps *fpsCounter) MaybeRender(window *Window) {
 			destination.X = int32(xStart + (window.tileWidthPixel * i))
 			source.X = int32(rune-' ') * int32(window.tileWidthPixel)
 
-			window.fontTexture.SetColorMod(r, g, b)
-			if err := window.SdlRenderer.Copy(window.fontTexture, &source, &destination); err != nil {
+			window.fontAtlas.SetColorMod(r, g, b)
+			if err := window.SdlRenderer.Copy(window.fontAtlas, &source, &destination); err != nil {
 				log.Println("Couldn't copy FPS to renderer", err)
 			}
 		}
@@ -345,6 +405,14 @@ func (window *Window) renderDebugFontTexture() {
 
 	destRect := sdl.Rect{X: int32(0), Y: int32(window.heightPixel) - height, W: width, H: height}
 	window.SdlRenderer.Copy(window.fontTexture, nil, &destRect)
+
+	_, _, width, height, err = window.fontAtlas.Query()
+	if err != nil {
+		log.Panicln("Couldn't render debug font texture", err)
+	}
+
+	destRect = sdl.Rect{X: int32(0), Y: int32(window.heightPixel) - height - height, W: width, H: height}
+	window.SdlRenderer.Copy(window.fontAtlas, nil, &destRect)
 
 }
 

@@ -76,7 +76,7 @@ func addMonsters(world *game.World) {
 
 func main() {
 	// Disable FPS limit, generally, so I can monitor performance.
-	window := gterm.NewWindow(80, 24, path.Join("assets", "font", "FiraMono-Regular.ttf"), 16, false)
+	window := gterm.NewWindow(100, 30, path.Join("assets", "font", "FiraMono-Regular.ttf"), 24, false)
 
 	if err := window.Init(); err != nil {
 		log.Fatalln("Failed to Init() window", err)
