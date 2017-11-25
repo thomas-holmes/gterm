@@ -35,7 +35,8 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 	return monster
 }
 
-func (monster *Monster) Pursue(turn int64, scent ScentMap) {
+func (monster *Monster) Pursue(turn int64, world World) {
+	scent := world.ScentMap
 	candidates := scent.track(turn, monster.xPos, monster.yPos)
 
 	log.Printf("Monster %#v found tracking candidates: %v", *monster, candidates)
@@ -44,18 +45,7 @@ func (monster *Monster) Pursue(turn int64, scent ScentMap) {
 		randomIndex := rand.Intn(len(candidates))
 		choice := candidates[randomIndex]
 
-		oldX := monster.xPos
-		oldY := monster.yPos
-		monster.xPos = choice.XPos
-		monster.yPos = choice.YPos
-
-		monster.Broadcast(MoveEntity, MoveEntityMessage{
-			ID:   monster.id,
-			OldX: oldX,
-			OldY: oldY,
-			NewX: monster.xPos,
-			NewY: monster.yPos,
-		})
+		monster.UpdatePosition(choice.XPos, choice.YPos, world)
 	}
 }
 
@@ -79,9 +69,26 @@ func (monster *Monster) Kill() {
 	monster.Broadcast(KillMonster, KillMonsterMessage{ID: monster.ID()})
 }
 
-func (monster *Monster) UpdatePosition(xPos int, yPos int) {
-	monster.xPos = xPos
-	monster.yPos = yPos
+func (monster *Monster) UpdatePosition(xPos int, yPos int, world World) {
+	if xPos >= 0 && xPos < world.Columns &&
+		yPos >= 0 && yPos < world.Rows {
+		if world.IsTileMonster(xPos, yPos) {
+			// Nothing
+		} else if world.CanStandOnTile(xPos, yPos) {
+			oldX := monster.xPos
+			oldY := monster.yPos
+			monster.xPos = xPos
+			monster.yPos = yPos
+
+			monster.Broadcast(MoveEntity, MoveEntityMessage{
+				ID:   monster.id,
+				OldX: oldX,
+				OldY: oldY,
+				NewX: monster.xPos,
+				NewY: monster.yPos,
+			})
+		}
+	}
 }
 
 func (monster *Monster) Render(world *World) {

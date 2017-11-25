@@ -177,28 +177,26 @@ func (world *World) AddEntity(e Entity) {
 func (world *World) RenderRuneAt(x int, y int, out rune, fColor sdl.Color, bColor sdl.Color) {
 	err := world.Window.PutRune(x+world.CameraX, y+world.CameraY, out, fColor, bColor)
 	if err != nil {
-		// log.Printf("Out of bounds %s", err)
-		// log.Panicf("Could not add cell", err)
+		log.Printf("Out of bounds %s", err)
 	}
 }
 
 func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 	err := world.Window.PutString(x+world.CameraX, y+world.CameraY, out, color)
 	if err != nil {
-		// log.Printf("Out of bounds %s", err)
-		// log.Panicf("Could not add cell", err)
+		log.Printf("Out of bounds %s", err)
 	}
 }
 
 func (world *World) Update(turn int64) {
 	world.VisionMap.UpdateVision(6, world.Player, world)
-	world.ScentMap.UpdateScents(turn, *world.VisionMap, *world.Player)
+	world.ScentMap.UpdateScents(turn, *world)
 
 	for _, e := range world.entities {
 		switch m := e.(type) {
 		case *Monster:
 			log.Printf("Got a monster, %v", m)
-			m.Pursue(turn, world.ScentMap)
+			m.Pursue(turn, *world)
 		}
 	}
 }
@@ -234,13 +232,13 @@ func (world *World) OverlayVisionMap() {
 }
 
 var ScentColors = []sdl.Color{
-	sdl.Color{R: 175, G: 50, B: 50, A: 55},
-	sdl.Color{R: 225, G: 25, B: 25, A: 55},
-	sdl.Color{R: 255, G: 0, B: 0, A: 55},
-	sdl.Color{R: 100, G: 175, B: 50, A: 55},
-	sdl.Color{R: 50, G: 255, B: 100, A: 55},
-	sdl.Color{R: 0, G: 150, B: 175, A: 55},
-	sdl.Color{R: 0, G: 50, B: 255, A: 55},
+	sdl.Color{R: 175, G: 50, B: 50, A: 1},
+	sdl.Color{R: 225, G: 50, B: 25, A: 1},
+	sdl.Color{R: 255, G: 0, B: 0, A: 1},
+	sdl.Color{R: 100, G: 175, B: 50, A: 1},
+	sdl.Color{R: 50, G: 255, B: 100, A: 1},
+	sdl.Color{R: 0, G: 150, B: 175, A: 1},
+	sdl.Color{R: 0, G: 50, B: 255, A: 1},
 }
 
 func (world *World) ToggleScentOverlay() {
@@ -253,17 +251,26 @@ func (world *World) OverlayScentMap(turn int64) {
 		for x := 0; x < world.Columns; x++ {
 			scent := world.ScentMap.getScent(x, y)
 
-			if x == 5 && y == 5 {
-				maxScent := turn * 32
-				log.Printf("max scent %v, found scent: %v", maxScent, scent)
+			maxScent := float32(turn * 32)
+			recent := float32((turn - 10) * 32)
+
+			turnsAgo := min(int((maxScent-scent)/32), len(ScentColors)-1)
+			distance := ((turn - int64(turnsAgo)) * 32) - int64(scent)
+
+			bgColor := ScentColors[turnsAgo]
+
+			bgColor.R /= 2
+			bgColor.G /= 2
+			bgColor.B /= 2
+
+			if bgColor.R > bgColor.G && bgColor.R > bgColor.B {
+				bgColor.R -= uint8(distance * 5)
+			} else if bgColor.G > bgColor.B {
+				bgColor.G -= uint8(distance * 5)
+			} else {
+				bgColor.B -= uint8(distance * 5)
 			}
-
-			bgColorIndex := min64((turn*32)-scent, 6)
-			// log.Printf("scent %v, calculated %v", scent, bgColorIndex)
-
-			bgColor := ScentColors[bgColorIndex]
-
-			if scent > (turn-10)*32 {
+			if scent > 0 && scent > recent {
 				world.RenderRuneAt(x, y, ' ', purple, bgColor)
 			}
 		}

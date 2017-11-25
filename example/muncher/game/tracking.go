@@ -7,15 +7,15 @@ import (
 type ScentMap struct {
 	columns int
 	rows    int
-	scent   []int64
+	scent   []float32
 }
 
-func (scentMap ScentMap) getScent(xPos int, yPos int) int64 {
+func (scentMap ScentMap) getScent(xPos int, yPos int) float32 {
 	return scentMap.scent[yPos*scentMap.columns+xPos]
 }
 
-func (scentMap ScentMap) dirty(xPos int, yPos int, turn int64, distance int) {
-	scentMap.scent[yPos*scentMap.columns+xPos] = turn*32 - int64(distance)
+func (scentMap ScentMap) dirty(xPos int, yPos int, turn int64, distance float32) {
+	scentMap.scent[yPos*scentMap.columns+xPos] = float32(turn*32) - distance
 }
 
 func (scentMap ScentMap) track(turn int64, xPos int, yPos int) []Position {
@@ -25,7 +25,8 @@ func (scentMap ScentMap) track(turn int64, xPos int, yPos int) []Position {
 	maxY := min(scentMap.columns, yPos+2)
 
 	candidates := make([]Position, 0, 8)
-	strongest := turn * 31
+	recent := float32((turn - 50) * 32)
+	strongest := recent
 	for y := minY; y < maxY; y++ {
 		for x := minX; x < maxX; x++ {
 			strength := scentMap.getScent(x, y)
@@ -45,12 +46,14 @@ func (scentMap ScentMap) track(turn int64, xPos int, yPos int) []Position {
 	return candidates
 }
 
-func (scentMap ScentMap) UpdateScents(turn int64, vision VisionMap, player Player) {
+func (scentMap ScentMap) UpdateScents(turn int64, world World) {
+	vision := world.VisionMap
+	player := world.Player
 	defer timeMe(time.Now(), "ScentMap.UpdateScents")
 	for y := 0; y < scentMap.rows; y++ {
 		for x := 0; x < scentMap.columns; x++ {
 			vision := vision.VisibilityAt(x, y)
-			if vision == Visible {
+			if vision == Visible && !world.GetTile(x, y).Wall {
 				scentMap.dirty(x, y, turn, distance(player.xPos, player.yPos, x, y))
 			}
 		}
@@ -61,6 +64,6 @@ func newScentMap(columns int, rows int) ScentMap {
 	return ScentMap{
 		columns: columns,
 		rows:    rows,
-		scent:   make([]int64, columns*rows, columns*rows),
+		scent:   make([]float32, columns*rows, columns*rows),
 	}
 }

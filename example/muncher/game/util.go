@@ -20,6 +20,12 @@ func max64(a int64, b int64) int64 {
 	}
 	return b
 }
+func maxf32(a float32, b float32) float32 {
+	if a > b {
+		return a
+	}
+	return b
+}
 func min(a int, b int) int {
 	if a < b {
 		return a
@@ -27,6 +33,12 @@ func min(a int, b int) int {
 	return b
 }
 func min64(a int64, b int64) int64 {
+	if a < b {
+		return a
+	}
+	return b
+}
+func minf32(a float32, b float32) float32 {
 	if a < b {
 		return a
 	}
@@ -51,8 +63,8 @@ func timeMe(start time.Time, name string) {
 
 }
 
-func distance(x0 int, y0 int, x1 int, y1 int) int {
+func distance(x0 int, y0 int, x1 int, y1 int) float32 {
 	x := x1 - x0
 	y := y1 - y0
-	return int(math.Sqrt(float64(x*x) + float64(y*y)))
+	return float32(math.Sqrt(float64(x*x) + float64(y*y)))
 }
