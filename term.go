@@ -26,7 +26,6 @@ type Window struct {
 	backgroundColor sdl.Color
 	cells           []cell
 	fps             fpsCounter
-	fontTexture     *sdl.Texture
 	fontAtlas       *sdl.Texture
 	drawInterval    uint32
 	vsync           bool
@@ -63,7 +62,7 @@ func NewWindow(columns int, rows int, fontPath string, fontSize int, vsync bool)
 
 var testTexture *sdl.Texture
 
-func (window *Window) testMakeTextureAtlas() {
+func (window *Window) createFontAtlas(font *ttf.Font) (*sdl.Texture, error) {
 	width, height, err := window.font.SizeUTF8("@")
 	if err != nil {
 		log.Panicf("Couldn't compute size of @")
@@ -79,18 +78,17 @@ func (window *Window) testMakeTextureAtlas() {
 	if err != nil {
 		log.Panicln("failed to lock", err)
 	}
+	if err := texture.SetBlendMode(sdl.BLENDMODE_ADD); err != nil {
+		return nil, err
+	}
+
 	for i := 32; i < 126; i++ {
 		str := string(i)
 		surface, err := window.font.RenderUTF8_Blended(str, sdl.Color{R: 255, G: 255, B: 255, A: 255})
 		if err != nil {
 			log.Panicln("Failed to create surface", err)
 		}
-		if i == 32 {
-			bm, _ := surface.GetBlendMode()
-			texture.SetBlendMode(bm)
-			am, _ := surface.GetAlphaMod()
-			texture.SetAlphaMod(am)
-		}
+		defer surface.Free()
 
 		count := int32(0)
 		offset := int32(0)
@@ -107,35 +105,8 @@ func (window *Window) testMakeTextureAtlas() {
 	}
 	texture.Unlock()
 
-	testTexture = texture
-}
+	return texture, nil
 
-func (window *Window) createFontAtlas(font *ttf.Font) (*sdl.Texture, error) {
-	str := ""
-	for i := 32; i < 126; i++ {
-		str += string(i)
-	}
-
-	surface, err := font.RenderUTF8_Blended(str, sdl.Color{R: 255, G: 255, B: 255, A: 255})
-	if err != nil {
-		return nil, err
-	}
-
-	tex, err := window.SdlRenderer.CreateTextureFromSurface(surface)
-	if err != nil {
-		return nil, err
-	}
-
-	window.testMakeTextureAtlas()
-
-	_, _, width, height, err := tex.Query()
-	if err != nil {
-		log.Panicln("Failed to query texture", err)
-	}
-	log.Printf("Computed texture width of %v and height of %v", width, height)
-	log.Printf("Computed tile width of %v and height of %v", window.tileWidthPixel, window.tileHeightPixel)
-
-	return tex, err
 }
 
 func computeCellSize(font *ttf.Font) (width int, height int, err error) {
@@ -204,12 +175,11 @@ func (window *Window) Init() error {
 	window.SdlWindow = sdlWindow
 	window.SdlRenderer = sdlRenderer
 
-	texture, err := window.createFontAtlas(openedFont)
+	textureAtlas, err := window.createFontAtlas(openedFont)
 	if err != nil {
 		return err
 	}
-	window.fontTexture = texture
-	window.fontAtlas = testTexture
+	window.fontAtlas = textureAtlas
 
 	window.fps = newFpsCounter()
 
@@ -263,8 +233,7 @@ func (window *Window) renderCell(col int, row int) error {
 			H: int32(window.tileHeightPixel),
 		}
 
-		atlas := window.fontTexture
-		atlas = window.fontAtlas
+		atlas := window.fontAtlas
 		atlas.SetColorMod(renderItem.FColor.R, renderItem.FColor.G, renderItem.FColor.B)
 		err = window.SdlRenderer.Copy(atlas, &sourceRect, &destinationRect)
 		if err != nil {
@@ -398,20 +367,12 @@ func (fps *fpsCounter) MaybeRender(window *Window) {
 }
 
 func (window *Window) renderDebugFontTexture() {
-	_, _, width, height, err := window.fontTexture.Query()
+	_, _, width, height, err := window.fontAtlas.Query()
 	if err != nil {
 		log.Panicln("Couldn't render debug font texture", err)
 	}
 
 	destRect := sdl.Rect{X: int32(0), Y: int32(window.heightPixel) - height, W: width, H: height}
-	window.SdlRenderer.Copy(window.fontTexture, nil, &destRect)
-
-	_, _, width, height, err = window.fontAtlas.Query()
-	if err != nil {
-		log.Panicln("Couldn't render debug font texture", err)
-	}
-
-	destRect = sdl.Rect{X: int32(0), Y: int32(window.heightPixel) - height - height, W: width, H: height}
 	window.SdlRenderer.Copy(window.fontAtlas, nil, &destRect)
 
 }
