@@ -3,7 +3,6 @@ package gterm
 import (
 	"fmt"
 	"log"
-	"path"
 	"strconv"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -114,10 +113,6 @@ func (window *Window) createFontAtlas(font *ttf.Font) (*sdl.Texture, error) {
 }
 
 func computeCellSize(font *ttf.Font) (width int, height int, err error) {
-	// atGlyph, err := font.RenderUTF8_Blended("@", sdl.Color{R: 255, G: 255, B: 255, A: 255})
-	// if err != nil {
-	// 	return 0, 0, err
-	// }
 	w, h, err := font.SizeUTF8("@")
 	if err != nil {
 		log.Printf("Computed cell size of w: %v, h: %v", w, h)
@@ -201,7 +196,6 @@ func (window *Window) cellIndex(col int, row int) (int, error) {
 	return col + window.Columns*row, nil
 }
 
-// TODO: This totally doesn't render words any more so the HUD and Popup are broken.
 func (window *Window) renderCell(col int, row int) error {
 	index, err := window.cellIndex(col, row)
 	if err != nil {
@@ -259,6 +253,7 @@ func (window *Window) renderCells() error {
 	return nil
 }
 
+// NoColor is used to represent no background color
 var NoColor = sdl.Color{R: 0, G: 0, B: 0, A: 0}
 
 func (window *Window) PutRune(col int, row int, glyph rune, fColor sdl.Color, bColor sdl.Color) error {
@@ -313,14 +308,9 @@ type fpsCounter struct {
 }
 
 func newFpsCounter() fpsCounter {
-	font, err := ttf.OpenFont(path.Join("assets/font/FiraMono-Regular.ttf"), 16)
-	if err != nil {
-		log.Println("Failed to open FPS font", err)
-	}
 	return fpsCounter{
 		lastTicks: sdl.GetTicks(),
 		color:     sdl.Color{R: 0, G: 255, B: 0, A: 255},
-		font:      font,
 	}
 }
 
