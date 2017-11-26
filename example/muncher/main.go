@@ -120,6 +120,7 @@ func main() {
 			window.ClearWindow()
 
 			handleInput(event, world)
+
 			world.HandleInput(event)
 
 			world.Update(turnCount)

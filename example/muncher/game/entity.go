@@ -1,6 +1,18 @@
 package game
 
+type Identifiable struct {
+	ID int
+}
+
+func (e *Identifiable) SetIdentity(id int) {
+	e.ID = id
+}
+
+func (e Identifiable) Identity() int {
+	return e.ID
+}
+
 type Entity interface {
-	ID() int
-	SetID(int)
+	Identity() int
+	SetIdentity(int)
 }

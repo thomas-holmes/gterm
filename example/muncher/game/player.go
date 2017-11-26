@@ -18,11 +18,11 @@ func (player *Player) UpdatePosition(xPos int, yPos int, world *World) {
 				Monster: monster,
 			})
 		} else if world.CanStandOnTile(xPos, yPos) {
-			oldX := player.xPos
-			oldY := player.yPos
-			player.xPos = xPos
-			player.yPos = yPos
-			player.Broadcast(PlayerMove, PlayerMoveMessage{ID: player.ID(), OldX: oldX, OldY: oldY, NewX: xPos, NewY: yPos})
+			oldX := player.X
+			oldY := player.Y
+			player.X = xPos
+			player.Y = yPos
+			player.Broadcast(PlayerMove, PlayerMoveMessage{ID: player.ID, OldX: oldX, OldY: oldY, NewX: xPos, NewY: yPos})
 		}
 	}
 }
@@ -38,7 +38,7 @@ func getRandomColor() sdl.Color {
 
 func (player *Player) Render(world *World) {
 	playerBg := gterm.NoColor // playerBg := getRandomColor()
-	world.RenderRuneAt(player.xPos, player.yPos, player.RenderGlyph, player.RenderColor, playerBg)
+	world.RenderRuneAt(player.X, player.Y, player.RenderGlyph, player.RenderColor, playerBg)
 }
 
 type Health struct {
@@ -48,15 +48,12 @@ type Health struct {
 
 // Player pepresents the player
 type Player struct {
-	id          int
-	HP          Health
 	Level       int
 	Experience  int
-	Name        string
-	xPos        int
-	yPos        int
 	RenderGlyph rune
 	RenderColor sdl.Color
+
+	Creature
 
 	Messaging
 }
@@ -72,29 +69,23 @@ func (player *Player) GainExp(exp int) {
 }
 
 func (player *Player) XPos() int {
-	return player.xPos
+	return player.X
 }
 
 func (player *Player) YPos() int {
-	return player.yPos
-}
-
-func (player Player) ID() int {
-	return player.id
-}
-
-func (player *Player) SetID(id int) {
-	player.id = id
+	return player.Y
 }
 
 func NewPlayer(xPos int, yPos int) Player {
 	player := Player{
-		HP:          Health{Current: 5, Max: 5},
 		Level:       1,
 		RenderGlyph: '@',
 		RenderColor: sdl.Color{R: 255, G: 0, B: 0, A: 0},
-		xPos:        xPos,
-		yPos:        yPos,
+		Creature: Creature{
+			HP: Health{Current: 5, Max: 5},
+			X:  xPos,
+			Y:  yPos,
+		},
 	}
 
 	log.Printf("Made a player, %#v", player)
@@ -135,21 +126,21 @@ func (player *Player) HandleInput(event sdl.Event, world *World) {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
 		case sdl.K_h:
-			player.UpdatePosition(player.xPos-1, player.yPos, world)
+			player.UpdatePosition(player.X-1, player.Y, world)
 		case sdl.K_j:
-			player.UpdatePosition(player.xPos, player.yPos+1, world)
+			player.UpdatePosition(player.X, player.Y+1, world)
 		case sdl.K_k:
-			player.UpdatePosition(player.xPos, player.yPos-1, world)
+			player.UpdatePosition(player.X, player.Y-1, world)
 		case sdl.K_l:
-			player.UpdatePosition(player.xPos+1, player.yPos, world)
+			player.UpdatePosition(player.X+1, player.Y, world)
 		case sdl.K_b:
-			player.UpdatePosition(player.xPos-1, player.yPos+1, world)
+			player.UpdatePosition(player.X-1, player.Y+1, world)
 		case sdl.K_n:
-			player.UpdatePosition(player.xPos+1, player.yPos+1, world)
+			player.UpdatePosition(player.X+1, player.Y+1, world)
 		case sdl.K_y:
-			player.UpdatePosition(player.xPos-1, player.yPos-1, world)
+			player.UpdatePosition(player.X-1, player.Y-1, world)
 		case sdl.K_u:
-			player.UpdatePosition(player.xPos+1, player.yPos-1, world)
+			player.UpdatePosition(player.X+1, player.Y-1, world)
 		case sdl.K_1:
 			player.Damage(1)
 		case sdl.K_2:

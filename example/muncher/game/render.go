@@ -1,7 +1,7 @@
 package game
 
 type Renderable interface {
-	ID() int
+	Identity() int
 	XPos() int
 	YPos() int
 	Render(world *World)

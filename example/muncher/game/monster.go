@@ -10,24 +10,25 @@ import (
 )
 
 type Monster struct {
-	id    int
-	xPos  int
-	yPos  int
-	HP    Health
 	Level int
 	Glyph rune
 	Color sdl.Color
+
+	Creature
+
 	Messaging
 }
 
 func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster {
 	monster := Monster{
-		xPos:  xPos,
-		yPos:  yPos,
 		Color: color,
-		HP: Health{
-			Current: hp,
-			Max:     hp,
+		Creature: Creature{
+			X: xPos,
+			Y: yPos,
+			HP: Health{
+				Current: hp,
+				Max:     hp,
+			},
 		},
 		Level: level,
 	}
@@ -37,7 +38,7 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 
 func (monster *Monster) Pursue(turn int64, world World) {
 	scent := world.ScentMap
-	candidates := scent.track(turn, monster.xPos, monster.yPos)
+	candidates := scent.track(turn, monster.X, monster.Y)
 
 	log.Printf("Monster %#v found tracking candidates: %v", *monster, candidates)
 
@@ -49,24 +50,8 @@ func (monster *Monster) Pursue(turn int64, world World) {
 	}
 }
 
-func (monster Monster) XPos() int {
-	return monster.xPos
-}
-
-func (monster Monster) YPos() int {
-	return monster.yPos
-}
-
-func (monster Monster) ID() int {
-	return monster.id
-}
-
-func (monster *Monster) SetID(id int) {
-	monster.id = id
-}
-
 func (monster *Monster) Kill() {
-	monster.Broadcast(KillMonster, KillMonsterMessage{ID: monster.ID()})
+	monster.Broadcast(KillMonster, KillMonsterMessage{ID: monster.ID})
 }
 
 func (monster *Monster) UpdatePosition(xPos int, yPos int, world World) {
@@ -75,17 +60,17 @@ func (monster *Monster) UpdatePosition(xPos int, yPos int, world World) {
 		if world.IsTileMonster(xPos, yPos) {
 			// Nothing
 		} else if world.CanStandOnTile(xPos, yPos) {
-			oldX := monster.xPos
-			oldY := monster.yPos
-			monster.xPos = xPos
-			monster.yPos = yPos
+			oldX := monster.X
+			oldY := monster.Y
+			monster.X = xPos
+			monster.Y = yPos
 
 			monster.Broadcast(MoveEntity, MoveEntityMessage{
-				ID:   monster.id,
+				ID:   monster.ID,
 				OldX: oldX,
 				OldY: oldY,
-				NewX: monster.xPos,
-				NewY: monster.yPos,
+				NewX: monster.X,
+				NewY: monster.Y,
 			})
 		}
 	}
@@ -93,5 +78,5 @@ func (monster *Monster) UpdatePosition(xPos int, yPos int, world World) {
 
 func (monster *Monster) Render(world *World) {
 	glyph := []rune(strconv.Itoa(monster.Level))[0]
-	world.RenderRuneAt(monster.xPos, monster.yPos, glyph, monster.Color, gterm.NoColor)
+	world.RenderRuneAt(monster.X, monster.Y, glyph, monster.Color, gterm.NoColor)
 }

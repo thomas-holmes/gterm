@@ -159,7 +159,7 @@ func (world *World) AddRenderable(renderable Renderable) {
 }
 
 func (world *World) AddEntity(e Entity) {
-	e.SetID(world.GetNextID())
+	e.SetIdentity(world.GetNextID())
 	log.Printf("Adding entity %+v", e)
 
 	if n, ok := e.(Notifier); ok {
@@ -171,7 +171,7 @@ func (world *World) AddEntity(e Entity) {
 		world.AddRenderable(actual)
 	}
 
-	world.entities[e.ID()] = e
+	world.entities[e.Identity()] = e
 }
 
 func (world *World) RenderRuneAt(x int, y int, out rune, fColor sdl.Color, bColor sdl.Color) {
@@ -278,7 +278,7 @@ func (world *World) OverlayScentMap(turn int64) {
 }
 
 func (world *World) RemoveEntity(entity Entity) {
-	delete(world.entities, entity.ID())
+	delete(world.entities, entity.Identity())
 
 	if renderable, ok := entity.(Renderable); ok {
 		pos := Position{XPos: renderable.XPos(), YPos: renderable.YPos()}
@@ -287,7 +287,7 @@ func (world *World) RemoveEntity(entity Entity) {
 
 		foundIndex := -1
 		for index, candidate := range slice {
-			if candidate.ID() == renderable.ID() {
+			if candidate.Identity() == renderable.Identity() {
 				foundIndex = index
 				break
 			}
@@ -316,7 +316,7 @@ func (world *World) MovePlayer(message PlayerMoveMessage) {
 	foundIndex := -1
 	var foundItem Renderable
 	for index, item := range slice {
-		if item.ID() == message.ID {
+		if item.Identity() == message.ID {
 			foundIndex = index
 			foundItem = item
 			break
@@ -344,7 +344,7 @@ func (world *World) MoveEntity(message MoveEntityMessage) {
 	foundIndex := -1
 	var foundItem Renderable
 	for index, item := range slice {
-		if item.ID() == message.ID {
+		if item.Identity() == message.ID {
 			foundIndex = index
 			foundItem = item
 			break
