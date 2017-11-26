@@ -63,36 +63,40 @@ func NewWindow(columns int, rows int, fontPath string, fontSize int, vsync bool)
 var testTexture *sdl.Texture
 
 func (window *Window) createFontAtlas(font *ttf.Font) (*sdl.Texture, error) {
-	width, height, err := window.font.SizeUTF8("@")
+	atWidth, atHeight := window.tileWidthPixel, window.tileHeightPixel
+
+	firstRune, lastRune := 32, 127
+
+	width := atWidth * (lastRune - firstRune)
+	height := atHeight
+
+	texture, err := window.SdlRenderer.CreateTexture(sdl.PIXELFORMAT_ARGB8888, sdl.TEXTUREACCESS_STREAMING, width, height)
 	if err != nil {
-		log.Panicf("Couldn't compute size of @")
+		return nil, err
 	}
 
-	texture, err := window.SdlRenderer.CreateTexture(sdl.PIXELFORMAT_ARGB8888, sdl.TEXTUREACCESS_STREAMING, width*(126-32), height)
-	if err != nil {
-		log.Panicln("Couldn't create texture", err)
-	}
-	log.Printf("Making a better texture atlas with width %v, and height %v", width*(126-32), height)
-
-	region, lockPitch, err := texture.Lock(nil)
-	if err != nil {
-		log.Panicln("failed to lock", err)
-	}
 	if err := texture.SetBlendMode(sdl.BLENDMODE_ADD); err != nil {
 		return nil, err
 	}
 
-	for i := 32; i < 126; i++ {
+	region, lockPitch, err := texture.Lock(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	white := sdl.Color{R: 255, G: 255, B: 255, A: 255}
+	bytesPerPixel := lockPitch / width
+	for i := firstRune; i < lastRune; i++ {
 		str := string(i)
-		surface, err := window.font.RenderUTF8_Blended(str, sdl.Color{R: 255, G: 255, B: 255, A: 255})
+		surface, err := window.font.RenderUTF8_Blended(str, white)
 		if err != nil {
-			log.Panicln("Failed to create surface", err)
+			return nil, err
 		}
 		defer surface.Free()
 
 		count := int32(0)
 		offset := int32(0)
-		charOffset := int32(i-32) * int32(width*4)
+		charOffset := int32(i-32) * int32(atWidth*bytesPerPixel)
 		for _, b := range surface.Pixels() {
 			if count == surface.Pitch {
 				offset += int32(lockPitch)
