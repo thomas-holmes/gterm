@@ -19,3 +19,6 @@
 # [[override]]
 #  name = "github.com/x/y"
 #  version = "2.4.0"
+[[constraint]]
+  name = "github.com/veandco/go-sdl2"
+  version = "0.2.0"
