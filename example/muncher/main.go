@@ -69,7 +69,7 @@ func spawnRandomMonster(world *game.World) {
 
 func addMonsters(world *game.World) {
 	for i, level := range []int{1} {
-		m := game.NewMonster(10, 6+i, level, game.Green, 1)
+		m := game.NewMonster(10, 6+i, level, game.Green, level)
 		world.AddEntity(&m)
 	}
 }
