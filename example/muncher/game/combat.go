@@ -4,24 +4,22 @@ type CombatSystem struct {
 	Messaging
 }
 
-func (combat CombatSystem) fight(player *Player, monster *Monster) {
+func (combat CombatSystem) fight(attacker *Creature, defender *Creature) {
 	switch {
-	case player.Level == monster.Level:
-		monster.Kill()
-		player.GainExp((monster.Level + 1) / 2)
-	case player.Level > monster.Level:
-		monster.Kill()
-		player.GainExp((monster.Level + 1) / 4)
-	case player.Level < monster.Level:
-		player.Damage(monster.Level)
+	case attacker.Level == defender.Level:
+		combat.Broadcast(KillEntity, KillEntityMessage{Attacker: attacker, Defender: defender})
+	case attacker.Level > defender.Level:
+		combat.Broadcast(KillEntity, KillEntityMessage{Attacker: attacker, Defender: defender})
+	case attacker.Level < defender.Level:
+		attacker.Damage(defender.Level)
 	}
 }
 
 func (combat CombatSystem) Notify(message Message, data interface{}) {
 	switch message {
-	case PlayerAttack:
-		if d, ok := data.(PlayerAttackMessage); ok {
-			combat.fight(d.Player, d.Monster)
+	case CreatureAttack:
+		if d, ok := data.(CreatureAttackMessage); ok {
+			combat.fight(d.Attacker, d.Defender)
 		}
 	}
 }

@@ -10,7 +10,6 @@ import (
 )
 
 type Monster struct {
-	Level int
 	Glyph rune
 	Color sdl.Color
 
@@ -23,14 +22,14 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 	monster := Monster{
 		Color: color,
 		Creature: Creature{
-			X: xPos,
-			Y: yPos,
+			Level: level,
+			X:     xPos,
+			Y:     yPos,
 			HP: Health{
 				Current: hp,
 				Max:     hp,
 			},
 		},
-		Level: level,
 	}
 
 	return monster
@@ -48,10 +47,6 @@ func (monster *Monster) Pursue(turn int64, world World) {
 
 		monster.UpdatePosition(choice.XPos, choice.YPos, world)
 	}
-}
-
-func (monster *Monster) Kill() {
-	monster.Broadcast(KillMonster, KillMonsterMessage{ID: monster.ID})
 }
 
 func (monster *Monster) UpdatePosition(xPos int, yPos int, world World) {

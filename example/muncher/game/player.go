@@ -9,22 +9,26 @@ import (
 )
 
 func (player *Player) UpdatePosition(xPos int, yPos int, world *World) {
-	if xPos >= 0 && xPos < world.Columns &&
-		yPos >= 0 && yPos < world.Rows {
-		if world.IsTileMonster(xPos, yPos) {
-			monster := world.GetMonsterAtTile(xPos, yPos)
-			player.Broadcast(PlayerAttack, PlayerAttackMessage{
-				Player:  player,
-				Monster: monster,
-			})
-		} else if world.CanStandOnTile(xPos, yPos) {
-			oldX := player.X
-			oldY := player.Y
-			player.X = xPos
-			player.Y = yPos
-			player.Broadcast(PlayerMove, PlayerMoveMessage{ID: player.ID, OldX: oldX, OldY: oldY, NewX: xPos, NewY: yPos})
+	panic("DON'T CALL THIS")
+
+	/*
+		if xPos >= 0 && xPos < world.Columns &&
+			yPos >= 0 && yPos < world.Rows {
+			if world.IsTileMonster(xPos, yPos) {
+				monster := world.GetMonsterAtTile(xPos, yPos)
+				player.Broadcast(PlayerAttack, PlayerAttackMessage{
+					Player:  player,
+					Monster: monster,
+				})
+			} else if world.CanStandOnTile(xPos, yPos) {
+				oldX := player.X
+				oldY := player.Y
+				player.X = xPos
+				player.Y = yPos
+				player.Broadcast(PlayerMove, PlayerMoveMessage{ID: player.ID, OldX: oldX, OldY: oldY, NewX: xPos, NewY: yPos})
+			}
 		}
-	}
+	*/
 }
 
 func getRandomColor() sdl.Color {
@@ -48,7 +52,6 @@ type Health struct {
 
 // Player pepresents the player
 type Player struct {
-	Level       int
 	Experience  int
 	RenderGlyph rune
 	RenderColor sdl.Color
@@ -68,23 +71,15 @@ func (player *Player) GainExp(exp int) {
 	}
 }
 
-func (player *Player) XPos() int {
-	return player.X
-}
-
-func (player *Player) YPos() int {
-	return player.Y
-}
-
 func NewPlayer(xPos int, yPos int) Player {
 	player := Player{
-		Level:       1,
 		RenderGlyph: '@',
 		RenderColor: sdl.Color{R: 255, G: 0, B: 0, A: 0},
 		Creature: Creature{
-			HP: Health{Current: 5, Max: 5},
-			X:  xPos,
-			Y:  yPos,
+			Level: 1,
+			HP:    Health{Current: 5, Max: 5},
+			X:     xPos,
+			Y:     yPos,
 		},
 	}
 
@@ -122,29 +117,67 @@ func (player *Player) Heal(amount int) {
 
 // HandleInput updates player position based on user input
 func (player *Player) HandleInput(event sdl.Event, world *World) {
+	newX := player.X
+	newY := player.Y
+
 	switch e := event.(type) {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
 		case sdl.K_h:
-			player.UpdatePosition(player.X-1, player.Y, world)
+			newX = player.X - 1
 		case sdl.K_j:
-			player.UpdatePosition(player.X, player.Y+1, world)
+			newY = player.Y + 1
 		case sdl.K_k:
-			player.UpdatePosition(player.X, player.Y-1, world)
+			newY = player.Y - 1
 		case sdl.K_l:
-			player.UpdatePosition(player.X+1, player.Y, world)
+			newX = player.X + 1
 		case sdl.K_b:
-			player.UpdatePosition(player.X-1, player.Y+1, world)
+			newX, newY = player.X-1, player.Y+1
 		case sdl.K_n:
-			player.UpdatePosition(player.X+1, player.Y+1, world)
+			newX, newY = player.X+1, player.Y+1
 		case sdl.K_y:
-			player.UpdatePosition(player.X-1, player.Y-1, world)
+			newX, newY = player.X-1, player.Y-1
 		case sdl.K_u:
-			player.UpdatePosition(player.X+1, player.Y-1, world)
+			newX, newY = player.X+1, player.Y-1
 		case sdl.K_1:
 			player.Damage(1)
 		case sdl.K_2:
 			player.Heal(1)
+		}
+
+		if newX != player.X || newY != player.Y {
+			result, data := player.TryMove(newX, newY, *world)
+			switch result {
+			case MoveIsInvalid:
+			case MoveIsSuccess:
+				oldX := player.X
+				oldY := player.Y
+				player.X = newX
+				player.Y = newY
+				player.Broadcast(PlayerMove, PlayerMoveMessage{ID: player.ID, OldX: oldX, OldY: oldY, NewX: newX, NewY: newY})
+			case MoveIsEnemy:
+				data := data.(MoveEnemy)
+				player.Broadcast(CreatureAttack, CreatureAttackMessage{
+					Attacker: data.Attacker,
+					Defender: data.Defender,
+				})
+			}
+		}
+	}
+}
+
+func (player *Player) Notify(message Message, data interface{}) {
+	switch message {
+	case KillEntity:
+		if d, ok := data.(KillEntityMessage); ok {
+			if d.Attacker.ID != player.ID {
+				return
+			}
+			if player.Level > d.Defender.Level {
+				player.GainExp((d.Defender.Level + 1) / 4)
+			} else {
+				player.GainExp((d.Defender.Level + 1) / 2)
+			}
 		}
 	}
 }

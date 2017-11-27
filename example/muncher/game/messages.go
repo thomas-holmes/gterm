@@ -9,9 +9,9 @@ const (
 	TileInvalidated
 	MoveEntity
 	PlayerMove
-	PlayerAttack
+	CreatureAttack
 	PlayerDead
-	KillMonster
+	KillEntity
 	PopUpShown
 	PopUpHidden
 )
@@ -37,13 +37,14 @@ type PlayerMoveMessage struct {
 	NewY int
 }
 
-type PlayerAttackMessage struct {
-	Player  *Player
-	Monster *Monster
+type CreatureAttackMessage struct {
+	Attacker *Creature
+	Defender *Creature
 }
 
-type KillMonsterMessage struct {
-	ID int
+type KillEntityMessage struct {
+	Attacker *Creature
+	Defender *Creature
 }
 
 type Listener interface {
