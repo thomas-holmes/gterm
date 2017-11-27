@@ -410,7 +410,7 @@ func (world *World) Notify(message Message, data interface{}) {
 	}
 }
 
-func NewWorld(window *gterm.Window, columns int, rows int) *World {
+func NewWorld(window *gterm.Window, columns int, rows int, cameraWidth int, cameraHeight int) *World {
 	tiles := make([]Tile, columns*rows, columns*rows)
 	for row := 0; row < rows; row++ {
 		for col := 0; col < columns; col++ {
@@ -428,10 +428,10 @@ func NewWorld(window *gterm.Window, columns int, rows int) *World {
 		Tiles:     tiles,
 
 		// TODO: Actually do something useful with the camera settings
-		CameraX:      0,
-		CameraY:      0,
-		CameraWidth:  columns,
-		CameraHeight: rows,
+		CameraX:      columns / 2,
+		CameraY:      rows / 2,
+		CameraWidth:  cameraWidth,
+		CameraHeight: cameraHeight,
 
 		renderItems: make(map[Position][]Renderable),
 		entities:    make(map[int]Entity),

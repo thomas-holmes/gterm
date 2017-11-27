@@ -88,7 +88,7 @@ func main() {
 
 	window.ShouldRenderFps(true)
 
-	world := game.NewWorld(window, 40, 18)
+	world := game.NewWorld(window, 40, 18, 5, 5)
 	{
 		// TODO: Roll this up into some kind of registering a system function on the world
 		combat := game.CombatSystem{}
@@ -98,8 +98,8 @@ func main() {
 	}
 
 	player := game.NewPlayer(1, 1)
-	world.BumpCameraX(19)
-	world.BumpCameraY(8)
+	// world.BumpCameraX(19)
+	// world.BumpCameraY(8)
 	player.Name = "Euclid"
 
 	world.AddEntity(&player)
