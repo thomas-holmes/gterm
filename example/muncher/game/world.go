@@ -377,10 +377,10 @@ func (world *World) MoveEntity(message MoveEntityMessage) {
 
 func (world *World) Notify(message Message, data interface{}) {
 	switch message {
-	case TileInvalidated:
-		if d, ok := data.(TileInvalidatedMessage); ok {
+	case ClearRegion:
+		if d, ok := data.(ClearRegionMessage); ok {
 			// log.Printf("Got invalidation %+v", d)
-			world.Window.ClearCell(d.XPos, d.YPos)
+			world.Window.ClearRegion(d.XPos, d.YPos, d.Width, d.Height)
 		}
 	case PlayerMove:
 		if d, ok := data.(PlayerMoveMessage); ok {
@@ -396,7 +396,6 @@ func (world *World) Notify(message Message, data interface{}) {
 			if m, ok := monster.(*Monster); ok {
 				log.Println("remove an entity", m)
 				world.RemoveEntity(m)
-				world.MessageBus.Broadcast(TileInvalidated, TileInvalidatedMessage{XPos: m.XPos(), YPos: m.YPos()})
 			}
 		}
 	case PopUpShown:

@@ -6,7 +6,7 @@ type Message int
 
 const (
 	PlayerUpdate Message = iota
-	TileInvalidated
+	ClearRegion
 	MoveEntity
 	PlayerMove
 	CreatureAttack
@@ -16,9 +16,11 @@ const (
 	PopUpHidden
 )
 
-type TileInvalidatedMessage struct {
-	XPos int
-	YPos int
+type ClearRegionMessage struct {
+	XPos   int
+	YPos   int
+	Width  int
+	Height int
 }
 
 type MoveEntityMessage struct {

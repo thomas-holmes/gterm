@@ -277,6 +277,16 @@ func (window *Window) PutString(col int, row int, content string, fColor sdl.Col
 
 	return nil
 }
+func (window *Window) ClearRegion(col int, row int, width int, height int) error {
+	for y := row; y < y+height; y++ {
+		for x := col; x < x+width; x++ {
+			if err := window.ClearCell(x, y); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
 
 func (window *Window) ClearCell(col int, row int) error {
 	index, err := window.cellIndex(col, row)

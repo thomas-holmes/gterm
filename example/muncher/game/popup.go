@@ -53,7 +53,12 @@ func NewPopUp(xPos int, yPos int, width int, height int, color sdl.Color, conten
 func (pop PopUp) ClearUnderlying() {
 	for y := pop.YPos; y < pop.YPos+pop.Height; y++ {
 		for x := pop.XPos; x < pop.XPos+pop.Width; x++ {
-			pop.Broadcast(TileInvalidated, TileInvalidatedMessage{XPos: x, YPos: y})
+			pop.Broadcast(ClearRegion, ClearRegionMessage{
+				XPos:   x,
+				YPos:   y,
+				Width:  pop.Width,
+				Height: pop.Height,
+			})
 		}
 	}
 }
