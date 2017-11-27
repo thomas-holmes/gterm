@@ -7,6 +7,11 @@ const (
 	MonsterTeam
 )
 
+type Health struct {
+	Current int
+	Max     int
+}
+
 type Creature struct {
 	Identifiable
 

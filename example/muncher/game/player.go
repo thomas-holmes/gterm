@@ -29,7 +29,8 @@ type Health struct {
 
 // Player pepresents the player
 type Player struct {
-	Experience  int
+	Experience int
+
 	RenderGlyph rune
 	RenderColor sdl.Color
 
