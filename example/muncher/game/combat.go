@@ -5,13 +5,10 @@ type CombatSystem struct {
 }
 
 func (combat CombatSystem) fight(attacker *Creature, defender *Creature) {
-	switch {
-	case attacker.Level == defender.Level:
+	defender.Damage(attacker.Level)
+
+	if defender.HP.Current == 0 {
 		combat.Broadcast(KillEntity, KillEntityMessage{Attacker: attacker, Defender: defender})
-	case attacker.Level > defender.Level:
-		combat.Broadcast(KillEntity, KillEntityMessage{Attacker: attacker, Defender: defender})
-	case attacker.Level < defender.Level:
-		attacker.Damage(defender.Level)
 	}
 }
 

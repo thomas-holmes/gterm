@@ -79,15 +79,24 @@ func (world *World) GetTile(column int, row int) *Tile {
 	return tile
 }
 
-func (world *World) GetMonsterAtTile(column int, row int) *Monster {
+func (world *World) GetCreatureAtTile(xPos int, yPos int) (*Creature, bool) {
+	if world.Player.X == xPos && world.Player.Y == yPos {
+		return &world.Player.Creature, true
+	} else if monster, ok := world.GetMonsterAtTile(xPos, yPos); ok {
+		return &monster.Creature, ok
+	}
+	return nil, false
+}
+
+func (world *World) GetMonsterAtTile(column int, row int) (*Monster, bool) {
 	pos := Position{XPos: column, YPos: row}
 	renderItems := world.renderItems[pos]
 	for _, item := range renderItems {
 		if monster, ok := item.(*Monster); ok {
-			return monster
+			return monster, ok
 		}
 	}
-	return nil
+	return nil, false
 }
 
 func (world World) IsTileOccupied(column int, row int) bool {
@@ -164,6 +173,10 @@ func (world *World) AddEntity(e Entity) {
 
 	if n, ok := e.(Notifier); ok {
 		n.SetMessageBus(&world.MessageBus)
+	}
+
+	if l, ok := e.(Listener); ok {
+		world.MessageBus.Subscribe(l)
 	}
 
 	switch actual := e.(type) {

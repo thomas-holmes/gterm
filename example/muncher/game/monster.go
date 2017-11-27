@@ -22,6 +22,7 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 	monster := Monster{
 		Color: color,
 		Creature: Creature{
+			Team:  MonsterTeam,
 			Level: level,
 			X:     xPos,
 			Y:     yPos,
@@ -45,28 +46,29 @@ func (monster *Monster) Pursue(turn int64, world World) {
 		randomIndex := rand.Intn(len(candidates))
 		choice := candidates[randomIndex]
 
-		monster.UpdatePosition(choice.XPos, choice.YPos, world)
-	}
-}
-
-func (monster *Monster) UpdatePosition(xPos int, yPos int, world World) {
-	if xPos >= 0 && xPos < world.Columns &&
-		yPos >= 0 && yPos < world.Rows {
-		if world.IsTileMonster(xPos, yPos) {
-			// Nothing
-		} else if world.CanStandOnTile(xPos, yPos) {
+		result, data := monster.TryMove(choice.XPos, choice.YPos, world)
+		log.Printf("Tried to move %#v, got result: %v, data %#v", monster, result, data)
+		switch result {
+		case MoveIsInvalid:
+		case MoveIsSuccess:
 			oldX := monster.X
 			oldY := monster.Y
-			monster.X = xPos
-			monster.Y = yPos
-
+			monster.X = choice.XPos
+			monster.Y = choice.YPos
 			monster.Broadcast(MoveEntity, MoveEntityMessage{
 				ID:   monster.ID,
 				OldX: oldX,
 				OldY: oldY,
-				NewX: monster.X,
-				NewY: monster.Y,
+				NewX: choice.XPos,
+				NewY: choice.YPos,
 			})
+		case MoveIsEnemy:
+			if data, ok := data.(MoveEnemy); ok {
+				monster.Broadcast(CreatureAttack, CreatureAttackMessage{
+					Attacker: data.Attacker,
+					Defender: data.Defender,
+				})
+			}
 		}
 	}
 }

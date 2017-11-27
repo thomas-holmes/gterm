@@ -8,29 +8,6 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-func (player *Player) UpdatePosition(xPos int, yPos int, world *World) {
-	panic("DON'T CALL THIS")
-
-	/*
-		if xPos >= 0 && xPos < world.Columns &&
-			yPos >= 0 && yPos < world.Rows {
-			if world.IsTileMonster(xPos, yPos) {
-				monster := world.GetMonsterAtTile(xPos, yPos)
-				player.Broadcast(PlayerAttack, PlayerAttackMessage{
-					Player:  player,
-					Monster: monster,
-				})
-			} else if world.CanStandOnTile(xPos, yPos) {
-				oldX := player.X
-				oldY := player.Y
-				player.X = xPos
-				player.Y = yPos
-				player.Broadcast(PlayerMove, PlayerMoveMessage{ID: player.ID, OldX: oldX, OldY: oldY, NewX: xPos, NewY: yPos})
-			}
-		}
-	*/
-}
-
 func getRandomColor() sdl.Color {
 	return sdl.Color{
 		R: uint8(rand.Intn(256)),
@@ -156,11 +133,12 @@ func (player *Player) HandleInput(event sdl.Event, world *World) {
 				player.Y = newY
 				player.Broadcast(PlayerMove, PlayerMoveMessage{ID: player.ID, OldX: oldX, OldY: oldY, NewX: newX, NewY: newY})
 			case MoveIsEnemy:
-				data := data.(MoveEnemy)
-				player.Broadcast(CreatureAttack, CreatureAttackMessage{
-					Attacker: data.Attacker,
-					Defender: data.Defender,
-				})
+				if data, ok := data.(MoveEnemy); ok {
+					player.Broadcast(CreatureAttack, CreatureAttackMessage{
+						Attacker: data.Attacker,
+						Defender: data.Defender,
+					})
+				}
 			}
 		}
 	}
@@ -170,6 +148,10 @@ func (player *Player) Notify(message Message, data interface{}) {
 	switch message {
 	case KillEntity:
 		if d, ok := data.(KillEntityMessage); ok {
+			if d.Defender.ID == player.ID {
+				player.Broadcast(PlayerDead, nil)
+				return
+			}
 			if d.Attacker.ID != player.ID {
 				return
 			}

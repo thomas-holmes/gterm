@@ -1,7 +1,16 @@
 package game
 
+type Team int
+
+const (
+	PlayerTeam Team = iota
+	MonsterTeam
+)
+
 type Creature struct {
 	Identifiable
+
+	Team Team
 
 	X int
 	Y int
@@ -26,11 +35,15 @@ func (c *Creature) Damage(damage int) {
 }
 
 func (c *Creature) TryMove(newX int, newY int, world World) (MoveResult, interface{}) {
-	if world.IsTileMonster(newX, newY) {
-		monster := world.GetMonsterAtTile(newX, newY)
-		return MoveIsEnemy, MoveEnemy{Attacker: c, Defender: &monster.Creature}
-	} else if world.CanStandOnTile(newX, newY) {
+
+	if world.CanStandOnTile(newX, newY) {
 		return MoveIsSuccess, nil
+	}
+
+	if defender, ok := world.GetCreatureAtTile(newX, newY); ok {
+		if c.Team != defender.Team {
+			return MoveIsEnemy, MoveEnemy{Attacker: c, Defender: defender}
+		}
 	}
 
 	return MoveIsInvalid, nil
