@@ -21,12 +21,6 @@ func (player *Player) Render(world *World) {
 	playerBg := gterm.NoColor // playerBg := getRandomColor()
 	world.RenderRuneAt(player.X, player.Y, player.RenderGlyph, player.RenderColor, playerBg)
 }
-
-type Health struct {
-	Current int
-	Max     int
-}
-
 // Player pepresents the player
 type Player struct {
 	Experience int
