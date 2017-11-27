@@ -4,7 +4,7 @@ gterm is intended to be an abstraction for rendering a cell/tile addressable gri
 
 To compile/run you will need sdl2, sdl_ttf, and sdl_image, and gcc/mingw
 
-The sdl2 bindings are vendored but you will still need to ensure that the shared libraries are installed and available on your system. Go to [veandco/go-sdl2][https://github.com/veandco/go-sdl2) and follow the SDL installation instructions for your platform.
+The sdl2 bindings are vendored but you will still need to ensure that the shared libraries are installed and available on your system. Go to [veandco/go-sdl2](https://github.com/veandco/go-sdl2) and follow the SDL installation instructions for your platform.
 
 To run the example app go to the example/ directory and run `go run muncher/main.go`
 
