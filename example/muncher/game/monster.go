@@ -9,9 +9,18 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+type MonsterBehavior int
+
+const (
+	Idle MonsterBehavior = iota
+	Pursuing
+)
+
 type Monster struct {
 	Glyph rune
 	Color sdl.Color
+
+	State MonsterBehavior
 
 	Creature
 
@@ -37,14 +46,26 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 }
 
 func (monster *Monster) Pursue(turn int64, world World) {
+	if world.VisionMap.VisibilityAt(monster.X, monster.Y) == Visible {
+		monster.State = Pursuing
+	}
+
+	if monster.State != Pursuing {
+		return
+	}
+
 	scent := world.ScentMap
 	candidates := scent.track(turn, monster.X, monster.Y)
 
 	log.Printf("Monster %#v found tracking candidates: %v", *monster, candidates)
 
+	// TODO: Sometimes the monster takes a suboptimal path
 	if len(candidates) > 0 {
 		randomIndex := rand.Intn(len(candidates))
 		choice := candidates[randomIndex]
+		if len(candidates) > 1 {
+			log.Panicf("More than one candidate, %+v", candidates)
+		}
 
 		result, data := monster.TryMove(choice.XPos, choice.YPos, world)
 		log.Printf("Tried to move %#v, got result: %v, data %#v", monster, result, data)
