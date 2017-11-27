@@ -64,7 +64,7 @@ func (monster *Monster) Pursue(turn int64, world World) {
 			})
 		case MoveIsEnemy:
 			if data, ok := data.(MoveEnemy); ok {
-				monster.Broadcast(CreatureAttack, CreatureAttackMessage{
+				monster.Broadcast(AttackEntity, AttackEntityMesasge{
 					Attacker: data.Attacker,
 					Defender: data.Defender,
 				})

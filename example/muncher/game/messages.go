@@ -9,7 +9,7 @@ const (
 	ClearRegion
 	MoveEntity
 	PlayerMove
-	CreatureAttack
+	AttackEntity
 	PlayerDead
 	KillEntity
 	PopUpShown
@@ -39,14 +39,14 @@ type PlayerMoveMessage struct {
 	NewY int
 }
 
-type CreatureAttackMessage struct {
-	Attacker *Creature
-	Defender *Creature
+type AttackEntityMesasge struct {
+	Attacker Entity
+	Defender Entity
 }
 
 type KillEntityMessage struct {
-	Attacker *Creature
-	Defender *Creature
+	Attacker Entity
+	Defender Entity
 }
 
 type Listener interface {

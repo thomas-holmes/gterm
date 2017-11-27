@@ -140,7 +140,7 @@ func (player *Player) HandleInput(event sdl.Event, world *World) {
 				player.Broadcast(PlayerMove, PlayerMoveMessage{ID: player.ID, OldX: oldX, OldY: oldY, NewX: newX, NewY: newY})
 			case MoveIsEnemy:
 				if data, ok := data.(MoveEnemy); ok {
-					player.Broadcast(CreatureAttack, CreatureAttackMessage{
+					player.Broadcast(AttackEntity, AttackEntityMesasge{
 						Attacker: data.Attacker,
 						Defender: data.Defender,
 					})
@@ -154,17 +154,18 @@ func (player *Player) Notify(message Message, data interface{}) {
 	switch message {
 	case KillEntity:
 		if d, ok := data.(KillEntityMessage); ok {
-			if d.Defender.ID == player.ID {
+			attacker, defender := d.Attacker.(*Creature), d.Defender.(*Creature)
+			if defender.ID == player.ID {
 				player.Broadcast(PlayerDead, nil)
 				return
 			}
-			if d.Attacker.ID != player.ID {
+			if attacker.ID != player.ID {
 				return
 			}
-			if player.Level > d.Defender.Level {
-				player.GainExp((d.Defender.Level + 1) / 4)
+			if player.Level > defender.Level {
+				player.GainExp((defender.Level + 1) / 4)
 			} else {
-				player.GainExp((d.Defender.Level + 1) / 2)
+				player.GainExp((defender.Level + 1) / 2)
 			}
 		}
 	}

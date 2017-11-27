@@ -392,7 +392,7 @@ func (world *World) Notify(message Message, data interface{}) {
 		}
 	case KillEntity:
 		if d, ok := data.(KillEntityMessage); ok {
-			monster := world.entities[d.Defender.ID]
+			monster := world.entities[d.Defender.Identity()]
 			if m, ok := monster.(*Monster); ok {
 				log.Println("remove an entity", m)
 				world.RemoveEntity(m)
