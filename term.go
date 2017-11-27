@@ -413,7 +413,7 @@ func (window *Window) Refresh() {
 
 	window.fps.MaybeRender(window) // Ok this is dumb
 
-	window.renderDebugFontTexture()
+	// window.renderDebugFontTexture()
 
 	window.SdlRenderer.Present()
 }
