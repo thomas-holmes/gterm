@@ -38,12 +38,18 @@ type Player struct {
 	Messaging
 }
 
+func (player *Player) LevelUp() {
+	player.Experience -= player.Level
+	player.Level++
+	player.HP.Max = int(float32(player.HP.Max) * 1.5)
+	player.HP.Current = player.HP.Max
+}
+
 func (player *Player) GainExp(exp int) {
 	player.Experience += exp
 	log.Println("Got some exp", exp)
 	if player.Experience >= player.Level {
-		player.Experience -= player.Level
-		player.Level++
+		player.LevelUp()
 		player.Broadcast(PlayerUpdate, nil)
 	}
 }
