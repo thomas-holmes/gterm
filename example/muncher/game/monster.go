@@ -31,10 +31,11 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 	monster := Monster{
 		Color: color,
 		Creature: Creature{
-			Team:  MonsterTeam,
-			Level: level,
-			X:     xPos,
-			Y:     yPos,
+			MaxEnergy: 100,
+			Team:      MonsterTeam,
+			Level:     level,
+			X:         xPos,
+			Y:         yPos,
 			HP: Health{
 				Current: hp,
 				Max:     hp,
@@ -45,7 +46,7 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 	return monster
 }
 
-func (monster *Monster) Pursue(turn int64, world World) {
+func (monster *Monster) Pursue(turn int64, world *World) {
 	if world.VisionMap.VisibilityAt(monster.X, monster.Y) == Visible {
 		monster.State = Pursuing
 	}
@@ -92,6 +93,17 @@ func (monster *Monster) Pursue(turn int64, world World) {
 			}
 		}
 	}
+}
+
+func (monster *Monster) Update(turn int64, _ sdl.Event, world *World) {
+	monster.CurrentEnergy -= 100
+	log.Printf("Updating Monster %+v", *monster)
+	monster.Pursue(turn, world)
+}
+
+func (monster Monster) NeedsInput() bool {
+	log.Printf("Called monster NeedsInput %+v", monster)
+	return false
 }
 
 func (monster *Monster) Render(world *World) {

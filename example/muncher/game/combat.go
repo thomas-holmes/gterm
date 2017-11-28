@@ -5,7 +5,7 @@ type CombatSystem struct {
 }
 
 func (combat CombatSystem) fight(a Entity, d Entity) {
-	attacker, defender := a.(*Creature), d.(*Creature)
+	attacker, defender := a.Fighter(), d.Fighter()
 
 	defender.Damage(attacker.Level)
 

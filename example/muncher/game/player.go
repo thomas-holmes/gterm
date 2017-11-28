@@ -21,6 +21,7 @@ func (player *Player) Render(world *World) {
 	playerBg := gterm.NoColor // playerBg := getRandomColor()
 	world.RenderRuneAt(player.X, player.Y, player.RenderGlyph, player.RenderColor, playerBg)
 }
+
 // Player pepresents the player
 type Player struct {
 	Experience int
@@ -54,10 +55,12 @@ func NewPlayer(xPos int, yPos int) Player {
 		RenderGlyph: '@',
 		RenderColor: sdl.Color{R: 255, G: 0, B: 0, A: 0},
 		Creature: Creature{
-			Level: 1,
-			HP:    Health{Current: 5, Max: 5},
-			X:     xPos,
-			Y:     yPos,
+			Level:         1,
+			CurrentEnergy: 100,
+			MaxEnergy:     100,
+			HP:            Health{Current: 5, Max: 5},
+			X:             xPos,
+			Y:             yPos,
 		},
 	}
 
@@ -93,6 +96,11 @@ func (player *Player) Heal(amount int) {
 	player.Broadcast(PlayerUpdate, nil)
 }
 
+func (player *Player) Update(turn int64, event sdl.Event, world *World) {
+	player.CurrentEnergy -= 100
+	player.HandleInput(event, world)
+}
+
 // HandleInput updates player position based on user input
 func (player *Player) HandleInput(event sdl.Event, world *World) {
 	newX := player.X
@@ -124,7 +132,7 @@ func (player *Player) HandleInput(event sdl.Event, world *World) {
 		}
 
 		if newX != player.X || newY != player.Y {
-			result, data := player.TryMove(newX, newY, *world)
+			result, data := player.TryMove(newX, newY, world)
 			switch result {
 			case MoveIsInvalid:
 			case MoveIsSuccess:
@@ -149,7 +157,7 @@ func (player *Player) Notify(message Message, data interface{}) {
 	switch message {
 	case KillEntity:
 		if d, ok := data.(KillEntityMessage); ok {
-			attacker, defender := d.Attacker.(*Creature), d.Defender.(*Creature)
+			attacker, defender := d.Attacker.Fighter(), d.Defender.Fighter()
 			if defender.ID == player.ID {
 				player.Broadcast(PlayerDead, nil)
 				return
@@ -164,6 +172,11 @@ func (player *Player) Notify(message Message, data interface{}) {
 			}
 		}
 	}
+}
+
+func (player Player) NeedsInput() bool {
+	log.Printf("Called player NeedsInput %+v", player)
+	return true
 }
 
 // SetColor updates the render color of the player

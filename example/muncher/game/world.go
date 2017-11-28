@@ -39,13 +39,34 @@ type World struct {
 	Suspended        bool
 	showScentOverlay bool
 
+	InputBuffer []sdl.Event
+
+	GameOver bool
+
 	renderItems map[Position][]Renderable
-	entities    map[int]Entity
+	entities    []Entity
+	nextEntity  int
+	nextEnergy  int
+	needInput   bool
 }
 
 func (world *World) GetNextID() int {
 	world.nextID++
 	return world.nextID
+}
+
+func (world *World) PopInput() (sdl.Event, bool) {
+	if len(world.InputBuffer) > 0 {
+		input := world.InputBuffer[0]
+		world.InputBuffer = world.InputBuffer[1:]
+		return input, true
+	}
+
+	return nil, false
+}
+
+func (world *World) AddInput(event sdl.Event) {
+	world.InputBuffer = append(world.InputBuffer, event)
 }
 
 func (world *World) BuildLevelFromMask(mask []int) {
@@ -184,7 +205,7 @@ func (world *World) AddEntity(e Entity) {
 		world.AddRenderable(actual)
 	}
 
-	world.entities[e.Identity()] = e
+	world.entities = append(world.entities, e)
 }
 
 func (world *World) RenderRuneAt(x int, y int, out rune, fColor sdl.Color, bColor sdl.Color) {
@@ -201,17 +222,43 @@ func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 	}
 }
 
-func (world *World) Update(turn int64) {
+func (world *World) Update(turn int64) bool {
 	world.VisionMap.UpdateVision(6, world.Player, world)
 	world.ScentMap.UpdateScents(turn, *world)
 
-	for _, e := range world.entities {
-		switch m := e.(type) {
-		case *Monster:
-			log.Printf("Got a monster, %v", m)
-			m.Pursue(turn, *world)
+	world.needInput = false
+	for i := world.nextEntity; i < len(world.entities); i++ {
+		e := world.entities[i]
+
+		energized, isEnergized := e.(Energized)
+
+		if isEnergized && world.nextEnergy == i {
+			energized.AddEnergy(100)
+			world.nextEnergy = i + 1
+		}
+
+		if e.CanAct() {
+			if e.NeedsInput() {
+				log.Printf("Found one that needs input %+v", e)
+				if input, ok := world.PopInput(); ok {
+					e.Update(turn, input, world)
+					world.nextEntity = i + 1
+				} else {
+					world.needInput = true
+					break
+				}
+			} else {
+				e.Update(turn, nil, world)
+				world.nextEntity = i + 1
+			}
 		}
 	}
+	if world.nextEntity == len(world.entities) {
+		log.Printf("Looping around")
+		world.nextEntity = 0
+		world.nextEnergy = 0
+	}
+	return world.needInput
 }
 
 // Render redrwas everything!
@@ -291,9 +338,22 @@ func (world *World) OverlayScentMap(turn int64) {
 }
 
 func (world *World) RemoveEntity(entity Entity) {
-	delete(world.entities, entity.Identity())
+	// delete(world.entities, entity.Identity())
+	foundIndex := -1
+	var foundEntity Entity
+	for i, e := range world.entities {
+		if e.Identity() == entity.Identity() {
+			foundIndex = i
+			foundEntity = e
+			break
+		}
+	}
 
-	if renderable, ok := entity.(Renderable); ok {
+	if foundIndex > -1 {
+		world.entities = append(world.entities[:foundIndex], world.entities[foundIndex+1:]...)
+	}
+
+	if renderable, ok := foundEntity.(Renderable); ok {
 		pos := Position{XPos: renderable.XPos(), YPos: renderable.YPos()}
 
 		slice := world.renderItems[pos]
@@ -375,6 +435,15 @@ func (world *World) MoveEntity(message MoveEntityMessage) {
 	world.renderItems[newPos] = newSlice
 }
 
+func (world *World) GetEntity(id int) (Entity, bool) {
+	for _, e := range world.entities {
+		if e.Identity() == id {
+			return e, true
+		}
+	}
+	return nil, false
+}
+
 func (world *World) Notify(message Message, data interface{}) {
 	switch message {
 	case ClearRegion:
@@ -392,11 +461,7 @@ func (world *World) Notify(message Message, data interface{}) {
 		}
 	case KillEntity:
 		if d, ok := data.(KillEntityMessage); ok {
-			monster := world.entities[d.Defender.Identity()]
-			if m, ok := monster.(*Monster); ok {
-				log.Println("remove an entity", m)
-				world.RemoveEntity(m)
-			}
+			world.RemoveEntity(d.Defender)
 		}
 	case PopUpShown:
 		log.Println("World, PopUp Shown")
@@ -406,6 +471,7 @@ func (world *World) Notify(message Message, data interface{}) {
 		world.Resume()
 	case PlayerDead:
 		pop := NewPopUp(10, 5, 40, 6, Red, "YOU ARE VERY DEAD", "I AM SO SORRY :(")
+		world.GameOver = true
 		world.ShowPopUp(pop)
 	}
 }
@@ -434,7 +500,6 @@ func NewWorld(window *gterm.Window, columns int, rows int, cameraWidth int, came
 		CameraHeight: cameraHeight,
 
 		renderItems: make(map[Position][]Renderable),
-		entities:    make(map[int]Entity),
 	}
 
 	world.MessageBus.Subscribe(&world)

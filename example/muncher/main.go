@@ -121,9 +121,13 @@ func main() {
 
 			handleInput(event, world)
 
-			world.HandleInput(event)
+			world.AddInput(event)
 
-			world.Update(turnCount)
+			updateLoops := 0
+			for !world.Update(turnCount) && !world.GameOver {
+				updateLoops++
+			}
+			log.Printf("Ran %v update loops", updateLoops)
 
 			world.Render(turnCount)
 
