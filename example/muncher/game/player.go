@@ -96,13 +96,16 @@ func (player *Player) Heal(amount int) {
 	player.Broadcast(PlayerUpdate, nil)
 }
 
-func (player *Player) Update(turn int64, event sdl.Event, world *World) {
-	player.CurrentEnergy -= 100
-	player.HandleInput(event, world)
+func (player *Player) Update(turn int64, event sdl.Event, world *World) bool {
+	if player.HandleInput(event, world) {
+		player.CurrentEnergy -= 100
+		return true
+	}
+	return false
 }
 
 // HandleInput updates player position based on user input
-func (player *Player) HandleInput(event sdl.Event, world *World) {
+func (player *Player) HandleInput(event sdl.Event, world *World) bool {
 	newX := player.X
 	newY := player.Y
 
@@ -127,14 +130,17 @@ func (player *Player) HandleInput(event sdl.Event, world *World) {
 			newX, newY = player.X+1, player.Y-1
 		case sdl.K_1:
 			player.Damage(1)
+			return false
 		case sdl.K_2:
 			player.Heal(1)
+			return false
 		}
 
 		if newX != player.X || newY != player.Y {
 			result, data := player.TryMove(newX, newY, world)
 			switch result {
 			case MoveIsInvalid:
+				return false
 			case MoveIsSuccess:
 				oldX := player.X
 				oldY := player.Y
@@ -150,7 +156,9 @@ func (player *Player) HandleInput(event sdl.Event, world *World) {
 				}
 			}
 		}
+		return true
 	}
+	return false
 }
 
 func (player *Player) Notify(message Message, data interface{}) {

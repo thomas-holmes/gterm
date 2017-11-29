@@ -227,6 +227,7 @@ func (world *World) Update(turn int64) bool {
 	world.ScentMap.UpdateScents(turn, *world)
 
 	world.needInput = false
+	log.Printf("NextEntity: %v, NextEnergy: %v", world.nextEnergy, world.nextEnergy)
 	for i := world.nextEntity; i < len(world.entities); i++ {
 		e := world.entities[i]
 
@@ -241,8 +242,13 @@ func (world *World) Update(turn int64) bool {
 			if e.NeedsInput() {
 				log.Printf("Found one that needs input %+v", e)
 				if input, ok := world.PopInput(); ok {
-					e.Update(turn, input, world)
-					world.nextEntity = i + 1
+					if e.Update(turn, input, world) {
+						world.nextEntity = i + 1
+					} else {
+						log.Println("player hit a wall lol")
+						world.needInput = true
+						break
+					}
 				} else {
 					world.needInput = true
 					break

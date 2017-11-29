@@ -46,13 +46,13 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 	return monster
 }
 
-func (monster *Monster) Pursue(turn int64, world *World) {
+func (monster *Monster) Pursue(turn int64, world *World) bool {
 	if world.VisionMap.VisibilityAt(monster.X, monster.Y) == Visible {
 		monster.State = Pursuing
 	}
 
 	if monster.State != Pursuing {
-		return
+		return true
 	}
 
 	scent := world.ScentMap
@@ -72,6 +72,8 @@ func (monster *Monster) Pursue(turn int64, world *World) {
 		log.Printf("Tried to move %#v, got result: %v, data %#v", monster, result, data)
 		switch result {
 		case MoveIsInvalid:
+			log.Panicf("Monsters aren't allowed to yield their turn")
+			return false
 		case MoveIsSuccess:
 			oldX := monster.X
 			oldY := monster.Y
@@ -92,13 +94,18 @@ func (monster *Monster) Pursue(turn int64, world *World) {
 				})
 			}
 		}
+		return true
 	}
+	return false
 }
 
-func (monster *Monster) Update(turn int64, _ sdl.Event, world *World) {
-	monster.CurrentEnergy -= 100
+func (monster *Monster) Update(turn int64, _ sdl.Event, world *World) bool {
 	log.Printf("Updating Monster %+v", *monster)
-	monster.Pursue(turn, world)
+	if monster.Pursue(turn, world) {
+		monster.CurrentEnergy -= 100
+		return true
+	}
+	return false
 }
 
 func (monster Monster) NeedsInput() bool {
