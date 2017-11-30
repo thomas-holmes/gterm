@@ -27,13 +27,13 @@ type World struct {
 	Rows    int
 	Tiles   []Tile
 
-	Centered      bool
-	CameraWidth   int
-	CameraHeight  int
-	CameraOffsetX int
-	CameraOffsetY int
-	CameraX       int
-	CameraY       int
+	CameraCentered bool
+	CameraWidth    int
+	CameraHeight   int
+	CameraOffsetX  int
+	CameraOffsetY  int
+	CameraX        int
+	CameraY        int
 
 	nextID int
 
@@ -204,7 +204,7 @@ func (world *World) AddEntity(e Entity) {
 	}
 
 	// Center the camera on the player
-	if p, ok := e.(*Player); ok && world.Centered {
+	if p, ok := e.(*Player); ok && world.CameraCentered {
 		world.CameraX = p.X
 		world.CameraY = p.Y
 	}
@@ -280,7 +280,7 @@ func (world *World) Update(turn int64) bool {
 func (world *World) Render(turnCount int64) {
 	defer timeMe(time.Now(), "World.Render.TileLoop")
 	var minX, minY, maxX, maxY int
-	if world.Centered {
+	if world.CameraCentered {
 		minY, maxY = max(0, world.CameraY-(world.CameraWidth/2)), min(world.Rows, world.CameraY+(world.CameraWidth/2))
 		minX, maxX = max(0, world.CameraX-(world.CameraHeight/2)), min(world.Columns, world.CameraX+(world.CameraHeight/2))
 	} else {
@@ -421,7 +421,7 @@ func (world *World) MovePlayer(message PlayerMoveMessage) {
 
 	newPos := Position{XPos: message.NewX, YPos: message.NewY}
 
-	if world.Centered {
+	if world.CameraCentered {
 		world.CameraX += (message.NewX - oldPos.XPos)
 		world.CameraY += (message.NewY - oldPos.YPos)
 	}
@@ -515,16 +515,16 @@ func NewWorld(window *gterm.Window, columns int, rows int, centered bool) *World
 		Rows:      rows,
 		Tiles:     tiles,
 
-		Centered:     centered,
-		CameraX:      0,
-		CameraY:      0,
-		CameraWidth:  40,
-		CameraHeight: 24,
+		CameraCentered: centered,
+		CameraX:        0,
+		CameraY:        0,
+		CameraWidth:    40,
+		CameraHeight:   24,
 
 		renderItems: make(map[Position][]Renderable),
 	}
 
-	if world.Centered {
+	if world.CameraCentered {
 		world.CameraOffsetX = columns / 2
 		world.CameraOffsetY = rows / 2
 	}
