@@ -27,10 +27,13 @@ type World struct {
 	Rows    int
 	Tiles   []Tile
 
-	CameraWidth  int
-	CameraHeight int
-	CameraX      int
-	CameraY      int
+	Centered      bool
+	CameraWidth   int
+	CameraHeight  int
+	CameraOffsetX int
+	CameraOffsetY int
+	CameraX       int
+	CameraY       int
 
 	nextID int
 
@@ -200,6 +203,12 @@ func (world *World) AddEntity(e Entity) {
 		world.MessageBus.Subscribe(l)
 	}
 
+	// Center the camera on the player
+	if p, ok := e.(*Player); ok && world.Centered {
+		world.CameraX = p.X
+		world.CameraY = p.Y
+	}
+
 	switch actual := e.(type) {
 	case Renderable:
 		world.AddRenderable(actual)
@@ -209,14 +218,14 @@ func (world *World) AddEntity(e Entity) {
 }
 
 func (world *World) RenderRuneAt(x int, y int, out rune, fColor sdl.Color, bColor sdl.Color) {
-	err := world.Window.PutRune(x+world.CameraX, y+world.CameraY, out, fColor, bColor)
+	err := world.Window.PutRune(x-world.CameraX+world.CameraOffsetX, y-world.CameraY+world.CameraOffsetY, out, fColor, bColor)
 	if err != nil {
 		log.Printf("Out of bounds %s", err)
 	}
 }
 
 func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
-	err := world.Window.PutString(x+world.CameraX, y+world.CameraY, out, color)
+	err := world.Window.PutString(x-world.CameraX+world.CameraOffsetX, y-world.CameraY+world.CameraOffsetY, out, color)
 	if err != nil {
 		log.Printf("Out of bounds %s", err)
 	}
@@ -270,8 +279,19 @@ func (world *World) Update(turn int64) bool {
 // Render redrwas everything!
 func (world *World) Render(turnCount int64) {
 	defer timeMe(time.Now(), "World.Render.TileLoop")
-	for row := max(0, 0-world.CameraY); row < min(world.Rows, world.Rows-world.CameraY); row++ {
-		for col := max(0, 0-world.CameraX); col < min(world.Columns, world.Columns-world.CameraX); col++ {
+	var minX, minY, maxX, maxY int
+	if world.Centered {
+		minY, maxY = max(0, world.CameraY-(world.CameraWidth/2)), min(world.Rows, world.CameraY+(world.CameraWidth/2))
+		minX, maxX = max(0, world.CameraX-(world.CameraHeight/2)), min(world.Columns, world.CameraX+(world.CameraHeight/2))
+	} else {
+		minY, maxY = 0, world.Rows
+		minX, maxX = 0, world.Columns
+	}
+	log.Printf("Camera (%v, %v), CameraH/W %v x %v", world.CameraX, world.CameraY, world.CameraWidth, world.CameraHeight)
+	log.Printf("Rendering from (%v, %v) to (%v, %v)", minX, minY, maxX, maxY)
+
+	for row := minY; row < maxY; row++ {
+		for col := minX; col < maxX; col++ {
 			tile := world.GetTile(col, row)
 
 			visibility := world.VisionMap.VisibilityAt(col, row)
@@ -380,14 +400,6 @@ func (world *World) RemoveEntity(entity Entity) {
 	}
 }
 
-func (world *World) BumpCameraX(amount int) {
-	world.CameraX += amount
-}
-
-func (world *World) BumpCameraY(amount int) {
-	world.CameraY += amount
-}
-
 // TODO: Dedup this with move entity, maybe?
 func (world *World) MovePlayer(message PlayerMoveMessage) {
 	oldPos := Position{XPos: message.OldX, YPos: message.OldY}
@@ -408,8 +420,12 @@ func (world *World) MovePlayer(message PlayerMoveMessage) {
 	}
 
 	newPos := Position{XPos: message.NewX, YPos: message.NewY}
-	world.BumpCameraX(-(message.NewX - oldPos.XPos))
-	world.BumpCameraY(-(message.NewY - oldPos.YPos))
+
+	if world.Centered {
+		world.CameraX += (message.NewX - oldPos.XPos)
+		world.CameraY += (message.NewY - oldPos.YPos)
+	}
+
 	newSlice := world.renderItems[newPos]
 	newSlice = append(newSlice, foundItem)
 	world.renderItems[newPos] = newSlice
@@ -482,7 +498,7 @@ func (world *World) Notify(message Message, data interface{}) {
 	}
 }
 
-func NewWorld(window *gterm.Window, columns int, rows int, cameraWidth int, cameraHeight int) *World {
+func NewWorld(window *gterm.Window, columns int, rows int, centered bool) *World {
 	tiles := make([]Tile, columns*rows, columns*rows)
 	for row := 0; row < rows; row++ {
 		for col := 0; col < columns; col++ {
@@ -499,13 +515,18 @@ func NewWorld(window *gterm.Window, columns int, rows int, cameraWidth int, came
 		Rows:      rows,
 		Tiles:     tiles,
 
-		// TODO: Actually do something useful with the camera settings
-		CameraX:      columns / 2,
-		CameraY:      rows / 2,
-		CameraWidth:  cameraWidth,
-		CameraHeight: cameraHeight,
+		Centered:     centered,
+		CameraX:      0,
+		CameraY:      0,
+		CameraWidth:  40,
+		CameraHeight: 24,
 
 		renderItems: make(map[Position][]Renderable),
+	}
+
+	if world.Centered {
+		world.CameraOffsetX = columns / 2
+		world.CameraOffsetY = rows / 2
 	}
 
 	world.MessageBus.Subscribe(&world)

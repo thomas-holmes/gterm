@@ -33,14 +33,6 @@ func handleInput(event sdl.Event, world *game.World) {
 			quit = true
 		case sdl.K_5:
 			spawnRandomMonster(world)
-		case sdl.K_MINUS:
-			world.BumpCameraX(-1)
-		case sdl.K_EQUALS:
-			world.BumpCameraX(1)
-		case sdl.K_LEFTBRACKET:
-			world.BumpCameraY(-1)
-		case sdl.K_RIGHTBRACKET:
-			world.BumpCameraY(1)
 		case sdl.K_BACKSLASH:
 			world.ToggleScentOverlay()
 		}
@@ -88,7 +80,7 @@ func main() {
 
 	window.ShouldRenderFps(true)
 
-	world := game.NewWorld(window, 40, 18, 5, 5)
+	world := game.NewWorld(window, 40, 18, true)
 	{
 		// TODO: Roll this up into some kind of registering a system function on the world
 		combat := game.CombatSystem{}
@@ -98,8 +90,7 @@ func main() {
 	}
 
 	player := game.NewPlayer(1, 1)
-	// world.BumpCameraX(19)
-	// world.BumpCameraY(8)
+
 	player.Name = "Euclid"
 
 	world.AddEntity(&player)
@@ -148,7 +139,7 @@ var LevelMask = []int{
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
