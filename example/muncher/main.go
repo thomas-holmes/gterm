@@ -107,6 +107,11 @@ func main() {
 	for !quit {
 
 		event := sdl.PollEvent()
+		// TODO: Don't advance turn count if we don't actually do something worthwhile
+		// Tried to fix this for a while but ended up with some weird issues. Will take
+		// some more thinking and probably a further refactor around whether or not the
+		// player actually performed an action. Need to decouple turn advancement from
+		// input acquisition.
 		if turnCount == 0 || eventActionable(event) {
 			window.ClearWindow()
 
@@ -135,6 +140,7 @@ func init() {
 	go http.ListenAndServe("localhost:6060", nil)
 }
 
+// TODO: Start generating levels soon instead of using a hard coded grid :)
 var LevelMask = []int{
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,

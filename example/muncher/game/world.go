@@ -169,6 +169,10 @@ func (world *World) HandleInput(event sdl.Event) {
 	}
 }
 
+// TODO: The way this works kind of sucks. Don't have great ideas for how to make it better
+// but need to come up with something. I made the "PopUp" specifically for showing the game over
+// overlay and have a bunch of code that ~sort of~ suspends the game. Need to probably come up
+// with a better system so they can take input, spawn other popups, etc...
 func (world *World) ShowPopUp(pop PopUp) {
 	pop.SetMessageBus(&world.MessageBus)
 	world.pop = &pop
@@ -317,6 +321,9 @@ func (world *World) OverlayVisionMap() {
 	}
 }
 
+// TODO: Something isn't quite right with these colors or how I am selecting them
+// down below. The progress seems weird when I bring up the scent map display. The
+// second to last band of color seems to not be what I expect.
 var ScentColors = []sdl.Color{
 	sdl.Color{R: 175, G: 50, B: 50, A: 1},
 	sdl.Color{R: 225, G: 50, B: 25, A: 1},
@@ -364,7 +371,6 @@ func (world *World) OverlayScentMap(turn int64) {
 }
 
 func (world *World) RemoveEntity(entity Entity) {
-	// delete(world.entities, entity.Identity())
 	foundIndex := -1
 	var foundEntity Entity
 	for i, e := range world.entities {
@@ -431,7 +437,7 @@ func (world *World) MovePlayer(message PlayerMoveMessage) {
 	world.renderItems[newPos] = newSlice
 }
 
-// TODO: Dedup this with move player
+// TODO: Dedup with move player, above?
 func (world *World) MoveEntity(message MoveEntityMessage) {
 	log.Printf("Moving an entity, %#v", message)
 	oldPos := Position{XPos: message.OldX, YPos: message.OldY}
@@ -457,6 +463,9 @@ func (world *World) MoveEntity(message MoveEntityMessage) {
 	world.renderItems[newPos] = newSlice
 }
 
+// TODO: This is has to perform a linear search which is less than ideal
+// but I wanted ordered traversal, which you don't get with maps in go.
+// Keep an eye on the performance of this.
 func (world *World) GetEntity(id int) (Entity, bool) {
 	for _, e := range world.entities {
 		if e.Identity() == id {
@@ -470,7 +479,6 @@ func (world *World) Notify(message Message, data interface{}) {
 	switch message {
 	case ClearRegion:
 		if d, ok := data.(ClearRegionMessage); ok {
-			// log.Printf("Got invalidation %+v", d)
 			world.Window.ClearRegion(d.XPos, d.YPos, d.Width, d.Height)
 		}
 	case PlayerMove:
@@ -518,12 +526,16 @@ func NewWorld(window *gterm.Window, columns int, rows int, centered bool) *World
 		CameraCentered: centered,
 		CameraX:        0,
 		CameraY:        0,
-		CameraWidth:    40,
-		CameraHeight:   24,
+		// TODO: Width/Height should probably be some function of the window dimensions
+		CameraWidth:  40,
+		CameraHeight: 24,
 
 		renderItems: make(map[Position][]Renderable),
 	}
 
+	// NOTE: Probably have a future problem here. Does columns/rows mean
+	// the size of the world? Should probably somehow base this off of the
+	// window dimensions instead.
 	if world.CameraCentered {
 		world.CameraOffsetX = columns / 2
 		world.CameraOffsetY = rows / 2

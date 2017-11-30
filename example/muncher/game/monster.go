@@ -46,6 +46,10 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 	return monster
 }
 
+// TODO: This currently will not hit the player if the player steps adjaced to the monster.
+// Instead the monster will chase to the players most recent space. It used to work. I think this
+// is due to the subtraction scent distance subtraction. Probably just need to check if the monster
+// can strike the player from its current position.
 func (monster *Monster) Pursue(turn int64, world *World) bool {
 	if world.VisionMap.VisibilityAt(monster.X, monster.Y) == Visible {
 		monster.State = Pursuing
@@ -56,6 +60,9 @@ func (monster *Monster) Pursue(turn int64, world *World) bool {
 	}
 
 	scent := world.ScentMap
+
+	// TODO: Maybe short circuit tracking here and just attack the player instead
+	// if in range?
 	candidates := scent.track(turn, monster.X, monster.Y)
 
 	log.Printf("Monster %#v found tracking candidates: %v", *monster, candidates)
@@ -65,6 +72,7 @@ func (monster *Monster) Pursue(turn int64, world *World) bool {
 		randomIndex := rand.Intn(len(candidates))
 		choice := candidates[randomIndex]
 		if len(candidates) > 1 {
+			// TODO: Not actually sure if this is invalid but for now I want to know if it happens.
 			log.Panicf("More than one candidate, %+v", candidates)
 		}
 
