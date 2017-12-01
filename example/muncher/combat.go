@@ -1,4 +1,4 @@
-package game
+package main
 
 type CombatSystem struct {
 	Messaging

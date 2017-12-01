@@ -1,0 +1,56 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "run",
+            "type": "process",
+            "command": "${workspaceFolder}/example/muncher/muncher.exe",
+            "options": {
+                "cwd": "${workspaceFolder}/example/muncher"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "isBackground": false,
+            "problemMatcher": [],
+            "dependsOn": "buildMuncher"
+        },
+        {
+            "label": "build",
+            "identifier": "buildMuncher",
+            "type": "process",
+            "command": "go.exe",
+            "options": {
+                "cwd": "${workspaceFolder}/example/muncher"
+            },
+            "args": [
+                "build",
+                "github.com/thomas-holmes/gterm/example/muncher"
+            ],
+            "isBackground": false,
+            "problemMatcher": []
+        },
+        {
+            "label": "test",
+            "identifier": "testMuncher",
+            "type": "process",
+            "command": "go.exe",
+            "options": {
+                "cwd": "${workspaceFolder}/example/muncher"
+            },
+            "args": [
+                "test",
+                "github.com/thomas-holmes/gterm/example/muncher"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "isBackground": false,
+            "problemMatcher": []
+        }
+    ]
+}

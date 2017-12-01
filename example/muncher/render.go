@@ -1,4 +1,4 @@
-package game
+package main
 
 type Renderable interface {
 	Identity() int

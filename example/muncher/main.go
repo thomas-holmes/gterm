@@ -6,7 +6,6 @@ import (
 	"path"
 
 	"github.com/thomas-holmes/gterm"
-	"github.com/thomas-holmes/gterm/example/muncher/game"
 	"github.com/veandco/go-sdl2/sdl"
 
 	"net/http"
@@ -25,7 +24,7 @@ func eventActionable(event sdl.Event) bool {
 	return false
 }
 
-func handleInput(event sdl.Event, world *game.World) {
+func handleInput(event sdl.Event, world *World) {
 	switch e := event.(type) {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
@@ -43,14 +42,14 @@ func handleInput(event sdl.Event, world *game.World) {
 
 var red = sdl.Color{R: 255, G: 0, B: 0, A: 255}
 
-func spawnRandomMonster(world *game.World) {
+func spawnRandomMonster(world *World) {
 	for tries := 0; tries < 100; tries++ {
 		x := rand.Intn(world.Columns)
 		y := rand.Intn(world.Rows)
 
 		if world.CanStandOnTile(x, y) {
 			level := rand.Intn(8) + 1
-			monster := game.NewMonster(x, y, level, game.Green, level)
+			monster := NewMonster(x, y, level, Green, level)
 			world.AddEntity(&monster)
 			return
 		}
@@ -59,9 +58,9 @@ func spawnRandomMonster(world *game.World) {
 	}
 }
 
-func addMonsters(world *game.World) {
+func addMonsters(world *World) {
 	for i, level := range []int{1} {
-		m := game.NewMonster(10, 6+i, level, game.Green, level)
+		m := NewMonster(10, 6+i, level, Green, level)
 		world.AddEntity(&m)
 	}
 }
@@ -80,16 +79,16 @@ func main() {
 
 	window.ShouldRenderFps(true)
 
-	world := game.NewWorld(window, 40, 18, true)
+	world := NewWorld(window, 40, 18, true)
 	{
 		// TODO: Roll this up into some kind of registering a system function on the world
-		combat := game.CombatSystem{}
+		combat := CombatSystem{}
 
 		combat.SetMessageBus(&world.MessageBus)
 		world.MessageBus.Subscribe(combat)
 	}
 
-	player := game.NewPlayer(1, 1)
+	player := NewPlayer(1, 1)
 
 	player.Name = "Euclid"
 
@@ -100,7 +99,7 @@ func main() {
 
 	world.BuildLevelFromMask(LevelMask)
 
-	hud := game.NewHud(&player, world, 60, 0)
+	hud := NewHud(&player, world, 60, 0)
 
 	var turnCount int64
 
