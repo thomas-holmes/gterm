@@ -3,3 +3,4 @@
 *.out
 .vscode/
 debug
+example/muncher/muncher*

@@ -6,7 +6,12 @@
         {
             "label": "run",
             "type": "process",
-            "command": "${workspaceFolder}/example/muncher/muncher.exe",
+            "windows": {
+                "command": "${workspaceFolder}/example/muncher/muncher.exe",
+            },
+            "linux": {
+                "command": "${workspaceFolder}/example/muncher/muncher",
+            },
             "options": {
                 "cwd": "${workspaceFolder}/example/muncher"
             },
@@ -22,7 +27,12 @@
             "label": "build",
             "identifier": "buildMuncher",
             "type": "process",
-            "command": "go.exe",
+            "windows": {
+                "command": "go.exe",
+            },
+            "linux": {
+                "command": "go",
+            },
             "options": {
                 "cwd": "${workspaceFolder}/example/muncher"
             },
@@ -37,7 +47,12 @@
             "label": "test",
             "identifier": "testMuncher",
             "type": "process",
-            "command": "go.exe",
+            "windows": {
+                "command": "go.exe",
+            },
+            "linux": {
+                "command": "go",
+            },
             "options": {
                 "cwd": "${workspaceFolder}/example/muncher"
             },
