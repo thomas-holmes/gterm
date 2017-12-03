@@ -55,12 +55,14 @@ func NewPlayer(xPos int, yPos int) Player {
 		RenderGlyph: '@',
 		RenderColor: sdl.Color{R: 255, G: 0, B: 0, A: 0},
 		Creature: Creature{
-			Level:         1,
-			CurrentEnergy: 100,
-			MaxEnergy:     100,
-			HP:            Health{Current: 5, Max: 5},
-			X:             xPos,
-			Y:             yPos,
+			Level: 1,
+			Energy: Energy{
+				currentEnergy: 100,
+				maxEnergy:     100,
+			},
+			HP: Health{Current: 5, Max: 5},
+			X:  xPos,
+			Y:  yPos,
 		},
 	}
 
@@ -80,6 +82,8 @@ func (player *Player) Damage(amount int) {
 	newHp := max(player.HP.Current-amount, 0)
 	player.HP.Current = newHp
 
+	player.AddEnergy(100)
+
 	player.Broadcast(PlayerUpdate, nil)
 	if newHp == 0 {
 		player.Broadcast(PlayerDead, nil)
@@ -98,7 +102,7 @@ func (player *Player) Heal(amount int) {
 
 func (player *Player) Update(turn int64, event sdl.Event, world *World) bool {
 	if player.HandleInput(event, world) {
-		player.CurrentEnergy -= 100
+		player.currentEnergy -= 100
 		return true
 	}
 	return false

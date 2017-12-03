@@ -22,8 +22,7 @@ type Creature struct {
 	X int
 	Y int
 
-	CurrentEnergy int
-	MaxEnergy     int
+	Energy
 
 	HP Health
 
@@ -37,14 +36,8 @@ func (c Creature) NeedsInput() bool {
 	return false
 }
 
-func (c *Creature) AddEnergy(energy int) {
-	c.CurrentEnergy = min(c.MaxEnergy, c.CurrentEnergy+energy)
-}
-func (c Creature) Energy() int {
-	return c.CurrentEnergy
-}
 func (c Creature) CanAct() bool {
-	return c.CurrentEnergy >= 100
+	return c.currentEnergy >= 100
 }
 
 func (c Creature) XPos() int {

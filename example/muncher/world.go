@@ -245,6 +245,11 @@ func (world *World) Update(turn int64) bool {
 		e := world.entities[i]
 
 		energized, isEnergized := e.(Energized)
+		if !isEnergized {
+			log.Printf("what is this? %+v", e)
+		} else {
+			log.Printf("Found one that is energized, %+v, %+v", energized, e)
+		}
 
 		if isEnergized && world.nextEnergy == i {
 			energized.AddEnergy(100)

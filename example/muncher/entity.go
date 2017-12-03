@@ -14,6 +14,7 @@ func (e Identifiable) Identity() int {
 	return e.ID
 }
 
+// TODO: Too much stuff on this. Need to figure out how to do entities properly
 type Entity interface {
 	Identity() int
 	SetIdentity(int)
@@ -21,9 +22,4 @@ type Entity interface {
 	CanAct() bool
 	Update(turn int64, event sdl.Event, world *World) bool
 	Fighter() *Creature
-}
-
-type Energized interface {
-	Energy() int
-	AddEnergy(int)
 }

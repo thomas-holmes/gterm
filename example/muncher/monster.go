@@ -31,11 +31,13 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 	monster := Monster{
 		Color: color,
 		Creature: Creature{
-			MaxEnergy: 100,
-			Team:      MonsterTeam,
-			Level:     level,
-			X:         xPos,
-			Y:         yPos,
+			Energy: Energy{
+				maxEnergy: 100,
+			},
+			Team:  MonsterTeam,
+			Level: level,
+			X:     xPos,
+			Y:     yPos,
 			HP: Health{
 				Current: hp,
 				Max:     hp,
@@ -110,7 +112,7 @@ func (monster *Monster) Pursue(turn int64, world *World) bool {
 func (monster *Monster) Update(turn int64, _ sdl.Event, world *World) bool {
 	log.Printf("Updating Monster %+v", *monster)
 	if monster.Pursue(turn, world) {
-		monster.CurrentEnergy -= 100
+		monster.currentEnergy -= 100
 		return true
 	}
 	return false
