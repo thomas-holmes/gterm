@@ -104,7 +104,7 @@ func loadFromString(levelString string) Level {
 	level.tiles = tiles
 	level.stairs = stairs
 
-	level.VisionMap = *NewVisionMap(level.Columns, level.Rows)
+	level.VisionMap = NewVisionMap(level.Columns, level.Rows)
 	level.ScentMap = NewScentMap(level.Columns, level.Rows)
 
 	return level

@@ -91,8 +91,8 @@ func (vision *VisionMap) CheckVision(playerX int, playerY int, candidateX int, c
 	return true
 }
 
-func NewVisionMap(columns int, rows int) *VisionMap {
-	return &VisionMap{
+func NewVisionMap(columns int, rows int) VisionMap {
+	return VisionMap{
 		Columns: columns,
 		Rows:    rows,
 		Map:     make([]int64, columns*rows),
