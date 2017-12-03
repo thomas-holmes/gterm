@@ -5,9 +5,11 @@ func (level Level) getTile(x int, y int) *Tile {
 }
 
 type Level struct {
-	Columns int
-	Rows    int
-	tiles   []Tile
+	Columns   int
+	Rows      int
+	VisionMap VisionMap
+	ScentMap  ScentMap
+	tiles     []Tile
 }
 
 func loadFromString(levelString string) Level {
@@ -46,6 +48,9 @@ func loadFromString(levelString string) Level {
 	level.Columns = c
 	level.Rows = r + 1
 	level.tiles = tiles
+
+	level.VisionMap = *NewVisionMap(level.Columns, level.Rows)
+	level.ScentMap = NewScentMap(level.Columns, level.Rows)
 
 	return level
 }

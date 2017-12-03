@@ -53,7 +53,7 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 // is due to the subtraction scent distance subtraction. Probably just need to check if the monster
 // can strike the player from its current position.
 func (monster *Monster) Pursue(turn int64, world *World) bool {
-	if world.VisionMap.VisibilityAt(monster.X, monster.Y) == Visible {
+	if world.CurrentLevel.VisionMap.VisibilityAt(monster.X, monster.Y) == Visible {
 		monster.State = Pursuing
 	}
 
@@ -61,7 +61,7 @@ func (monster *Monster) Pursue(turn int64, world *World) bool {
 		return true
 	}
 
-	scent := world.ScentMap
+	scent := world.CurrentLevel.ScentMap
 
 	// TODO: Maybe short circuit tracking here and just attack the player instead
 	// if in range?

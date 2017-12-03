@@ -47,7 +47,7 @@ func (scentMap ScentMap) track(turn int64, xPos int, yPos int) []Position {
 }
 
 func (scentMap ScentMap) UpdateScents(turn int64, world World) {
-	vision := world.VisionMap
+	vision := world.CurrentLevel.VisionMap
 	player := world.Player
 	defer timeMe(time.Now(), "ScentMap.UpdateScents")
 	for y := 0; y < scentMap.rows; y++ {

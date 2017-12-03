@@ -34,6 +34,10 @@ func handleInput(event sdl.Event, world *World) {
 			spawnRandomMonster(world)
 		case sdl.K_BACKSLASH:
 			world.ToggleScentOverlay()
+		case sdl.K_COMMA:
+			world.SetCurrentLevel(0)
+		case sdl.K_PERIOD:
+			world.SetCurrentLevel(1)
 		}
 	case *sdl.QuitEvent:
 		quit = true
@@ -44,8 +48,8 @@ var red = sdl.Color{R: 255, G: 0, B: 0, A: 255}
 
 func spawnRandomMonster(world *World) {
 	for tries := 0; tries < 100; tries++ {
-		x := rand.Intn(world.Level.Columns)
-		y := rand.Intn(world.Level.Rows)
+		x := rand.Intn(world.CurrentLevel.Columns)
+		y := rand.Intn(world.CurrentLevel.Rows)
 
 		if world.CanStandOnTile(x, y) {
 			level := rand.Intn(8) + 1
@@ -98,6 +102,8 @@ func main() {
 	addMonsters(world)
 
 	world.BuildLevelFromMask(LevelMask1)
+	world.BuildLevelFromMask(LevelMask2)
+	world.SetCurrentLevel(0)
 
 	hud := NewHud(&player, world, 60, 0)
 

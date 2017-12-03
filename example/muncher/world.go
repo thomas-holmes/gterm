@@ -17,13 +17,12 @@ type Position struct {
 type World struct {
 	Window     *gterm.Window
 	MessageBus MessageBus
-	VisionMap  *VisionMap
-
-	ScentMap ScentMap
 
 	Player *Player
 
-	Level Level
+	CurrentLevel *Level
+
+	Levels []Level
 
 	CameraCentered bool
 	CameraWidth    int
@@ -70,14 +69,16 @@ func (world *World) AddInput(event sdl.Event) {
 	world.InputBuffer = append(world.InputBuffer, event)
 }
 
+func (world *World) SetCurrentLevel(index int) {
+	world.CurrentLevel = &world.Levels[index]
+}
+
 func (world *World) BuildLevelFromMask(levelString string) {
-	world.Level = loadFromString(levelString)
-	world.VisionMap = NewVisionMap(world.Level.Columns, world.Level.Rows)
-	world.ScentMap = NewScentMap(world.Level.Columns, world.Level.Rows)
+	world.Levels = append(world.Levels, loadFromString(levelString))
 }
 
 func (world *World) GetTile(column int, row int) *Tile {
-	tile := world.Level.getTile(column, row)
+	tile := world.CurrentLevel.getTile(column, row)
 	return tile
 }
 
@@ -214,8 +215,8 @@ func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 }
 
 func (world *World) Update(turn int64) bool {
-	world.VisionMap.UpdateVision(6, world.Player, world)
-	world.ScentMap.UpdateScents(turn, *world)
+	world.CurrentLevel.VisionMap.UpdateVision(6, world.Player, world)
+	world.CurrentLevel.ScentMap.UpdateScents(turn, *world)
 
 	world.needInput = false
 	log.Printf("NextEntity: %v, NextEnergy: %v", world.nextEnergy, world.nextEnergy)
@@ -265,8 +266,8 @@ func (world *World) Update(turn int64) bool {
 
 func (world *World) UpdateCamera() {
 	if world.CameraCentered {
-		world.CameraOffsetX = world.Level.Columns / 2
-		world.CameraOffsetY = world.Level.Rows / 2
+		world.CameraOffsetX = world.CurrentLevel.Columns / 2
+		world.CameraOffsetY = world.CurrentLevel.Rows / 2
 		world.CameraX = world.Player.X
 		world.CameraY = world.Player.Y
 	} else {
@@ -283,11 +284,11 @@ func (world *World) Render(turnCount int64) {
 	defer timeMe(time.Now(), "World.Render.TileLoop")
 	var minX, minY, maxX, maxY int
 	if world.CameraCentered {
-		minY, maxY = max(0, world.CameraY-(world.CameraWidth/2)), min(world.Level.Rows, world.CameraY+(world.CameraWidth/2))
-		minX, maxX = max(0, world.CameraX-(world.CameraHeight/2)), min(world.Level.Columns, world.CameraX+(world.CameraHeight/2))
+		minY, maxY = max(0, world.CameraY-(world.CameraWidth/2)), min(world.CurrentLevel.Rows, world.CameraY+(world.CameraWidth/2))
+		minX, maxX = max(0, world.CameraX-(world.CameraHeight/2)), min(world.CurrentLevel.Columns, world.CameraX+(world.CameraHeight/2))
 	} else {
-		minY, maxY = 0, world.Level.Rows
-		minX, maxX = 0, world.Level.Columns
+		minY, maxY = 0, world.CurrentLevel.Rows
+		minX, maxX = 0, world.CurrentLevel.Columns
 	}
 	log.Printf("Camera (%v, %v), CameraH/W %v x %v", world.CameraX, world.CameraY, world.CameraWidth, world.CameraHeight)
 	log.Printf("Rendering from (%v, %v) to (%v, %v)", minX, minY, maxX, maxY)
@@ -296,7 +297,7 @@ func (world *World) Render(turnCount int64) {
 		for col := minX; col < maxX; col++ {
 			tile := world.GetTile(col, row)
 
-			visibility := world.VisionMap.VisibilityAt(col, row)
+			visibility := world.CurrentLevel.VisionMap.VisibilityAt(col, row)
 			tile.Render(world, visibility)
 		}
 	}
@@ -312,9 +313,9 @@ func (world *World) Render(turnCount int64) {
 
 func (world *World) OverlayVisionMap() {
 	blue := sdl.Color{R: 0, G: 0, B: 200, A: 255}
-	for y := 0; y < world.Level.Rows; y++ {
-		for x := 0; x < world.Level.Columns; x++ {
-			world.RenderRuneAt(x, y, []rune(strconv.Itoa(int(world.VisionMap.Map[y*world.Level.Columns+x])))[0], blue, gterm.NoColor)
+	for y := 0; y < world.CurrentLevel.Rows; y++ {
+		for x := 0; x < world.CurrentLevel.Columns; x++ {
+			world.RenderRuneAt(x, y, []rune(strconv.Itoa(int(world.CurrentLevel.VisionMap.Map[y*world.CurrentLevel.Columns+x])))[0], blue, gterm.NoColor)
 		}
 	}
 }
@@ -338,9 +339,9 @@ func (world *World) ToggleScentOverlay() {
 
 func (world *World) OverlayScentMap(turn int64) {
 	purple := sdl.Color{R: 200, G: 0, B: 200, A: 255}
-	for y := 0; y < world.Level.Rows; y++ {
-		for x := 0; x < world.Level.Columns; x++ {
-			scent := world.ScentMap.getScent(x, y)
+	for y := 0; y < world.CurrentLevel.Rows; y++ {
+		for x := 0; x < world.CurrentLevel.Columns; x++ {
+			scent := world.CurrentLevel.ScentMap.getScent(x, y)
 
 			maxScent := float32(turn * 32)
 			recent := float32((turn - 10) * 32)
