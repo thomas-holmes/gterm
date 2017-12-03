@@ -101,8 +101,8 @@ func main() {
 
 	addMonsters(world)
 
-	world.BuildLevelFromMask(LevelMask1)
-	world.BuildLevelFromMask(LevelMask2)
+	world.AddLevelFromString(LevelMask1)
+	world.AddLevelFromString(LevelMask2)
 	world.SetCurrentLevel(0)
 
 	hud := NewHud(&player, world, 60, 0)

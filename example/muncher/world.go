@@ -73,8 +73,13 @@ func (world *World) SetCurrentLevel(index int) {
 	world.CurrentLevel = &world.Levels[index]
 }
 
-func (world *World) BuildLevelFromMask(levelString string) {
+func (world *World) AddLevelFromString(levelString string) {
 	world.Levels = append(world.Levels, loadFromString(levelString))
+
+	levels := len(world.Levels)
+	if levels > 1 {
+		connectTwoLevels(&world.Levels[levels-2], &world.Levels[levels-1])
+	}
 }
 
 func (world *World) GetTile(column int, row int) *Tile {
