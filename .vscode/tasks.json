@@ -25,18 +25,26 @@
             "identifier": "buildMuncher",
             "type": "process",
             "windows": {
-                "command": "go.exe",
+                "command": "powershell.exe",
+                "args": [
+                    "$out",
+                    "=",
+                    "Measure-Command",
+                    "{go build -v github.com/thomas-holmes/gterm/example/muncher};",
+                    "Write-Host",
+                    "\"Built in $($out.TotalMilliseconds)ms\""
+                ],
             },
             "linux": {
                 "command": "go",
+                "args": [
+                    "build",
+                    "github.com/thomas-holmes/gterm/example/muncher"
+                ],
             },
             "options": {
                 "cwd": "${workspaceFolder}/example/muncher"
             },
-            "args": [
-                "build",
-                "github.com/thomas-holmes/gterm/example/muncher"
-            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
