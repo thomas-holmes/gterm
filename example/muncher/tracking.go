@@ -53,14 +53,14 @@ func (scentMap ScentMap) UpdateScents(turn int64, world World) {
 	for y := 0; y < scentMap.rows; y++ {
 		for x := 0; x < scentMap.columns; x++ {
 			vision := vision.VisibilityAt(x, y)
-			if vision == Visible && !world.GetTile(x, y).Wall {
+			if vision == Visible && !world.GetTile(x, y).IsWall() {
 				scentMap.dirty(x, y, turn, distance(player.X, player.Y, x, y))
 			}
 		}
 	}
 }
 
-func newScentMap(columns int, rows int) ScentMap {
+func NewScentMap(columns int, rows int) ScentMap {
 	return ScentMap{
 		columns: columns,
 		rows:    rows,

@@ -23,9 +23,7 @@ type World struct {
 
 	Player *Player
 
-	Columns int
-	Rows    int
-	Tiles   []Tile
+	Level Level
 
 	CameraCentered bool
 	CameraWidth    int
@@ -72,34 +70,14 @@ func (world *World) AddInput(event sdl.Event) {
 	world.InputBuffer = append(world.InputBuffer, event)
 }
 
-func (world *World) BuildLevelFromMask(mask []int) {
-	for index := range mask {
-		if mask[index] == 1 {
-			tile := &world.Tiles[index]
-
-			tile.BackgroundGlyph = '#'
-			tile.Wall = true
-			tile.BackgroundColor = sdl.Color{R: 225, G: 225, B: 225, A: 255}
-		}
-	}
-}
-
-func (world *World) BuildLevel() {
-	for row := 0; row < world.Rows; row++ {
-		for col := 0; col < world.Columns; col++ {
-			if row == 0 || (row == world.Rows-1) || (col == 0 || col == world.Columns-1) {
-				world.Tiles[row*world.Columns+col].BackgroundGlyph = '#'
-				world.Tiles[row*world.Columns+col].Wall = true
-			}
-		}
-	}
-}
-func (world World) TileIndex(column int, row int) int {
-	return row*world.Columns + column
+func (world *World) BuildLevelFromMask(levelString string) {
+	world.Level = loadFromString(levelString)
+	world.VisionMap = NewVisionMap(world.Level.Columns, world.Level.Rows)
+	world.ScentMap = NewScentMap(world.Level.Columns, world.Level.Rows)
 }
 
 func (world *World) GetTile(column int, row int) *Tile {
-	tile := &world.Tiles[world.TileIndex(column, row)]
+	tile := world.Level.getTile(column, row)
 	return tile
 }
 
@@ -142,7 +120,7 @@ func (world *World) IsTileMonster(column int, row int) bool {
 }
 
 func (world *World) CanStandOnTile(column int, row int) bool {
-	return !world.GetTile(column, row).Wall && !world.IsTileOccupied(column, row)
+	return !world.GetTile(column, row).IsWall() && !world.IsTileOccupied(column, row)
 }
 
 func (world *World) Suspend() {
@@ -285,16 +263,31 @@ func (world *World) Update(turn int64) bool {
 	return world.needInput
 }
 
+func (world *World) UpdateCamera() {
+	if world.CameraCentered {
+		world.CameraOffsetX = world.Level.Columns / 2
+		world.CameraOffsetY = world.Level.Rows / 2
+		world.CameraX = world.Player.X
+		world.CameraY = world.Player.Y
+	} else {
+		world.CameraOffsetX = 0
+		world.CameraOffsetY = 0
+		world.CameraX = 0
+		world.CameraY = 0
+	}
+}
+
 // Render redrwas everything!
 func (world *World) Render(turnCount int64) {
+	world.UpdateCamera()
 	defer timeMe(time.Now(), "World.Render.TileLoop")
 	var minX, minY, maxX, maxY int
 	if world.CameraCentered {
-		minY, maxY = max(0, world.CameraY-(world.CameraWidth/2)), min(world.Rows, world.CameraY+(world.CameraWidth/2))
-		minX, maxX = max(0, world.CameraX-(world.CameraHeight/2)), min(world.Columns, world.CameraX+(world.CameraHeight/2))
+		minY, maxY = max(0, world.CameraY-(world.CameraWidth/2)), min(world.Level.Rows, world.CameraY+(world.CameraWidth/2))
+		minX, maxX = max(0, world.CameraX-(world.CameraHeight/2)), min(world.Level.Columns, world.CameraX+(world.CameraHeight/2))
 	} else {
-		minY, maxY = 0, world.Rows
-		minX, maxX = 0, world.Columns
+		minY, maxY = 0, world.Level.Rows
+		minX, maxX = 0, world.Level.Columns
 	}
 	log.Printf("Camera (%v, %v), CameraH/W %v x %v", world.CameraX, world.CameraY, world.CameraWidth, world.CameraHeight)
 	log.Printf("Rendering from (%v, %v) to (%v, %v)", minX, minY, maxX, maxY)
@@ -319,9 +312,9 @@ func (world *World) Render(turnCount int64) {
 
 func (world *World) OverlayVisionMap() {
 	blue := sdl.Color{R: 0, G: 0, B: 200, A: 255}
-	for y := 0; y < world.Rows; y++ {
-		for x := 0; x < world.Columns; x++ {
-			world.RenderRuneAt(x, y, []rune(strconv.Itoa(int(world.VisionMap.Map[y*world.Columns+x])))[0], blue, gterm.NoColor)
+	for y := 0; y < world.Level.Rows; y++ {
+		for x := 0; x < world.Level.Columns; x++ {
+			world.RenderRuneAt(x, y, []rune(strconv.Itoa(int(world.VisionMap.Map[y*world.Level.Columns+x])))[0], blue, gterm.NoColor)
 		}
 	}
 }
@@ -345,8 +338,8 @@ func (world *World) ToggleScentOverlay() {
 
 func (world *World) OverlayScentMap(turn int64) {
 	purple := sdl.Color{R: 200, G: 0, B: 200, A: 255}
-	for y := 0; y < world.Rows; y++ {
-		for x := 0; x < world.Columns; x++ {
+	for y := 0; y < world.Level.Rows; y++ {
+		for x := 0; x < world.Level.Columns; x++ {
 			scent := world.ScentMap.getScent(x, y)
 
 			maxScent := float32(turn * 32)
@@ -432,11 +425,6 @@ func (world *World) MovePlayer(message PlayerMoveMessage) {
 
 	newPos := Position{XPos: message.NewX, YPos: message.NewY}
 
-	if world.CameraCentered {
-		world.CameraX += (message.NewX - oldPos.XPos)
-		world.CameraY += (message.NewY - oldPos.YPos)
-	}
-
 	newSlice := world.renderItems[newPos]
 	newSlice = append(newSlice, foundItem)
 	world.renderItems[newPos] = newSlice
@@ -511,23 +499,10 @@ func (world *World) Notify(message Message, data interface{}) {
 	}
 }
 
-func NewWorld(window *gterm.Window, columns int, rows int, centered bool) *World {
-	tiles := make([]Tile, columns*rows, columns*rows)
-	for row := 0; row < rows; row++ {
-		for col := 0; col < columns; col++ {
-			tiles[row*columns+col] = NewTile(col, row)
-		}
-	}
-	vision := NewVisionMap(columns, rows)
+func NewWorld(window *gterm.Window, centered bool) *World {
 
 	world := World{
-		Window:    window,
-		VisionMap: &vision,
-		ScentMap:  newScentMap(columns, rows),
-		Columns:   columns,
-		Rows:      rows,
-		Tiles:     tiles,
-
+		Window:         window,
 		CameraCentered: centered,
 		CameraX:        0,
 		CameraY:        0,
@@ -536,14 +511,6 @@ func NewWorld(window *gterm.Window, columns int, rows int, centered bool) *World
 		CameraHeight: 24,
 
 		renderItems: make(map[Position][]Renderable),
-	}
-
-	// NOTE: Probably have a future problem here. Does columns/rows mean
-	// the size of the world? Should probably somehow base this off of the
-	// window dimensions instead.
-	if world.CameraCentered {
-		world.CameraOffsetX = columns / 2
-		world.CameraOffsetY = rows / 2
 	}
 
 	world.MessageBus.Subscribe(&world)

@@ -1,57 +1,43 @@
 package main
 
-type TileKind int
-
-const (
-	Wall TileKind = iota
-	Floor
-	UpStair
-	DownStair
-)
-const (
-	WallGlyph      = '#'
-	FloorGlyph     = '.'
-	UpStairGlyph   = '<'
-	DownStairGlyph = '>'
-)
-
-type LevelTile struct {
-	X int
-	Y int
-	TileKind
+func (level Level) getTile(x int, y int) *Tile {
+	return &level.tiles[y*level.Columns+x]
 }
 
 type Level struct {
 	Columns int
 	Rows    int
-	tiles   []LevelTile
+	tiles   []Tile
 }
 
 func loadFromString(levelString string) Level {
 	level := Level{}
 
-	tiles := make([]LevelTile, 0, len(levelString))
+	tiles := make([]Tile, 0, len(levelString))
 
 	r, c := 0, 0
+	t := NewTile(c, r)
 	for _, s := range levelString {
 		if s == '\n' {
 			r++
 			c = 0
 			continue
 		}
-		t := LevelTile{
-			X: c,
-			Y: r,
-		}
+		t.X = c
+		t.Y = r
 		switch s {
 		case WallGlyph:
 			t.TileKind = Wall
+			t.TileGlyph = WallGlyph
 		case FloorGlyph:
 			t.TileKind = Floor
+			t.TileGlyph = FloorGlyph
 		case UpStairGlyph:
 			t.TileKind = UpStair
+			t.TileGlyph = UpStairGlyph
 		case DownStairGlyph:
 			t.TileKind = DownStair
+			t.TileGlyph = DownStairGlyph
 		}
 
 		tiles = append(tiles, t)

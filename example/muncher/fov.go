@@ -84,15 +84,15 @@ func (vision *VisionMap) CheckVision(playerX int, playerY int, candidateX int, c
 
 		tile := world.GetTile(cell.XPos, cell.YPos)
 
-		if tile.Wall {
+		if tile.IsWall() {
 			foundWall = true
 		}
 	}
 	return true
 }
 
-func NewVisionMap(columns int, rows int) VisionMap {
-	return VisionMap{
+func NewVisionMap(columns int, rows int) *VisionMap {
+	return &VisionMap{
 		Columns: columns,
 		Rows:    rows,
 		Map:     make([]int64, columns*rows),

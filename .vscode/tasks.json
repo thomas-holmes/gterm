@@ -42,7 +42,7 @@
                 "isDefault": true
             },
             "isBackground": false,
-            "problemMatcher": [ "$go"]
+            "problemMatcher": []
         },
         {
             "label": "test",

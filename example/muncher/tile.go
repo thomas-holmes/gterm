@@ -5,22 +5,44 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-type Tile struct {
-	XPos            int
-	YPos            int
-	BackgroundColor sdl.Color
-	BackgroundGlyph rune
-	Wall            bool
-	WasVisible      bool
-}
+type TileKind int
+
+const (
+	Wall TileKind = iota
+	Floor
+	UpStair
+	DownStair
+)
+
+const (
+	WallGlyph      = '#'
+	FloorGlyph     = '.'
+	UpStairGlyph   = '<'
+	DownStairGlyph = '>'
+)
 
 func NewTile(x int, y int) Tile {
 	return Tile{
-		XPos:            x,
-		YPos:            y,
-		BackgroundColor: sdl.Color{R: 192, G: 192, B: 192, A: 255},
-		BackgroundGlyph: '.',
+		X:     x,
+		Y:     y,
+		Color: sdl.Color{R: 192, G: 192, B: 192, A: 255},
 	}
+}
+
+type Tile struct {
+	X int
+	Y int
+
+	Color sdl.Color
+
+	TileGlyph rune
+	TileKind
+
+	WasVisible bool
+}
+
+func (tile Tile) IsWall() bool {
+	return tile.TileKind == Wall
 }
 
 func (tile *Tile) Render(world *World, visibility Visibility) {
@@ -28,7 +50,7 @@ func (tile *Tile) Render(world *World, visibility Visibility) {
 		return
 	}
 
-	pos := Position{XPos: tile.XPos, YPos: tile.YPos}
+	pos := Position{XPos: tile.X, YPos: tile.Y}
 	items := world.renderItems[pos]
 	if len(items) > 0 && visibility == Visible {
 		for _, item := range items {
@@ -40,7 +62,7 @@ func (tile *Tile) Render(world *World, visibility Visibility) {
 }
 
 func (tile Tile) RenderBackground(world *World, visibility Visibility) {
-	color := tile.BackgroundColor
+	color := tile.Color
 
 	if visibility == Seen {
 		color.R /= 2
@@ -48,5 +70,5 @@ func (tile Tile) RenderBackground(world *World, visibility Visibility) {
 		color.B /= 2
 	}
 
-	world.RenderRuneAt(tile.XPos, tile.YPos, tile.BackgroundGlyph, color, gterm.NoColor)
+	world.RenderRuneAt(tile.X, tile.Y, tile.TileGlyph, color, gterm.NoColor)
 }
