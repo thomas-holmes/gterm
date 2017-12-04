@@ -129,9 +129,7 @@ func (player *Player) HandleInput(event sdl.Event, world *World) bool {
 			}
 			return true
 		case sdl.K_PERIOD:
-			log.Printf("*&*&*&*&*&*&*&*&*Hit Period")
 			tile := world.GetTile(player.X, player.Y)
-			log.Printf("Looked up a tile, %+v", tile)
 			if tile.TileKind == DownStair {
 				if stair, ok := world.CurrentLevel.getStair(player.X, player.Y); ok {
 					player.Broadcast(PlayerFloorChange, PlayerFloorChangeMessage{

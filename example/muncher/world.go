@@ -22,7 +22,8 @@ type World struct {
 
 	CurrentLevel *Level
 
-	Levels []Level
+	Levels       []Level
+	LevelChanged bool
 
 	CameraCentered bool
 	CameraWidth    int
@@ -204,6 +205,7 @@ func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 }
 
 func (world *World) Update(turn int64) bool {
+	log.Printf("Updating turn [%v]", turn)
 	if turn == 0 {
 		world.CurrentLevel.VisionMap.UpdateVision(6, world.Player, world)
 		world.CurrentLevel.ScentMap.UpdateScents(turn, *world)
@@ -213,6 +215,7 @@ func (world *World) Update(turn int64) bool {
 	for i := world.CurrentLevel.NextEntity; i < len(world.CurrentLevel.Entities); i++ {
 		e := world.CurrentLevel.Entities[i]
 
+		log.Printf("EntityLen: %v, nextEntity: %v, nextEnergy: %v", len(world.CurrentLevel.Entities), world.CurrentLevel.NextEntity, world.CurrentLevel.NextEnergy)
 		energized, isEnergized := e.(Energized)
 		if isEnergized && world.CurrentLevel.NextEnergy == i {
 			energized.AddEnergy(100)
@@ -241,6 +244,14 @@ func (world *World) Update(turn int64) bool {
 		if p, ok := e.(*Player); ok {
 			world.CurrentLevel.VisionMap.UpdateVision(6, p, world)
 			world.CurrentLevel.ScentMap.UpdateScents(turn, *world)
+		}
+		if world.LevelChanged {
+			world.LevelChanged = false
+			// Reset these or the player can end up in a spot where they have no energy but need input
+			world.CurrentLevel.NextEnergy = 0
+			world.CurrentLevel.NextEntity = 0
+			log.Printf("Restarting loop after changing level")
+			return true
 		}
 	}
 	if world.CurrentLevel.NextEntity >= len(world.CurrentLevel.Entities) {
@@ -444,6 +455,7 @@ func (world *World) Notify(message Message, data interface{}) {
 			world.Player.X = d.DestX
 			world.Player.Y = d.DestY
 			world.CurrentLevel = d.DestLevel
+			world.LevelChanged = true
 			world.AddEntity(world.Player)
 		}
 	}
