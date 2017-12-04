@@ -35,7 +35,7 @@ type Player struct {
 }
 
 func (player *Player) LevelUp() {
-	player.Experience -= player.Level
+	player.Experience -= max(0, player.Experience-player.Level)
 	player.Level++
 	player.HP.Max = int(float32(player.HP.Max) * 1.5)
 	player.HP.Current = player.HP.Max
