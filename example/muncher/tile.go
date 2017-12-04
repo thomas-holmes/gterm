@@ -35,6 +35,8 @@ type Tile struct {
 
 	Color sdl.Color
 
+	Creature Entity
+
 	TileGlyph rune
 	TileKind
 
@@ -50,11 +52,9 @@ func (tile *Tile) Render(world *World, visibility Visibility) {
 		return
 	}
 
-	pos := Position{XPos: tile.X, YPos: tile.Y}
-	items := world.renderItems[pos]
-	if len(items) > 0 && visibility == Visible {
-		for _, item := range items {
-			item.Render(world)
+	if tile.Creature != nil && visibility == Visible {
+		if r, ok := tile.Creature.(Renderable); ok {
+			r.Render(world)
 		}
 	} else {
 		tile.RenderBackground(world, visibility) // bad API, refactor

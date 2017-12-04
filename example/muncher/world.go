@@ -43,11 +43,10 @@ type World struct {
 
 	GameOver bool
 
-	renderItems map[Position][]Renderable
-	entities    []Entity
-	nextEntity  int
-	nextEnergy  int
-	needInput   bool
+	entities   []Entity
+	nextEntity int
+	nextEnergy int
+	needInput  bool
 }
 
 func (world *World) GetNextID() int {
@@ -96,33 +95,20 @@ func (world *World) GetCreatureAtTile(xPos int, yPos int) (*Creature, bool) {
 	return nil, false
 }
 
-func (world *World) GetMonsterAtTile(column int, row int) (*Monster, bool) {
-	pos := Position{XPos: column, YPos: row}
-	renderItems := world.renderItems[pos]
-	for _, item := range renderItems {
-		if monster, ok := item.(*Monster); ok {
-			return monster, ok
-		}
+func (world *World) GetMonsterAtTile(x int, y int) (*Monster, bool) {
+	if monster, ok := world.GetTile(x, y).Creature.(*Monster); ok {
+		return monster, ok
 	}
 	return nil, false
 }
 
-func (world World) IsTileOccupied(column int, row int) bool {
-	pos := Position{XPos: column, YPos: row}
-	renderItems := world.renderItems[pos]
-	return len(renderItems) > 0
+func (world World) IsTileOccupied(x int, y int) bool {
+	return world.GetTile(x, y).Creature != nil
 }
 
-func (world *World) IsTileMonster(column int, row int) bool {
-	pos := Position{XPos: column, YPos: row}
-	renderItems := world.renderItems[pos]
-	isMonster := false
-	for _, item := range renderItems {
-		if _, ok := item.(*Monster); ok {
-			isMonster = true
-		}
-	}
-	return isMonster
+func (world *World) IsTileMonster(x int, y int) bool {
+	_, ok := world.GetMonsterAtTile(x, y)
+	return ok
 }
 
 func (world *World) CanStandOnTile(column int, row int) bool {
@@ -173,10 +159,10 @@ func (world *World) ClosePopUp() {
 	world.pop = nil
 }
 
-func (world *World) AddRenderable(renderable Renderable) {
-	pos := Position{XPos: renderable.XPos(), YPos: renderable.YPos()}
-	slice := world.renderItems[pos]
-	world.renderItems[pos] = append(slice, renderable)
+// TODO: This is kinda janky. Figure out something better for this. Probably don't need
+// the Renderable interface any more
+func (world *World) AddRenderable(entity Entity, x int, y int) {
+	world.GetTile(x, y).Creature = entity
 }
 
 func (world *World) AddEntity(e Entity) {
@@ -197,9 +183,10 @@ func (world *World) AddEntity(e Entity) {
 		world.CameraY = p.Y
 	}
 
+	// TODO: Clean this up too
 	switch actual := e.(type) {
 	case Renderable:
-		world.AddRenderable(actual)
+		world.AddRenderable(e, actual.XPos(), actual.YPos())
 	}
 
 	world.entities = append(world.entities, e)
@@ -390,76 +377,24 @@ func (world *World) RemoveEntity(entity Entity) {
 	}
 
 	if renderable, ok := foundEntity.(Renderable); ok {
-		pos := Position{XPos: renderable.XPos(), YPos: renderable.YPos()}
-
-		slice := world.renderItems[pos]
-
-		foundIndex := -1
-		for index, candidate := range slice {
-			if candidate.Identity() == renderable.Identity() {
-				foundIndex = index
-				break
-			}
-		}
-
-		if foundIndex == -1 {
-			return
-		}
-
-		world.renderItems[pos] = append(slice[:foundIndex], slice[foundIndex+1:]...)
+		world.GetTile(renderable.XPos(), renderable.YPos()).Creature = nil
 	}
 }
 
 // TODO: Dedup this with move entity, maybe?
 func (world *World) MovePlayer(message PlayerMoveMessage) {
-	oldPos := Position{XPos: message.OldX, YPos: message.OldY}
-	slice := world.renderItems[oldPos]
-	foundIndex := -1
-	var foundItem Renderable
-	for index, item := range slice {
-		if item.Identity() == message.ID {
-			foundIndex = index
-			foundItem = item
-			break
-		}
-	}
-
-	if foundIndex != -1 {
-		newSlice := append(slice[:foundIndex], slice[foundIndex+1:]...)
-		world.renderItems[oldPos] = newSlice
-	}
-
-	newPos := Position{XPos: message.NewX, YPos: message.NewY}
-
-	newSlice := world.renderItems[newPos]
-	newSlice = append(newSlice, foundItem)
-	world.renderItems[newPos] = newSlice
+	oldTile := world.GetTile(message.OldX, message.OldY)
+	newTile := world.GetTile(message.NewX, message.NewY)
+	newTile.Creature = oldTile.Creature
+	oldTile.Creature = nil
 }
 
 // TODO: Dedup with move player, above?
 func (world *World) MoveEntity(message MoveEntityMessage) {
-	log.Printf("Moving an entity, %#v", message)
-	oldPos := Position{XPos: message.OldX, YPos: message.OldY}
-	slice := world.renderItems[oldPos]
-	foundIndex := -1
-	var foundItem Renderable
-	for index, item := range slice {
-		if item.Identity() == message.ID {
-			foundIndex = index
-			foundItem = item
-			break
-		}
-	}
-
-	if foundIndex != -1 {
-		newSlice := append(slice[:foundIndex], slice[foundIndex+1:]...)
-		world.renderItems[oldPos] = newSlice
-	}
-
-	newPos := Position{XPos: message.NewX, YPos: message.NewY}
-	newSlice := world.renderItems[newPos]
-	newSlice = append(newSlice, foundItem)
-	world.renderItems[newPos] = newSlice
+	oldTile := world.GetTile(message.OldX, message.OldY)
+	newTile := world.GetTile(message.NewX, message.NewY)
+	newTile.Creature = oldTile.Creature
+	oldTile.Creature = nil
 }
 
 // TODO: This is has to perform a linear search which is less than ideal
@@ -515,8 +450,6 @@ func NewWorld(window *gterm.Window, centered bool) *World {
 		// TODO: Width/Height should probably be some function of the window dimensions
 		CameraWidth:  40,
 		CameraHeight: 24,
-
-		renderItems: make(map[Position][]Renderable),
 	}
 
 	world.MessageBus.Subscribe(&world)

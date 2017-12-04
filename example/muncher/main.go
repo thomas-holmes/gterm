@@ -96,14 +96,16 @@ func main() {
 
 	player.Name = "Euclid"
 
-	world.AddEntity(&player)
-	world.Player = &player
-
-	addMonsters(world)
-
 	world.AddLevelFromString(LevelMask1)
 	world.AddLevelFromString(LevelMask2)
 	world.SetCurrentLevel(0)
+
+	// TODO: Fix Player needs to be added after level creation now
+	world.AddEntity(&player)
+	world.Player = &player
+
+	// TODO: Fix Monsters need to be added after level creation now
+	addMonsters(world)
 
 	hud := NewHud(&player, world, 60, 0)
 
