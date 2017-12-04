@@ -75,7 +75,7 @@ func (monster *Monster) Pursue(turn int64, world *World) bool {
 		choice := candidates[randomIndex]
 		if len(candidates) > 1 {
 			// TODO: Not actually sure if this is invalid but for now I want to know if it happens.
-			log.Panicf("More than one candidate, %+v", candidates)
+			log.Printf("More than one candidate, %+v", candidates)
 		}
 
 		result, data := monster.TryMove(choice.XPos, choice.YPos, world)

@@ -14,6 +14,7 @@ const (
 	KillEntity
 	PopUpShown
 	PopUpHidden
+	PlayerFloorChange
 )
 
 type ClearRegionMessage struct {
@@ -55,6 +56,10 @@ type Listener interface {
 
 type Messaging struct {
 	messageBus *MessageBus
+}
+
+type PlayerFloorChangeMessage struct {
+	Stair
 }
 
 type Notifier interface {

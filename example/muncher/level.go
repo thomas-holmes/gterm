@@ -1,6 +1,13 @@
 package main
 
-import "log"
+func (level Level) getStair(x int, y int) (Stair, bool) {
+	for _, s := range level.stairs {
+		if s.X == x && s.Y == y {
+			return s, true
+		}
+	}
+	return Stair{}, false
+}
 
 func (level Level) getTile(x int, y int) *Tile {
 	return &level.tiles[y*level.Columns+x]
@@ -24,6 +31,10 @@ type Level struct {
 	ScentMap  ScentMap
 	tiles     []Tile
 	stairs    []Stair
+
+	NextEntity int
+	NextEnergy int
+	Entities   []Entity
 }
 
 // connectTwoLevels connects multiple levels arbitrarily. If there is an uneven number
@@ -49,7 +60,6 @@ func connectTwoLevels(upper *Level, lower *Level) {
 			lower.stairs[j].DestY = downStair.Y
 			lower.stairs[j].Connected = true
 
-			log.Printf("Connected upper %+v to lower %+v", upper.stairs[i], lower.stairs[j])
 			break
 		}
 	}
@@ -79,21 +89,23 @@ func loadFromString(levelString string) Level {
 			t.TileKind = Floor
 			t.TileGlyph = FloorGlyph
 		case UpStairGlyph:
-			t.TileKind = UpStair
-			t.TileGlyph = UpStairGlyph
-			stairs = append(stairs, Stair{
+			stair := Stair{
 				X:    c,
 				Y:    r,
 				Down: false,
-			})
+			}
+			t.TileKind = UpStair
+			t.TileGlyph = UpStairGlyph
+			stairs = append(stairs, stair)
 		case DownStairGlyph:
-			t.TileKind = DownStair
-			t.TileGlyph = DownStairGlyph
-			stairs = append(stairs, Stair{
+			stair := Stair{
 				X:    c,
 				Y:    r,
 				Down: true,
-			})
+			}
+			t.TileKind = DownStair
+			t.TileGlyph = DownStairGlyph
+			stairs = append(stairs, stair)
 		}
 
 		tiles = append(tiles, t)

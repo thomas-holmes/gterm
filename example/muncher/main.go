@@ -34,10 +34,6 @@ func handleInput(event sdl.Event, world *World) {
 			spawnRandomMonster(world)
 		case sdl.K_BACKSLASH:
 			world.ToggleScentOverlay()
-		case sdl.K_COMMA:
-			world.SetCurrentLevel(0)
-		case sdl.K_PERIOD:
-			world.SetCurrentLevel(1)
 		}
 	case *sdl.QuitEvent:
 		quit = true
@@ -93,6 +89,12 @@ func main() {
 	}
 
 	player := NewPlayer(1, 1)
+	player.LevelUp()
+	player.LevelUp()
+	player.LevelUp()
+	player.LevelUp()
+	player.LevelUp()
+	player.LevelUp()
 
 	player.Name = "Euclid"
 

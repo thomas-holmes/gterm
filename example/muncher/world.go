@@ -43,10 +43,7 @@ type World struct {
 
 	GameOver bool
 
-	entities   []Entity
-	nextEntity int
-	nextEnergy int
-	needInput  bool
+	needInput bool
 }
 
 func (world *World) GetNextID() int {
@@ -131,7 +128,7 @@ func (world *World) HandleInput(event sdl.Event) {
 		return
 	}
 	if event != nil {
-		for _, entity := range world.entities {
+		for _, entity := range world.CurrentLevel.Entities {
 			if inputtable, ok := entity.(Inputtable); ok {
 				inputtable.HandleInput(event, world)
 			}
@@ -189,7 +186,7 @@ func (world *World) AddEntity(e Entity) {
 		world.AddRenderable(e, actual.XPos(), actual.YPos())
 	}
 
-	world.entities = append(world.entities, e)
+	world.CurrentLevel.Entities = append(world.CurrentLevel.Entities, e)
 }
 
 func (world *World) RenderRuneAt(x int, y int, out rune, fColor sdl.Color, bColor sdl.Color) {
@@ -207,24 +204,19 @@ func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 }
 
 func (world *World) Update(turn int64) bool {
-	world.CurrentLevel.VisionMap.UpdateVision(6, world.Player, world)
-	world.CurrentLevel.ScentMap.UpdateScents(turn, *world)
+	if turn == 0 {
+		world.CurrentLevel.VisionMap.UpdateVision(6, world.Player, world)
+		world.CurrentLevel.ScentMap.UpdateScents(turn, *world)
+	}
 
 	world.needInput = false
-	log.Printf("NextEntity: %v, NextEnergy: %v", world.nextEnergy, world.nextEnergy)
-	for i := world.nextEntity; i < len(world.entities); i++ {
-		e := world.entities[i]
+	for i := world.CurrentLevel.NextEntity; i < len(world.CurrentLevel.Entities); i++ {
+		e := world.CurrentLevel.Entities[i]
 
 		energized, isEnergized := e.(Energized)
-		if !isEnergized {
-			log.Printf("what is this? %+v", e)
-		} else {
-			log.Printf("Found one that is energized, %+v, %+v", energized, e)
-		}
-
-		if isEnergized && world.nextEnergy == i {
+		if isEnergized && world.CurrentLevel.NextEnergy == i {
 			energized.AddEnergy(100)
-			world.nextEnergy = i + 1
+			world.CurrentLevel.NextEnergy = i + 1
 		}
 
 		if e.CanAct() {
@@ -232,9 +224,8 @@ func (world *World) Update(turn int64) bool {
 				log.Printf("Found one that needs input %+v", e)
 				if input, ok := world.PopInput(); ok {
 					if e.Update(turn, input, world) {
-						world.nextEntity = i + 1
+						world.CurrentLevel.NextEntity = i + 1
 					} else {
-						log.Println("player hit a wall lol")
 						world.needInput = true
 						break
 					}
@@ -244,14 +235,18 @@ func (world *World) Update(turn int64) bool {
 				}
 			} else {
 				e.Update(turn, nil, world)
-				world.nextEntity = i + 1
+				world.CurrentLevel.NextEntity = i + 1
 			}
 		}
+		if p, ok := e.(*Player); ok {
+			world.CurrentLevel.VisionMap.UpdateVision(6, p, world)
+			world.CurrentLevel.ScentMap.UpdateScents(turn, *world)
+		}
 	}
-	if world.nextEntity == len(world.entities) {
+	if world.CurrentLevel.NextEntity >= len(world.CurrentLevel.Entities) {
 		log.Printf("Looping around")
-		world.nextEntity = 0
-		world.nextEnergy = 0
+		world.CurrentLevel.NextEntity = 0
+		world.CurrentLevel.NextEnergy = 0
 	}
 	return world.needInput
 }
@@ -362,9 +357,10 @@ func (world *World) OverlayScentMap(turn int64) {
 }
 
 func (world *World) RemoveEntity(entity Entity) {
+	log.Printf("Removing entity")
 	foundIndex := -1
 	var foundEntity Entity
-	for i, e := range world.entities {
+	for i, e := range world.CurrentLevel.Entities {
 		if e.Identity() == entity.Identity() {
 			foundIndex = i
 			foundEntity = e
@@ -373,12 +369,13 @@ func (world *World) RemoveEntity(entity Entity) {
 	}
 
 	if foundIndex > -1 {
-		world.entities = append(world.entities[:foundIndex], world.entities[foundIndex+1:]...)
+		world.CurrentLevel.Entities = append(world.CurrentLevel.Entities[:foundIndex], world.CurrentLevel.Entities[foundIndex+1:]...)
 	}
 
 	if renderable, ok := foundEntity.(Renderable); ok {
 		world.GetTile(renderable.XPos(), renderable.YPos()).Creature = nil
 	}
+	log.Printf("Finisehd remove")
 }
 
 // TODO: Dedup this with move entity, maybe?
@@ -401,7 +398,7 @@ func (world *World) MoveEntity(message MoveEntityMessage) {
 // but I wanted ordered traversal, which you don't get with maps in go.
 // Keep an eye on the performance of this.
 func (world *World) GetEntity(id int) (Entity, bool) {
-	for _, e := range world.entities {
+	for _, e := range world.CurrentLevel.Entities {
 		if e.Identity() == id {
 			return e, true
 		}
@@ -437,6 +434,18 @@ func (world *World) Notify(message Message, data interface{}) {
 		pop := NewPopUp(10, 5, 40, 6, Red, "YOU ARE VERY DEAD", "I AM SO SORRY :(")
 		world.GameOver = true
 		world.ShowPopUp(pop)
+	case PlayerFloorChange:
+		log.Printf("Changing floors %+v", data)
+		if d, ok := data.(PlayerFloorChangeMessage); ok {
+			if !d.Connected {
+				break
+			}
+			world.RemoveEntity(world.Player)
+			world.Player.X = d.DestX
+			world.Player.Y = d.DestY
+			world.CurrentLevel = d.DestLevel
+			world.AddEntity(world.Player)
+		}
 	}
 }
 

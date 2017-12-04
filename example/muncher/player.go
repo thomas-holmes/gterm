@@ -116,6 +116,32 @@ func (player *Player) HandleInput(event sdl.Event, world *World) bool {
 	switch e := event.(type) {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
+		case sdl.K_COMMA:
+			tile := world.GetTile(player.X, player.Y)
+			if tile.TileKind == UpStair {
+				if stair, ok := world.CurrentLevel.getStair(player.X, player.Y); ok {
+					player.Broadcast(PlayerFloorChange, PlayerFloorChangeMessage{
+						Stair: stair,
+					})
+				} else {
+					return false
+				}
+			}
+			return true
+		case sdl.K_PERIOD:
+			log.Printf("*&*&*&*&*&*&*&*&*Hit Period")
+			tile := world.GetTile(player.X, player.Y)
+			log.Printf("Looked up a tile, %+v", tile)
+			if tile.TileKind == DownStair {
+				if stair, ok := world.CurrentLevel.getStair(player.X, player.Y); ok {
+					player.Broadcast(PlayerFloorChange, PlayerFloorChangeMessage{
+						Stair: stair,
+					})
+				} else {
+					return false
+				}
+			}
+			return true
 		case sdl.K_h:
 			newX = player.X - 1
 		case sdl.K_j:
