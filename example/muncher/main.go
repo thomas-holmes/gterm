@@ -115,7 +115,7 @@ func main() {
 
 	for !quit {
 
-		event := sdl.WaitEvent()
+		event := sdl.PollEvent()
 		// TODO: Don't advance turn count if we don't actually do something worthwhile
 		// Tried to fix this for a while but ended up with some weird issues. Will take
 		// some more thinking and probably a further refactor around whether or not the
