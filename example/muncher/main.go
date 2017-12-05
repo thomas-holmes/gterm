@@ -79,7 +79,7 @@ func main() {
 
 	window.ShouldRenderFps(true)
 
-	world := NewWorld(window, true)
+	world := NewWorld(window, true, 99)
 	{
 		// TODO: Roll this up into some kind of registering a system function on the world
 		combat := CombatSystem{}

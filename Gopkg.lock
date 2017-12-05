@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/MichaelTJones/pcg"
+  packages = ["."]
+  revision = "2ebcd54841cef0e771d248b1dcd1cb681867b108"
+
+[[projects]]
   name = "github.com/veandco/go-sdl2"
   packages = ["sdl","ttf"]
   revision = "30f30965227962032c13bd0b12a89e6a5107c768"
@@ -10,6 +16,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f45750330cefd1c8eabec775ab451f9206715a36083213552532c12ab89f9433"
+  inputs-digest = "c2472608e6c969b9bd9510951f990c4aaddc0b6d5043e52947a57e0c5b1ea3a2"
   solver-name = "gps-cdcl"
   solver-version = 1

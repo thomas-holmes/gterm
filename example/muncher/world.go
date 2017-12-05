@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/MichaelTJones/pcg"
+
 	"github.com/thomas-holmes/gterm"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -17,6 +19,8 @@ type Position struct {
 type World struct {
 	Window     *gterm.Window
 	MessageBus MessageBus
+
+	rng *pcg.PCG64
 
 	Player *Player
 
@@ -461,7 +465,11 @@ func (world *World) Notify(message Message, data interface{}) {
 	}
 }
 
-func NewWorld(window *gterm.Window, centered bool) *World {
+const (
+	DefaultSeq uint64 = iota * 1000
+)
+
+func NewWorld(window *gterm.Window, centered bool, seed uint64) *World {
 
 	world := World{
 		Window:         window,
@@ -471,7 +479,10 @@ func NewWorld(window *gterm.Window, centered bool) *World {
 		// TODO: Width/Height should probably be some function of the window dimensions
 		CameraWidth:  40,
 		CameraHeight: 24,
+		rng:          pcg.NewPCG64(),
 	}
+
+	world.rng.Seed(seed, DefaultSeq, seed*seed, DefaultSeq+1)
 
 	world.MessageBus.Subscribe(&world)
 

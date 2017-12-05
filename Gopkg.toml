@@ -22,3 +22,7 @@
 [[constraint]]
   name = "github.com/veandco/go-sdl2"
   version = "0.2.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/MichaelTJones/pcg"
