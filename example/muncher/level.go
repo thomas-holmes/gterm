@@ -1,5 +1,9 @@
 package main
 
+import (
+	"github.com/MichaelTJones/pcg"
+)
+
 func (level Level) getStair(x int, y int) (Stair, bool) {
 	for _, s := range level.stairs {
 		if s.X == x && s.Y == y {
@@ -161,3 +165,132 @@ var LevelMask2 = "" + // Make gofmt happy
 	"#............................................#\n" +
 	"#............................................#\n" +
 	"##############################################"
+
+type Room struct {
+	ID          int
+	X           int
+	Y           int
+	W           int
+	H           int
+	connectedTo []int
+}
+type CandidateLevel struct {
+	rng *pcg.PCG64
+
+	W int
+	H int
+
+	nextRoomID int
+
+	rooms map[int]*Room
+	tiles []TileKind
+}
+
+const (
+	MinRoomWidth      = 3
+	MinRoomHeight     = 3
+	MaxRoomWidth      = 20
+	MaxRoomHeight     = 20
+	MaxRoomIterations = 200
+)
+
+func (level *CandidateLevel) genNextRoomID() int {
+	id := level.nextRoomID
+	level.nextRoomID++
+	return id
+}
+
+// TODO: Exclude the edges of the whole level
+func (level *CandidateLevel) tryAddRandomRoom() {
+	widthBound := uint64(MaxRoomWidth - MinRoomWidth)
+	heightBound := uint64(MaxRoomHeight - MinRoomHeight)
+
+	randomWidth := int(level.rng.Bounded(widthBound)) + MinRoomWidth
+	randomHeight := int(level.rng.Bounded(heightBound)) + MinRoomHeight
+
+	topLeftX := int(level.rng.Bounded(uint64(level.W-randomWidth-1))) + 1
+	topLeftY := int(level.rng.Bounded(uint64(level.H-randomHeight-1))) + 1
+
+	for y := topLeftY; y < topLeftY+randomHeight; y++ {
+		for x := topLeftX; x < topLeftX+randomWidth; x++ {
+			if level.tiles[y*level.W+x] != Wall {
+				// Just quit if we run into a non-wall feature
+				return
+			}
+		}
+	}
+
+	// We can place our room, so make it all floors.
+	for y := topLeftY; y < topLeftY+randomHeight; y++ {
+		for x := topLeftX; x < topLeftX+randomWidth; x++ {
+			level.tiles[y*level.W+x] = Floor
+		}
+	}
+
+	room := &Room{
+		ID: level.genNextRoomID(),
+		X:  topLeftX,
+		Y:  topLeftY,
+		W:  randomWidth,
+		H:  randomHeight,
+	}
+
+	level.rooms[room.ID] = room
+
+}
+
+func (level *CandidateLevel) addRooms() {
+	for i := 0; i < MaxRoomIterations; i++ {
+		level.tryAddRandomRoom()
+	}
+}
+
+func (level *CandidateLevel) connectRooms() {
+
+}
+
+func (level *CandidateLevel) encodeAsString() string {
+	levelStr := ""
+	for y := 0; y < level.H; y++ {
+		if y != 0 {
+			levelStr += "\n"
+		}
+		for x := 0; x < level.W; x++ {
+			switch level.tiles[y*level.W+x] {
+			case Wall:
+				levelStr += string(WallGlyph)
+			case Floor:
+				levelStr += string(FloorGlyph)
+			case DownStair:
+				levelStr += string(DownStairGlyph)
+			case UpStair:
+				levelStr += string(UpStairGlyph)
+			}
+		}
+	}
+
+	return levelStr
+}
+
+func GenLevel(rng *pcg.PCG64, maxX int, maxY int) string {
+	subX := rng.Bounded(uint64(maxX / 4))
+	subY := rng.Bounded(uint64(maxY / 4))
+
+	W := maxX - int(subX)
+	H := maxY - int(subY)
+
+	level := &CandidateLevel{
+		rng: rng,
+		W:   W,
+		H:   H,
+
+		rooms: make(map[int]*Room),
+		tiles: make([]TileKind, W*H, W*H),
+	}
+
+	level.addRooms()
+
+	level.connectRooms()
+
+	return level.encodeAsString()
+}

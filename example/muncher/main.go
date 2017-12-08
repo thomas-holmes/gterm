@@ -34,6 +34,8 @@ func handleInput(event sdl.Event, world *World) {
 			spawnRandomMonster(world)
 		case sdl.K_BACKSLASH:
 			world.ToggleScentOverlay()
+		case sdl.K_g:
+			log.Printf("\n%v", GenLevel(world.rng, 80, 40))
 		}
 	case *sdl.QuitEvent:
 		quit = true
