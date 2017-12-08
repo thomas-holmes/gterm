@@ -210,6 +210,9 @@ func (world *World) AddEntity(e Entity) {
 	world.CurrentLevel.Entities = append(world.CurrentLevel.Entities, e)
 }
 
+// Track down these "out of bounds" errors and try to squash them. Either this function
+// needs to know enough to not write to Window or the caller should not try to write outside
+// of its viewport
 func (world *World) RenderRuneAt(x int, y int, out rune, fColor sdl.Color, bColor sdl.Color) {
 	err := world.Window.PutRune(x-world.CameraX+world.CameraOffsetX, y-world.CameraY+world.CameraOffsetY, out, fColor, bColor)
 	if err != nil {
@@ -217,6 +220,7 @@ func (world *World) RenderRuneAt(x int, y int, out rune, fColor sdl.Color, bColo
 	}
 }
 
+// Same above
 func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 	err := world.Window.PutString(x-world.CameraX+world.CameraOffsetX, y-world.CameraY+world.CameraOffsetY, out, color)
 	if err != nil {
