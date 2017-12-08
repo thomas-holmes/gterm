@@ -35,7 +35,7 @@ func handleInput(event sdl.Event, world *World) {
 		case sdl.K_BACKSLASH:
 			world.ToggleScentOverlay()
 		case sdl.K_g:
-			log.Printf("\n%v", GenLevel(world.rng, 80, 40))
+			log.Printf("\n%v", GenLevel(world.rng, 80, 40, GenDownStairs|GenUpStairs))
 		}
 	case *sdl.QuitEvent:
 		quit = true
@@ -57,13 +57,6 @@ func spawnRandomMonster(world *World) {
 		}
 
 		log.Println("Faield to find valid position for monster after 100 attempts")
-	}
-}
-
-func addMonsters(world *World) {
-	for i, level := range []int{1} {
-		m := NewMonster(10, 6+i, level, Green, level)
-		world.AddEntity(&m)
 	}
 }
 
@@ -99,17 +92,21 @@ func main() {
 	player.LevelUp()
 
 	player.Name = "Euclid"
-
-	world.AddLevelFromString(LevelMask1)
-	world.AddLevelFromString(LevelMask2)
+	level1 := GenLevel(world.rng, 80, 40, GenDownStairs)
+	log.Printf("Level1\n%v", level1)
+	world.AddLevelFromString(level1)
+	level2 := GenLevel(world.rng, 80, 40, GenUpStairs)
+	log.Printf("Level2\n%v", level2)
+	world.AddLevelFromString(level2)
 	world.SetCurrentLevel(0)
 
 	// TODO: Fix Player needs to be added after level creation now
-	world.AddEntity(&player)
-	world.Player = &player
+	world.AddPlayer(&player)
 
 	// TODO: Fix Monsters need to be added after level creation now
-	addMonsters(world)
+	for i := 0; i < 10; i++ {
+		spawnRandomMonster(world)
+	}
 
 	hud := NewHud(&player, world, 60, 0)
 

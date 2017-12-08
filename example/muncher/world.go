@@ -161,6 +161,28 @@ func (world *World) ClosePopUp() {
 	world.pop = nil
 }
 
+func (world *World) AddPlayer(player *Player) {
+	world.Player = player
+	if !world.CanStandOnTile(player.X, player.Y) {
+		for _, t := range world.CurrentLevel.tiles {
+			if !t.IsWall() && !(t.Creature != nil) {
+				player.X = t.X
+				player.Y = t.Y
+				log.Printf("Player position adjusted to (%v,%v)", player.X, player.Y)
+				break
+			}
+		}
+	}
+
+	// Center the camera on the player
+	if world.CameraCentered {
+		world.CameraX = player.X
+		world.CameraY = player.Y
+	}
+
+	world.AddEntity(player)
+}
+
 // TODO: This is kinda janky. Figure out something better for this. Probably don't need
 // the Renderable interface any more
 func (world *World) AddRenderable(entity Entity, x int, y int) {
@@ -177,12 +199,6 @@ func (world *World) AddEntity(e Entity) {
 
 	if l, ok := e.(Listener); ok {
 		world.MessageBus.Subscribe(l)
-	}
-
-	// Center the camera on the player
-	if p, ok := e.(*Player); ok && world.CameraCentered {
-		world.CameraX = p.X
-		world.CameraY = p.Y
 	}
 
 	// TODO: Clean this up too
@@ -268,8 +284,8 @@ func (world *World) Update(turn int64) bool {
 
 func (world *World) UpdateCamera() {
 	if world.CameraCentered {
-		world.CameraOffsetX = world.CurrentLevel.Columns / 2
-		world.CameraOffsetY = world.CurrentLevel.Rows / 2
+		world.CameraOffsetX = 20
+		world.CameraOffsetY = 15
 		world.CameraX = world.Player.X
 		world.CameraY = world.Player.Y
 	} else {
