@@ -53,7 +53,7 @@ func (player *Player) GainExp(exp int) {
 func NewPlayer(xPos int, yPos int) Player {
 	player := Player{
 		RenderGlyph: '@',
-		RenderColor: sdl.Color{R: 255, G: 0, B: 0, A: 0},
+		RenderColor: Red,
 		Creature: Creature{
 			Level: 1,
 			Energy: Energy{

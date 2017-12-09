@@ -9,6 +9,8 @@ import (
 	"github.com/veandco/go-sdl2/ttf"
 )
 
+var White = sdl.Color{R: 225, G: 225, B: 225, A: 255}
+
 // Window represents the base window object
 type Window struct {
 	Columns         int
@@ -83,11 +85,10 @@ func (window *Window) createFontAtlas(font *ttf.Font) (*sdl.Texture, error) {
 		return nil, err
 	}
 
-	white := sdl.Color{R: 255, G: 255, B: 255, A: 255}
 	bytesPerPixel := lockPitch / width
 	for i := firstRune; i < lastRune; i++ {
 		str := string(i)
-		surface, err := window.font.RenderUTF8_Blended(str, white)
+		surface, err := window.font.RenderUTF8_Blended(str, White)
 		if err != nil {
 			return nil, err
 		}

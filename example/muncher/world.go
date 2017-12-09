@@ -346,10 +346,9 @@ func (world *World) Render(turnCount uint64) {
 }
 
 func (world *World) OverlayVisionMap() {
-	blue := sdl.Color{R: 0, G: 0, B: 200, A: 255}
 	for y := 0; y < world.CurrentLevel.Rows; y++ {
 		for x := 0; x < world.CurrentLevel.Columns; x++ {
-			world.RenderRuneAt(x, y, []rune(strconv.Itoa(int(world.CurrentLevel.VisionMap.Map[y*world.CurrentLevel.Columns+x])))[0], blue, gterm.NoColor)
+			world.RenderRuneAt(x, y, []rune(strconv.Itoa(int(world.CurrentLevel.VisionMap.Map[y*world.CurrentLevel.Columns+x])))[0], Blue, gterm.NoColor)
 		}
 	}
 }
@@ -372,7 +371,6 @@ func (world *World) ToggleScentOverlay() {
 }
 
 func (world *World) OverlayScentMap(turn uint64) {
-	purple := sdl.Color{R: 200, G: 0, B: 200, A: 255}
 	for y := 0; y < world.CurrentLevel.Rows; y++ {
 		for x := 0; x < world.CurrentLevel.Columns; x++ {
 			scent := world.CurrentLevel.ScentMap.getScent(x, y)
@@ -397,7 +395,7 @@ func (world *World) OverlayScentMap(turn uint64) {
 				bgColor.B -= uint8(distance * 5)
 			}
 			if scent > 0 && scent > recent {
-				world.RenderRuneAt(x, y, ' ', purple, bgColor)
+				world.RenderRuneAt(x, y, ' ', Purple, bgColor)
 			}
 		}
 	}

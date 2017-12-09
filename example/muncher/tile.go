@@ -25,7 +25,7 @@ func NewTile(x int, y int) Tile {
 	return Tile{
 		X:     x,
 		Y:     y,
-		Color: sdl.Color{R: 225, G: 225, B: 225, A: 255},
+		Color: White,
 	}
 }
 

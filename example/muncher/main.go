@@ -42,8 +42,6 @@ func handleInput(event sdl.Event, world *World) {
 	}
 }
 
-var red = sdl.Color{R: 255, G: 0, B: 0, A: 255}
-
 func spawnRandomMonster(world *World) {
 	for tries := 0; tries < 100; tries++ {
 		x := rand.Intn(world.CurrentLevel.Columns)
@@ -68,7 +66,7 @@ func main() {
 
 	window.SetTitle("Muncher")
 
-	window.SetBackgroundColor(sdl.Color{R: 0, G: 0, B: 0, A: 0})
+	window.SetBackgroundColor(gterm.NoColor)
 
 	window.ShouldRenderFps(true)
 
