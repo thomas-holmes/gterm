@@ -20,6 +20,8 @@ type World struct {
 	Window     *gterm.Window
 	MessageBus MessageBus
 
+	turnCount uint64
+
 	rng *pcg.PCG64
 
 	Player *Player
@@ -228,7 +230,7 @@ func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 	}
 }
 
-func (world *World) Update(turn int64) bool {
+func (world *World) Update(turn uint64) bool {
 	log.Printf("Updating turn [%v]", turn)
 	if turn == 0 {
 		world.CurrentLevel.VisionMap.UpdateVision(6, world.Player, world)
@@ -301,7 +303,8 @@ func (world *World) UpdateCamera() {
 }
 
 // Render redrwas everything!
-func (world *World) Render(turnCount int64) {
+func (world *World) Render(turnCount uint64) {
+	world.turnCount = turnCount
 	world.UpdateCamera()
 	defer timeMe(time.Now(), "World.Render.TileLoop")
 	var minX, minY, maxX, maxY int
@@ -359,17 +362,17 @@ func (world *World) ToggleScentOverlay() {
 	world.showScentOverlay = !world.showScentOverlay
 }
 
-func (world *World) OverlayScentMap(turn int64) {
+func (world *World) OverlayScentMap(turn uint64) {
 	purple := sdl.Color{R: 200, G: 0, B: 200, A: 255}
 	for y := 0; y < world.CurrentLevel.Rows; y++ {
 		for x := 0; x < world.CurrentLevel.Columns; x++ {
 			scent := world.CurrentLevel.ScentMap.getScent(x, y)
 
-			maxScent := float32(turn * 32)
-			recent := float32((turn - 10) * 32)
+			maxScent := float64(turn * 32)
+			recent := float64((turn - 10) * 32)
 
 			turnsAgo := min(int((maxScent-scent)/32), len(ScentColors)-1)
-			distance := ((turn - int64(turnsAgo)) * 32) - int64(scent)
+			distance := ((turn - uint64(turnsAgo)) * 32) - uint64(scent)
 
 			bgColor := ScentColors[turnsAgo]
 

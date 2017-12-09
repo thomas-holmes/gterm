@@ -108,7 +108,7 @@ func main() {
 
 	hud := NewHud(&player, world, 60, 0)
 
-	var turnCount int64
+	var turnCount uint64
 
 	for !quit {
 

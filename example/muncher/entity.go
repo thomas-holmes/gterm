@@ -20,6 +20,6 @@ type Entity interface {
 	SetIdentity(int)
 	NeedsInput() bool
 	CanAct() bool
-	Update(turn int64, event sdl.Event, world *World) bool
+	Update(turn uint64, event sdl.Event, world *World) bool
 	Fighter() *Creature
 }

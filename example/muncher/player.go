@@ -100,7 +100,7 @@ func (player *Player) Heal(amount int) {
 	player.Broadcast(PlayerUpdate, nil)
 }
 
-func (player *Player) Update(turn int64, event sdl.Event, world *World) bool {
+func (player *Player) Update(turn uint64, event sdl.Event, world *World) bool {
 	if player.HandleInput(event, world) {
 		player.currentEnergy -= 100
 		return true

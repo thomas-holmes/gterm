@@ -69,10 +69,16 @@ func (hud HUD) renderPlayerLevel(world *World) {
 	world.Window.PutString(hud.XPos, hud.YPos+3, level, Yellow)
 }
 
+func (hud HUD) renderTurnCount(world *World) {
+	turnCount := fmt.Sprintf("Turn: %v", world.turnCount)
+	world.Window.PutString(hud.XPos, hud.YPos+4, turnCount, Yellow)
+}
+
 func (hud *HUD) Render(world *World) {
 	defer timeMe(time.Now(), "HUD.Render")
 	hud.renderPlayerName(world)
 	hud.renderPlayerPosition(world)
 	hud.renderPlayerHealth(world)
 	hud.renderPlayerLevel(world)
+	hud.renderTurnCount(world)
 }

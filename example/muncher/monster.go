@@ -52,7 +52,7 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 // Instead the monster will chase to the players most recent space. It used to work. I think this
 // is due to the subtraction scent distance subtraction. Probably just need to check if the monster
 // can strike the player from its current position.
-func (monster *Monster) Pursue(turn int64, world *World) bool {
+func (monster *Monster) Pursue(turn uint64, world *World) bool {
 	if world.CurrentLevel.VisionMap.VisibilityAt(monster.X, monster.Y) == Visible {
 		monster.State = Pursuing
 	}
@@ -109,7 +109,7 @@ func (monster *Monster) Pursue(turn int64, world *World) bool {
 	return false
 }
 
-func (monster *Monster) Update(turn int64, _ sdl.Event, world *World) bool {
+func (monster *Monster) Update(turn uint64, _ sdl.Event, world *World) bool {
 	log.Printf("Updating Monster %+v", *monster)
 	if monster.Pursue(turn, world) {
 		monster.currentEnergy -= 100
