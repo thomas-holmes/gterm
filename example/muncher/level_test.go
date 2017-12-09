@@ -11,7 +11,7 @@ func TestLoadFromString(t *testing.T) {
 		"#...#\n" +
 		"#####"
 
-	level := loadFromString(smallLevel)
+	level := LoadFromString(smallLevel)
 
 	if level.Columns != 5 {
 		t.Errorf("Expected columns of 5, got %v", level.Columns)
@@ -45,7 +45,7 @@ func TestLoadFromStringTilePlacement(t *testing.T) {
 		"#<...#\n" +
 		"######"
 
-	level := loadFromString(levelStr)
+	level := LoadFromString(levelStr)
 
 	if level.Columns != 6 {
 		t.Errorf("Expected columns of 6, got %v", level.Columns)

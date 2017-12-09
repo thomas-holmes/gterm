@@ -75,7 +75,7 @@ func (world *World) SetCurrentLevel(index int) {
 }
 
 func (world *World) AddLevelFromString(levelString string) {
-	world.Levels = append(world.Levels, loadFromString(levelString))
+	world.Levels = append(world.Levels, LoadFromString(levelString))
 
 	levels := len(world.Levels)
 	if levels > 1 {

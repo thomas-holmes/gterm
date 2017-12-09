@@ -65,7 +65,7 @@ func connectTwoLevels(upper *Level, lower *Level) {
 	}
 }
 
-func loadFromString(levelString string) Level {
+func LoadFromString(levelString string) Level {
 	level := Level{}
 
 	tiles := make([]Tile, 0, len(levelString))
