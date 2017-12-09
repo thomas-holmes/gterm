@@ -48,10 +48,7 @@ func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster 
 	return monster
 }
 
-// TODO: This currently will not hit the player if the player steps adjaced to the monster.
-// Instead the monster will chase to the players most recent space. It used to work. I think this
-// is due to the subtraction scent distance subtraction. Probably just need to check if the monster
-// can strike the player from its current position.
+// TODO: If a monster is blocking the ideal path our monster should go around
 func (monster *Monster) Pursue(turn uint64, world *World) bool {
 	if world.CurrentLevel.VisionMap.VisibilityAt(monster.X, monster.Y) == Visible {
 		monster.State = Pursuing

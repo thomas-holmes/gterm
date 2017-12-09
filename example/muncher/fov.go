@@ -52,7 +52,6 @@ func (vision *VisionMap) UpdateVision(viewDistance int, player *Player, world *W
 
 	for y := minY; y < maxY; y++ {
 		for x := minX; x < maxX; x++ {
-			// TODO: This is gross, but whatever.
 			previousVision := vision.lastSeenAt(x, y)
 
 			if previousVision == current {
