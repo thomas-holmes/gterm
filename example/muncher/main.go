@@ -58,6 +58,9 @@ func spawnRandomMonster(world *World) {
 	}
 }
 
+func testCombatant(c Combatant) {
+
+}
 func main() {
 	// Disable FPS limit, generally, so I can monitor performance.
 	window := gterm.NewWindow(100, 30, path.Join("assets", "font", "DejaVuSansMono.ttf"), 24, false)
@@ -100,6 +103,8 @@ func main() {
 
 	// TODO: Fix Player needs to be added after level creation now
 	world.AddPlayer(&player)
+
+	testCombatant(&player)
 
 	// TODO: Fix Monsters need to be added after level creation now
 	for i := 0; i < 10; i++ {

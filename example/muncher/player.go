@@ -193,7 +193,16 @@ func (player *Player) Notify(message Message, data interface{}) {
 	switch message {
 	case KillEntity:
 		if d, ok := data.(KillEntityMessage); ok {
-			attacker, defender := d.Attacker.Fighter(), d.Defender.Fighter()
+			aCombatant, ok := d.Attacker.(Combatant)
+			if !ok {
+				return
+			}
+			dCombatant, ok := d.Defender.(Combatant)
+			if !ok {
+				return
+			}
+			attacker, defender := aCombatant.Combatant(), dCombatant.Combatant()
+
 			if defender.ID == player.ID {
 				player.Broadcast(PlayerDead, nil)
 				return

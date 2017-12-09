@@ -52,7 +52,8 @@ func (c *Creature) Damage(damage int) {
 	c.HP.Current = max(0, c.HP.Current-damage)
 }
 
-func (c *Creature) Fighter() *Creature {
+// Name collisions, man.
+func (c *Creature) Combatant() *Creature {
 	return c
 }
 

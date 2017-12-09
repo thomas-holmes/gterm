@@ -21,5 +21,4 @@ type Entity interface {
 	NeedsInput() bool
 	CanAct() bool
 	Update(turn uint64, event sdl.Event, world *World) bool
-	Fighter() *Creature
 }
