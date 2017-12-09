@@ -254,9 +254,7 @@ func (world *World) Update(turn uint64) bool {
 		if a, ok := e.(Actor); ok {
 			if a.CanAct() {
 				if inputtable, ok := e.(Inputtable); ok {
-					log.Printf("Do I get in here?")
 					if inputtable.NeedsInput() {
-						log.Printf("Found one that needs input %+v", e)
 						if input, ok := world.PopInput(); ok {
 							if e.Update(turn, input, world) {
 								world.CurrentLevel.NextEntity = i + 1

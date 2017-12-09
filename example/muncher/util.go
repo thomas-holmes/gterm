@@ -20,6 +20,12 @@ func max64(a int64, b int64) int64 {
 	}
 	return b
 }
+func maxu64(a uint64, b uint64) uint64 {
+	if a > b {
+		return a
+	}
+	return b
+}
 func maxf32(a float32, b float32) float32 {
 	if a > b {
 		return a
@@ -33,6 +39,12 @@ func min(a int, b int) int {
 	return b
 }
 func min64(a int64, b int64) int64 {
+	if a < b {
+		return a
+	}
+	return b
+}
+func minu64(a uint64, b uint64) uint64 {
 	if a < b {
 		return a
 	}
