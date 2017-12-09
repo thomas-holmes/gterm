@@ -256,7 +256,7 @@ func (world *World) Update(turn uint64) bool {
 				if inputtable, ok := e.(Inputtable); ok {
 					if inputtable.NeedsInput() {
 						if input, ok := world.PopInput(); ok {
-							if e.Update(turn, input, world) {
+							if a.Update(turn, input, world) {
 								world.CurrentLevel.NextEntity = i + 1
 							} else {
 								world.needInput = true
@@ -267,11 +267,11 @@ func (world *World) Update(turn uint64) bool {
 							break
 						}
 					} else {
-						e.Update(turn, nil, world)
+						a.Update(turn, nil, world)
 						world.CurrentLevel.NextEntity = i + 1
 					}
 				} else {
-					e.Update(turn, nil, world)
+					a.Update(turn, nil, world)
 					world.CurrentLevel.NextEntity = i + 1
 				}
 			}

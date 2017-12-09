@@ -1,7 +1,5 @@
 package main
 
-import "github.com/veandco/go-sdl2/sdl"
-
 type Identifiable struct {
 	ID int
 }
@@ -18,5 +16,4 @@ func (e Identifiable) Identity() int {
 type Entity interface {
 	Identity() int
 	SetIdentity(int)
-	Update(turn uint64, event sdl.Event, world *World) bool
 }
