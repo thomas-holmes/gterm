@@ -31,7 +31,7 @@ type Creature struct {
 	Name string
 }
 
-func (c Creature) NeedsInput() bool {
+func (c *Creature) NeedsInput() bool {
 	log.Printf("Called Creature NeedsInput %+v", c)
 	return false
 }

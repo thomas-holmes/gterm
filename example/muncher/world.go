@@ -249,18 +249,24 @@ func (world *World) Update(turn uint64) bool {
 		}
 
 		if e.CanAct() {
-			if e.NeedsInput() {
-				log.Printf("Found one that needs input %+v", e)
-				if input, ok := world.PopInput(); ok {
-					if e.Update(turn, input, world) {
-						world.CurrentLevel.NextEntity = i + 1
+			if inputtable, ok := e.(Inputtable); ok {
+				log.Printf("Do I get in here?")
+				if inputtable.NeedsInput() {
+					log.Printf("Found one that needs input %+v", e)
+					if input, ok := world.PopInput(); ok {
+						if e.Update(turn, input, world) {
+							world.CurrentLevel.NextEntity = i + 1
+						} else {
+							world.needInput = true
+							break
+						}
 					} else {
 						world.needInput = true
 						break
 					}
 				} else {
-					world.needInput = true
-					break
+					e.Update(turn, nil, world)
+					world.CurrentLevel.NextEntity = i + 1
 				}
 			} else {
 				e.Update(turn, nil, world)

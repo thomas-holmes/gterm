@@ -118,7 +118,7 @@ func (monster *Monster) Update(turn uint64, _ sdl.Event, world *World) bool {
 	return false
 }
 
-func (monster Monster) NeedsInput() bool {
+func (monster *Monster) NeedsInput() bool {
 	log.Printf("Called monster NeedsInput %+v", monster)
 	return false
 }

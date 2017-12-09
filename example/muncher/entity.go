@@ -18,7 +18,6 @@ func (e Identifiable) Identity() int {
 type Entity interface {
 	Identity() int
 	SetIdentity(int)
-	NeedsInput() bool
 	CanAct() bool
 	Update(turn uint64, event sdl.Event, world *World) bool
 }

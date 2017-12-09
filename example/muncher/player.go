@@ -219,7 +219,7 @@ func (player *Player) Notify(message Message, data interface{}) {
 	}
 }
 
-func (player Player) NeedsInput() bool {
+func (player *Player) NeedsInput() bool {
 	log.Printf("Called player NeedsInput %+v", player)
 	return true
 }
