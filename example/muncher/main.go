@@ -55,8 +55,6 @@ func spawnRandomMonster(world *World) {
 			world.AddEntity(&monster)
 			return
 		}
-
-		log.Println("Faield to find valid position for monster after 100 attempts")
 	}
 }
 

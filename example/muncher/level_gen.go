@@ -1,6 +1,10 @@
 package main
 
-import "github.com/MichaelTJones/pcg"
+import (
+	"time"
+
+	"github.com/MichaelTJones/pcg"
+)
 
 type Room struct {
 	ID          int
@@ -238,6 +242,7 @@ const (
 )
 
 func GenLevel(rng *pcg.PCG64, maxX int, maxY int, flags LevelGenFlag) string {
+	defer timeMe(time.Now(), "GenLevel")
 	subX := rng.Bounded(uint64(maxX / 4))
 	subY := rng.Bounded(uint64(maxY / 4))
 
