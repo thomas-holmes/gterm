@@ -299,7 +299,7 @@ func (world *World) Update(turn uint64) bool {
 
 func (world *World) UpdateCamera() {
 	if world.CameraCentered {
-		world.CameraOffsetX = 20
+		world.CameraOffsetX = 30
 		world.CameraOffsetY = 15
 		world.CameraX = world.Player.X
 		world.CameraY = world.Player.Y
@@ -318,15 +318,13 @@ func (world *World) Render(turnCount uint64) {
 	defer timeMe(time.Now(), "World.Render.TileLoop")
 	var minX, minY, maxX, maxY int
 	if world.CameraCentered {
-		minY, maxY = max(0, world.CameraY-(world.CameraWidth/2)), min(world.CurrentLevel.Rows, world.CameraY+(world.CameraWidth/2))
-		minX, maxX = max(0, world.CameraX-(world.CameraHeight/2)), min(world.CurrentLevel.Columns, world.CameraX+(world.CameraHeight/2))
+		minY, maxY = max(0, world.CameraY-(world.CameraHeight/2)), min(world.CurrentLevel.Rows, world.CameraY+(world.CameraWidth/2))
+		minX, maxX = max(0, world.CameraX-(world.CameraWidth/2)), min(world.CurrentLevel.Columns, world.CameraX+(world.CameraHeight/2))
 	} else {
 		minY, maxY = 0, world.CurrentLevel.Rows
 		minX, maxX = 0, world.CurrentLevel.Columns
 	}
-	log.Printf("Camera (%v, %v), CameraH/W %v x %v", world.CameraX, world.CameraY, world.CameraWidth, world.CameraHeight)
-	log.Printf("Rendering from (%v, %v) to (%v, %v)", minX, minY, maxX, maxY)
-
+	log.Printf(" min x/y (%v,%v)  max x/y(%v,%v)", minX, minY, maxX, maxY)
 	for row := minY; row < maxY; row++ {
 		for col := minX; col < maxX; col++ {
 			tile := world.GetTile(col, row)
@@ -494,8 +492,8 @@ func NewWorld(window *gterm.Window, centered bool, seed uint64) *World {
 		CameraX:        0,
 		CameraY:        0,
 		// TODO: Width/Height should probably be some function of the window dimensions
-		CameraWidth:  40,
-		CameraHeight: 24,
+		CameraWidth:  56,
+		CameraHeight: 28,
 		rng:          pcg.NewPCG64(),
 	}
 
