@@ -248,6 +248,9 @@ func (world *World) Update(turn uint64) bool {
 			world.CurrentLevel.NextEnergy = i + 1
 		}
 
+		// TODO: Need to unravel this somehow, this is gross.
+		// Maybe I put proxies for some of these methods, CanAct, NeedsInput etc... on Entity
+		// but not on the interface and they can do cast and ask or return the proper default
 		if a, ok := e.(Actor); ok {
 			if a.CanAct() {
 				if inputtable, ok := e.(Inputtable); ok {
