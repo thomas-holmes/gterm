@@ -174,7 +174,7 @@ func (player *Player) HandleInput(event sdl.Event, world *World) bool {
 				oldY := player.Y
 				player.X = newX
 				player.Y = newY
-				player.Broadcast(PlayerMove, PlayerMoveMessage{ID: player.ID, OldX: oldX, OldY: oldY, NewX: newX, NewY: newY})
+				player.Broadcast(MoveEntity, MoveEntityMessage{ID: player.ID, OldX: oldX, OldY: oldY, NewX: newX, NewY: newY})
 			case MoveIsEnemy:
 				if data, ok := data.(MoveEnemy); ok {
 					player.Broadcast(AttackEntity, AttackEntityMesasge{

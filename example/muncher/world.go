@@ -416,14 +416,6 @@ func (world *World) RemoveEntity(entity Entity) {
 	log.Printf("Finisehd remove")
 }
 
-// TODO: Dedup this with move entity, maybe?
-func (world *World) MovePlayer(message PlayerMoveMessage) {
-	oldTile := world.GetTile(message.OldX, message.OldY)
-	newTile := world.GetTile(message.NewX, message.NewY)
-	newTile.Creature = oldTile.Creature
-	oldTile.Creature = nil
-}
-
 // TODO: Dedup with move player, above?
 func (world *World) MoveEntity(message MoveEntityMessage) {
 	oldTile := world.GetTile(message.OldX, message.OldY)
@@ -449,10 +441,6 @@ func (world *World) Notify(message Message, data interface{}) {
 	case ClearRegion:
 		if d, ok := data.(ClearRegionMessage); ok {
 			world.Window.ClearRegion(d.XPos, d.YPos, d.Width, d.Height)
-		}
-	case PlayerMove:
-		if d, ok := data.(PlayerMoveMessage); ok {
-			world.MovePlayer(d)
 		}
 	case MoveEntity:
 		if d, ok := data.(MoveEntityMessage); ok {

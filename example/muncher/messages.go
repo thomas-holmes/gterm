@@ -8,7 +8,6 @@ const (
 	PlayerUpdate Message = iota
 	ClearRegion
 	MoveEntity
-	PlayerMove
 	AttackEntity
 	PlayerDead
 	KillEntity
@@ -25,14 +24,6 @@ type ClearRegionMessage struct {
 }
 
 type MoveEntityMessage struct {
-	ID   int
-	OldX int
-	OldY int
-	NewX int
-	NewY int
-}
-
-type PlayerMoveMessage struct {
 	ID   int
 	OldX int
 	OldY int
