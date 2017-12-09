@@ -181,19 +181,27 @@ func (level *CandidateLevel) connectRooms(roomId1 int, roomId2 int) {
 func (level *CandidateLevel) addStairs() {
 	levelSize := uint64(len(level.tiles))
 	if level.flags&GenUpStairs != 0 {
-		for i := 0; i < 3; i++ {
-			candidate := level.rng.Bounded(levelSize)
-			if level.tiles[candidate] == Floor {
-				level.tiles[candidate] = UpStair
+		for i := 0; i < 3; {
+			for {
+				candidate := level.rng.Bounded(levelSize)
+				if level.tiles[candidate] == Floor {
+					level.tiles[candidate] = UpStair
+					i++
+					break
+				}
 			}
 		}
 	}
 
 	if level.flags&GenDownStairs != 0 {
-		for i := 0; i < 3; i++ {
-			candidate := level.rng.Bounded(levelSize)
-			if level.tiles[candidate] == Floor {
-				level.tiles[candidate] = DownStair
+		for i := 0; i < 3; {
+			for {
+				candidate := level.rng.Bounded(levelSize)
+				if level.tiles[candidate] == Floor {
+					level.tiles[candidate] = DownStair
+					i++
+					break
+				}
 			}
 		}
 	}
