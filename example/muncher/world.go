@@ -248,29 +248,31 @@ func (world *World) Update(turn uint64) bool {
 			world.CurrentLevel.NextEnergy = i + 1
 		}
 
-		if e.CanAct() {
-			if inputtable, ok := e.(Inputtable); ok {
-				log.Printf("Do I get in here?")
-				if inputtable.NeedsInput() {
-					log.Printf("Found one that needs input %+v", e)
-					if input, ok := world.PopInput(); ok {
-						if e.Update(turn, input, world) {
-							world.CurrentLevel.NextEntity = i + 1
+		if a, ok := e.(Actor); ok {
+			if a.CanAct() {
+				if inputtable, ok := e.(Inputtable); ok {
+					log.Printf("Do I get in here?")
+					if inputtable.NeedsInput() {
+						log.Printf("Found one that needs input %+v", e)
+						if input, ok := world.PopInput(); ok {
+							if e.Update(turn, input, world) {
+								world.CurrentLevel.NextEntity = i + 1
+							} else {
+								world.needInput = true
+								break
+							}
 						} else {
 							world.needInput = true
 							break
 						}
 					} else {
-						world.needInput = true
-						break
+						e.Update(turn, nil, world)
+						world.CurrentLevel.NextEntity = i + 1
 					}
 				} else {
 					e.Update(turn, nil, world)
 					world.CurrentLevel.NextEntity = i + 1
 				}
-			} else {
-				e.Update(turn, nil, world)
-				world.CurrentLevel.NextEntity = i + 1
 			}
 		}
 		if p, ok := e.(*Player); ok {
