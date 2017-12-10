@@ -16,6 +16,9 @@
             "options": {
                 "cwd": "${workspaceFolder}/example/muncher"
             },
+            "args": [
+                "-no-vsync"
+            ],
             "isBackground": false,
             "problemMatcher": [],
             "dependsOn": "buildMuncher"

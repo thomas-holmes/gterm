@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"math/rand"
 	"path"
@@ -58,7 +59,7 @@ func spawnRandomMonster(world *World) {
 
 func main() {
 	// Disable FPS limit, generally, so I can monitor performance.
-	window := gterm.NewWindow(100, 30, path.Join("assets", "font", "DejaVuSansMono.ttf"), 24, false)
+	window := gterm.NewWindow(100, 30, path.Join("assets", "font", "DejaVuSansMono.ttf"), 24, !NoVSync)
 
 	if err := window.Init(); err != nil {
 		log.Fatalln("Failed to Init() window", err)
@@ -136,6 +137,10 @@ func main() {
 	}
 }
 
+var NoVSync = true
+
 func init() {
 	go http.ListenAndServe("localhost:6060", nil)
+	flag.BoolVar(&NoVSync, "no-vsync", false, "disable vsync")
+	flag.Parse()
 }
