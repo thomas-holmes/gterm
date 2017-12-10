@@ -29,6 +29,9 @@ type Player struct {
 	RenderGlyph rune
 	RenderColor sdl.Color
 
+	// TODO: Consider making an Inventory struct and put it on creature
+	Items []*Item
+
 	Creature
 
 	Messaging
@@ -98,6 +101,17 @@ func (player *Player) Heal(amount int) {
 	player.Broadcast(PlayerUpdate, nil)
 }
 
+func (player *Player) PickupItem(world *World) bool {
+	tile := world.GetTile(player.X, player.Y)
+	if tile.Item == nil {
+		return false
+	}
+
+	player.Items = append(player.Items, tile.Item)
+	tile.Item = nil
+	return true
+}
+
 func (player *Player) Update(turn uint64, event sdl.Event, world *World) bool {
 	if player.HandleInput(event, world) {
 		player.currentEnergy -= 100
@@ -160,6 +174,8 @@ func (player *Player) HandleInput(event sdl.Event, world *World) bool {
 		case sdl.K_2:
 			player.Heal(1)
 			return false
+		case sdl.K_p:
+			return player.PickupItem(world)
 		default:
 			return false
 		}
