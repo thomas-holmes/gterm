@@ -160,6 +160,8 @@ func (player *Player) HandleInput(event sdl.Event, world *World) bool {
 		case sdl.K_2:
 			player.Heal(1)
 			return false
+		default:
+			return false
 		}
 
 		if newX != player.X || newY != player.Y {
