@@ -50,7 +50,7 @@ func (player *Player) GainExp(exp int) {
 	}
 }
 
-func NewPlayer(xPos int, yPos int) Player {
+func NewPlayer() Player {
 	player := Player{
 		RenderGlyph: '@',
 		RenderColor: Red,
@@ -61,8 +61,6 @@ func NewPlayer(xPos int, yPos int) Player {
 				maxEnergy:     100,
 			},
 			HP: Health{Current: 5, Max: 5},
-			X:  xPos,
-			Y:  yPos,
 		},
 	}
 

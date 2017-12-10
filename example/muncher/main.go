@@ -79,7 +79,7 @@ func main() {
 		world.MessageBus.Subscribe(combat)
 	}
 
-	player := NewPlayer(1, 1)
+	player := NewPlayer()
 	player.LevelUp()
 	player.LevelUp()
 	player.LevelUp()
