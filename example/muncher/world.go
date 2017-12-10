@@ -48,6 +48,8 @@ type World struct {
 
 	InputBuffer []sdl.Event
 
+	MenuStack []Menu
+
 	GameOver bool
 
 	needInput bool
@@ -243,13 +245,34 @@ func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 	}
 }
 
+func (world *World) tidyMenus() bool {
+	for i := len(world.MenuStack) - 1; i >= 0; i-- {
+		log.Printf("%v", world.MenuStack)
+		if world.MenuStack[i].Done() {
+			world.MenuStack = world.MenuStack[:i]
+		}
+	}
+
+	return len(world.MenuStack) > 0
+}
+
 func (world *World) Update() bool {
 	log.Printf("Updating turn [%v]", world.turnCount)
+
+	if world.tidyMenus() {
+		currentMenu := world.MenuStack[len(world.MenuStack)-1]
+		if input, ok := world.PopInput(); ok {
+			world.needInput = currentMenu.Update(input)
+			world.tidyMenus()
+		} else {
+			world.needInput = true
+		}
+		return world.needInput
+	}
 
 	if world.CurrentLevel.NextEntity == 0 && world.CurrentLevel.NextEnergy == 0 {
 		world.turnCount++
 	}
-
 	turn := world.turnCount
 
 	world.needInput = false
@@ -351,6 +374,11 @@ func (world *World) Render() {
 
 	if world.pop != nil && world.pop.Shown {
 		world.pop.Render(world.Window)
+	}
+
+	// Render bottom to top
+	for _, m := range world.MenuStack {
+		m.Render()
 	}
 
 	if world.showScentOverlay {
@@ -492,6 +520,10 @@ func (world *World) Notify(message Message, data interface{}) {
 			world.CurrentLevel = d.DestLevel
 			world.LevelChanged = true
 			world.AddEntity(world.Player)
+		}
+	case ShowMenu:
+		if d, ok := data.(ShowMenuMessage); ok {
+			world.MenuStack = append(world.MenuStack, d.Menu)
 		}
 	}
 }

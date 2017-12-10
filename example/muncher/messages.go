@@ -14,6 +14,7 @@ const (
 	PopUpShown
 	PopUpHidden
 	PlayerFloorChange
+	ShowMenu
 )
 
 type ClearRegionMessage struct {
@@ -51,6 +52,10 @@ type Messaging struct {
 
 type PlayerFloorChangeMessage struct {
 	Stair
+}
+
+type ShowMenuMessage struct {
+	Menu Menu
 }
 
 type Notifier interface {
