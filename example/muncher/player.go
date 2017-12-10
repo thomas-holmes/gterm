@@ -186,6 +186,10 @@ func (player *Player) HandleInput(event sdl.Event, world *World) bool {
 			menu := &InventoryPop{X: 10, Y: 2, W: 30, H: world.Window.Rows - 4, window: world.Window, Inventory: player.Inventory}
 			player.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
 			return false
+		case sdl.K_ESCAPE:
+			world.GameOver = true
+			world.QuitGame = true
+			return true
 		default:
 			return false
 		}
@@ -246,7 +250,6 @@ func (player *Player) Notify(message Message, data interface{}) {
 }
 
 func (player *Player) NeedsInput() bool {
-	log.Printf("Called player NeedsInput %+v", player)
 	return true
 }
 

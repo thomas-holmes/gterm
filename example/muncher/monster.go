@@ -64,8 +64,6 @@ func (monster *Monster) Pursue(turn uint64, world *World) bool {
 	// if in range?
 	candidates := scent.track(turn, monster.X, monster.Y)
 
-	log.Printf("Monster %#v found tracking candidates: %v", *monster, candidates)
-
 	// TODO: Sometimes the monster takes a suboptimal path
 	if len(candidates) > 0 {
 		randomIndex := rand.Intn(len(candidates))
@@ -107,7 +105,6 @@ func (monster *Monster) Pursue(turn uint64, world *World) bool {
 }
 
 func (monster *Monster) Update(turn uint64, _ sdl.Event, world *World) bool {
-	log.Printf("Updating Monster %+v", *monster)
 	if monster.Pursue(turn, world) {
 		monster.currentEnergy -= 100
 		return true
@@ -116,7 +113,6 @@ func (monster *Monster) Update(turn uint64, _ sdl.Event, world *World) bool {
 }
 
 func (monster *Monster) NeedsInput() bool {
-	log.Printf("Called monster NeedsInput %+v", monster)
 	return false
 }
 

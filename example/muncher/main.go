@@ -29,8 +29,6 @@ func handleInput(event sdl.Event, world *World) {
 	switch e := event.(type) {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
-		case sdl.K_ESCAPE:
-			quit = true
 		case sdl.K_5:
 			spawnRandomMonster(world)
 		case sdl.K_BACKSLASH:
@@ -107,7 +105,7 @@ func main() {
 
 	hud := NewHud(&player, world, 60, 0)
 
-	for !quit {
+	for !quit && !world.QuitGame {
 
 		event := sdl.PollEvent()
 		// TODO: Don't advance turn count if we don't actually do something worthwhile

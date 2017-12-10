@@ -51,6 +51,7 @@ type World struct {
 	MenuStack []Menu
 
 	GameOver bool
+	QuitGame bool
 
 	needInput bool
 }

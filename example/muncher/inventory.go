@@ -40,7 +40,7 @@ func (pop *InventoryPop) Update(event sdl.Event) bool {
 	switch e := event.(type) {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
-		case sdl.K_a:
+		case sdl.K_ESCAPE:
 			pop.done = true
 			return true
 		}
