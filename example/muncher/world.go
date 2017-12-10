@@ -280,7 +280,6 @@ func (world *World) Update() bool {
 	for i := world.CurrentLevel.NextEntity; i < len(world.CurrentLevel.Entities); i++ {
 		e := world.CurrentLevel.Entities[i]
 
-		log.Printf("EntityLen: %v, nextEntity: %v, nextEnergy: %v", len(world.CurrentLevel.Entities), world.CurrentLevel.NextEntity, world.CurrentLevel.NextEnergy)
 		energized, isEnergized := e.(Energized)
 		if isEnergized && world.CurrentLevel.NextEnergy == i {
 			energized.AddEnergy(100)
@@ -379,7 +378,7 @@ func (world *World) Render() {
 
 	// Render bottom to top
 	for _, m := range world.MenuStack {
-		m.Render()
+		m.Render(world.Window)
 	}
 
 	if world.showScentOverlay {
@@ -463,7 +462,6 @@ func (world *World) RemoveEntity(entity Entity) {
 	if renderable, ok := foundEntity.(Renderable); ok {
 		world.GetTile(renderable.XPos(), renderable.YPos()).Creature = nil
 	}
-	log.Printf("Finisehd remove")
 }
 
 func (world *World) MoveEntity(message MoveEntityMessage) {
@@ -523,7 +521,13 @@ func (world *World) Notify(message Message, data interface{}) {
 			world.AddEntity(world.Player)
 		}
 	case ShowMenu:
+		log.Printf("SHOW MENU")
 		if d, ok := data.(ShowMenuMessage); ok {
+			log.Printf("%T %+v", d.Menu, d.Menu)
+			if n, ok := d.Menu.(Notifier); ok {
+				log.Printf("ADDED IT!")
+				n.SetMessageBus(&world.MessageBus)
+			}
 			world.MenuStack = append(world.MenuStack, d.Menu)
 		}
 	}

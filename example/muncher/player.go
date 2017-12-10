@@ -20,10 +20,6 @@ func getRandomColor() sdl.Color {
 func (player *Player) Render(world *World) {
 	playerBg := gterm.NoColor // playerBg := getRandomColor()
 	world.RenderRuneAt(player.X, player.Y, player.RenderGlyph, player.RenderColor, playerBg)
-
-	if player.menu != nil {
-		player.menu.Render()
-	}
 }
 
 // Player pepresents the player
@@ -37,8 +33,6 @@ type Player struct {
 	Inventory
 
 	Creature
-
-	menu Menu
 
 	Messaging
 }
@@ -183,7 +177,7 @@ func (player *Player) HandleInput(event sdl.Event, world *World) bool {
 		case sdl.K_p:
 			return player.PickupItem(world)
 		case sdl.K_i:
-			menu := &InventoryPop{X: 10, Y: 2, W: 30, H: world.Window.Rows - 4, window: world.Window, Inventory: player.Inventory}
+			menu := &InventoryPop{X: 10, Y: 2, W: 30, H: world.Window.Rows - 4, Inventory: player.Inventory}
 			player.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
 			return false
 		case sdl.K_ESCAPE:
