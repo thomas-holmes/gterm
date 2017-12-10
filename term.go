@@ -279,10 +279,8 @@ func (window *Window) PutString(col int, row int, content string, fColor sdl.Col
 	return nil
 }
 func (window *Window) ClearRegion(col int, row int, width int, height int) error {
-	log.Printf("Clearing region: (%v,%v) (%v,%v)", col, row, width, height)
 	for y := row; y < row+height; y++ {
 		for x := col; x < col+width; x++ {
-			log.Printf("clearing (%v,%v)", x, y)
 			if err := window.ClearCell(x, y); err != nil {
 				return err
 			}
