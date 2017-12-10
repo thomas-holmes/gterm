@@ -90,11 +90,11 @@ func main() {
 
 	player.Name = "Euclid"
 	level1 := GenLevel(world.rng, 80, 40, GenDownStairs)
-	log.Printf("Level1\n%v", level1)
-	world.AddLevelFromString(level1)
+	log.Printf("Level1\n%v", level1.encodeAsString())
+	world.AddLevelFromCandidate(level1)
 	level2 := GenLevel(world.rng, 80, 40, GenUpStairs)
-	log.Printf("Level2\n%v", level2)
-	world.AddLevelFromString(level2)
+	log.Printf("Level2\n%v", level2.encodeAsString())
+	world.AddLevelFromCandidate(level2)
 	world.SetCurrentLevel(0)
 
 	// TODO: Fix Player needs to be added after level creation now

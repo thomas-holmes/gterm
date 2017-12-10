@@ -14,6 +14,12 @@ type Room struct {
 	H           int
 	connectedTo []int
 }
+
+type CandidateTile struct {
+	TileKind TileKind
+	Item     *Item
+}
+
 type CandidateLevel struct {
 	rng *pcg.PCG64
 
@@ -25,7 +31,7 @@ type CandidateLevel struct {
 	flags LevelGenFlag
 
 	rooms map[int]*Room
-	tiles []TileKind
+	tiles []CandidateTile
 }
 
 const (
@@ -34,6 +40,7 @@ const (
 	MaxRoomWidth      = 20
 	MaxRoomHeight     = 20
 	MaxRoomIterations = 200
+	MaxItemPlacement  = 50 // Let's go overboard at first.
 )
 
 func (level *CandidateLevel) genNextRoomID() int {
@@ -55,7 +62,7 @@ func (level *CandidateLevel) tryAddRandomRoom() {
 
 	for y := topLeftY; y < topLeftY+randomHeight; y++ {
 		for x := topLeftX; x < topLeftX+randomWidth; x++ {
-			if level.tiles[y*level.W+x] != Wall {
+			if level.tiles[y*level.W+x].TileKind != Wall {
 				// Just quit if we run into a non-wall feature
 				return
 			}
@@ -65,7 +72,7 @@ func (level *CandidateLevel) tryAddRandomRoom() {
 	// We can place our room, so make it all floors.
 	for y := topLeftY; y < topLeftY+randomHeight; y++ {
 		for x := topLeftX; x < topLeftX+randomWidth; x++ {
-			level.tiles[y*level.W+x] = Floor
+			level.tiles[y*level.W+x].TileKind = Floor
 		}
 	}
 
@@ -170,7 +177,7 @@ func (level *CandidateLevel) connectRooms(roomId1 int, roomId2 int) {
 		r1y, r2y = r2y, r1y
 	}
 	for ; r1x <= r2x; r1x++ {
-		level.tiles[r1y*level.W+r1x] = Floor
+		level.tiles[r1y*level.W+r1x].TileKind = Floor
 	}
 	r1x--
 	if r1y > r2y {
@@ -178,7 +185,7 @@ func (level *CandidateLevel) connectRooms(roomId1 int, roomId2 int) {
 		r1y, r2y = r2y, r1y
 	}
 	for ; r1y <= r2y; r1y++ {
-		level.tiles[r1y*level.W+r1x] = Floor
+		level.tiles[r1y*level.W+r1x].TileKind = Floor
 	}
 }
 
@@ -188,8 +195,8 @@ func (level *CandidateLevel) addStairs() {
 		for i := 0; i < 3; {
 			for {
 				candidate := level.rng.Bounded(levelSize)
-				if level.tiles[candidate] == Floor {
-					level.tiles[candidate] = UpStair
+				if level.tiles[candidate].TileKind == Floor {
+					level.tiles[candidate].TileKind = UpStair
 					i++
 					break
 				}
@@ -201,12 +208,24 @@ func (level *CandidateLevel) addStairs() {
 		for i := 0; i < 3; {
 			for {
 				candidate := level.rng.Bounded(levelSize)
-				if level.tiles[candidate] == Floor {
-					level.tiles[candidate] = DownStair
+				if level.tiles[candidate].TileKind == Floor {
+					level.tiles[candidate].TileKind = DownStair
 					i++
 					break
 				}
 			}
+		}
+	}
+}
+
+func (level *CandidateLevel) addItems() {
+	for i := 0; i < MaxItemPlacement; i++ {
+		itemIndex := level.rng.Bounded(uint64(len(SampleItems)))
+		randomItem := SampleItems[itemIndex]
+
+		tileIndex := level.rng.Bounded(uint64(len(level.tiles)))
+		if level.tiles[tileIndex].TileKind == Floor {
+			level.tiles[tileIndex].Item = &randomItem
 		}
 	}
 }
@@ -218,7 +237,7 @@ func (level *CandidateLevel) encodeAsString() string {
 			levelStr += "\n"
 		}
 		for x := 0; x < level.W; x++ {
-			switch level.tiles[y*level.W+x] {
+			switch level.tiles[y*level.W+x].TileKind {
 			case Wall:
 				levelStr += string(WallGlyph)
 			case Floor:
@@ -241,7 +260,7 @@ const (
 	GenDownStairs
 )
 
-func GenLevel(rng *pcg.PCG64, maxX int, maxY int, flags LevelGenFlag) string {
+func GenLevel(rng *pcg.PCG64, maxX int, maxY int, flags LevelGenFlag) *CandidateLevel {
 	defer timeMe(time.Now(), "GenLevel")
 	subX := rng.Bounded(uint64(maxX / 4))
 	subY := rng.Bounded(uint64(maxY / 4))
@@ -257,12 +276,14 @@ func GenLevel(rng *pcg.PCG64, maxX int, maxY int, flags LevelGenFlag) string {
 		flags: flags,
 
 		rooms: make(map[int]*Room),
-		tiles: make([]TileKind, W*H, W*H),
+		tiles: make([]CandidateTile, W*H, W*H),
 	}
 
 	level.addRooms()
 
 	level.addStairs()
 
-	return level.encodeAsString()
+	level.addItems()
+
+	return level
 }

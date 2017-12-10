@@ -85,6 +85,16 @@ func (world *World) AddLevelFromString(levelString string) {
 	}
 }
 
+func (world *World) AddLevelFromCandidate(level *CandidateLevel) {
+	world.Levels = append(world.Levels, LoadCandidateLevel(level))
+
+	levels := len(world.Levels)
+	if levels > 1 {
+		connectTwoLevels(&world.Levels[levels-2], &world.Levels[levels-1])
+	}
+
+}
+
 func (world *World) GetTile(column int, row int) *Tile {
 	tile := world.CurrentLevel.getTile(column, row)
 	return tile

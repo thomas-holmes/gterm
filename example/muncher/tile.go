@@ -21,6 +21,21 @@ const (
 	DownStairGlyph = '>'
 )
 
+func TileKindToGlyph(kind TileKind) rune {
+	switch kind {
+	case Wall:
+		return WallGlyph
+	case Floor:
+		return FloorGlyph
+	case UpStair:
+		return UpStairGlyph
+	case DownStair:
+		return DownStairGlyph
+	}
+
+	return WallGlyph // Default to a wall for now, I guess.
+}
+
 func NewTile(x int, y int) Tile {
 	return Tile{
 		X:     x,
@@ -36,6 +51,7 @@ type Tile struct {
 	Color sdl.Color
 
 	Creature Entity
+	Item     *Item
 
 	TileGlyph rune
 	TileKind
@@ -62,7 +78,16 @@ func (tile *Tile) Render(world *World, visibility Visibility) {
 }
 
 func (tile Tile) RenderBackground(world *World, visibility Visibility) {
-	color := tile.Color
+	var glyph rune
+	var color sdl.Color
+
+	if tile.Item != nil {
+		glyph = tile.Item.Symbol
+		color = tile.Item.Color
+	} else {
+		glyph = tile.TileGlyph
+		color = tile.Color
+	}
 
 	if visibility == Seen {
 		color.R /= 2
@@ -70,5 +95,5 @@ func (tile Tile) RenderBackground(world *World, visibility Visibility) {
 		color.B /= 2
 	}
 
-	world.RenderRuneAt(tile.X, tile.Y, tile.TileGlyph, color, gterm.NoColor)
+	world.RenderRuneAt(tile.X, tile.Y, glyph, color, gterm.NoColor)
 }

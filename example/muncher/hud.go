@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"time"
+
+	"github.com/thomas-holmes/gterm"
 )
 
 type HUD struct {
@@ -74,6 +76,30 @@ func (hud HUD) renderTurnCount(world *World) {
 	world.Window.PutString(hud.XPos, hud.YPos+4, turnCount, Yellow)
 }
 
+func (hud HUD) renderStoodOnItem(world *World) {
+	offsetY := hud.YPos + 8
+	offsetX := hud.XPos
+	tile := world.GetTile(world.Player.X, world.Player.Y)
+	if tile.Item != nil {
+		item := tile.Item
+		world.Window.PutRune(hud.XPos, offsetY, item.Symbol, item.Color, gterm.NoColor)
+		offsetX += 2
+		name := item.Name
+		maxLength := (world.Window.Columns - offsetX)
+		for {
+			if len(name) == 0 {
+				break
+			}
+			cut := min(len(name), maxLength)
+			printable := name[:cut]
+			name = name[cut:]
+			world.Window.PutString(offsetX, offsetY, printable, Yellow)
+			offsetY++
+			offsetX = hud.XPos + 1
+		}
+	}
+}
+
 func (hud *HUD) Render(world *World) {
 	defer timeMe(time.Now(), "HUD.Render")
 	hud.renderPlayerName(world)
@@ -81,4 +107,5 @@ func (hud *HUD) Render(world *World) {
 	hud.renderPlayerHealth(world)
 	hud.renderPlayerLevel(world)
 	hud.renderTurnCount(world)
+	hud.renderStoodOnItem(world)
 }

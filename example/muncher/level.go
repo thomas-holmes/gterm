@@ -65,6 +65,52 @@ func connectTwoLevels(upper *Level, lower *Level) {
 	}
 }
 
+func LoadCandidateLevel(candidate *CandidateLevel) Level {
+	level := Level{}
+
+	tiles := make([]Tile, 0, len(candidate.tiles))
+
+	var stairs []Stair
+
+	for y := 0; y < candidate.H; y++ {
+		for x := 0; x < candidate.W; x++ {
+			tile, cTile := NewTile(x, y), candidate.tiles[y*candidate.W+x]
+			tile.TileKind = cTile.TileKind
+			tile.TileGlyph = TileKindToGlyph(cTile.TileKind)
+			tile.Item = cTile.Item
+
+			switch tile.TileKind {
+			case UpStair:
+				stair := Stair{
+					X:    x,
+					Y:    y,
+					Down: false,
+				}
+				stairs = append(stairs, stair)
+			case DownStair:
+				stair := Stair{
+					X:    x,
+					Y:    y,
+					Down: true,
+				}
+				stairs = append(stairs, stair)
+			}
+			tiles = append(tiles, tile)
+		}
+	}
+
+	level.Columns = candidate.W
+	level.Rows = candidate.H
+	level.tiles = tiles
+	level.stairs = stairs
+
+	level.VisionMap = NewVisionMap(level.Columns, level.Rows)
+	level.ScentMap = NewScentMap(level.Columns, level.Rows)
+
+	return level
+}
+
+// TODO: This is now quasi-deprecated as it fails to encode info about items.
 func LoadFromString(levelString string) Level {
 	level := Level{}
 
