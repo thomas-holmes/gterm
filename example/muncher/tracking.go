@@ -52,15 +52,16 @@ func (scentMap ScentMap) track(turn uint64, xPos int, yPos int) []Position {
 	return candidates
 }
 
-func (scentMap ScentMap) UpdateScents(turn uint64, world World) {
+func (scentMap ScentMap) UpdateScents(world *World) {
+	defer timeMe(time.Now(), "ScentMap.UpdateScents")
+
 	vision := world.CurrentLevel.VisionMap
 	player := world.Player
-	defer timeMe(time.Now(), "ScentMap.UpdateScents")
 	for y := 0; y < scentMap.rows; y++ {
 		for x := 0; x < scentMap.columns; x++ {
 			vision := vision.VisibilityAt(x, y)
 			if vision == Visible && !world.GetTile(x, y).IsWall() {
-				scentMap.dirty(x, y, turn, distance(player.X, player.Y, x, y))
+				scentMap.dirty(x, y, world.turnCount, distance(player.X, player.Y, x, y))
 			}
 		}
 	}

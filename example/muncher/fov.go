@@ -35,10 +35,10 @@ func (vision VisionMap) lastSeenAt(x int, y int) int64 {
 	return vision.Map[y*vision.Columns+x]
 }
 
-func (vision *VisionMap) UpdateVision(viewDistance int, player *Player, world *World) {
+func (vision *VisionMap) UpdateVision(viewDistance int, world *World) {
 	defer timeMe(time.Now(), "VisionMap.UpdateVision")
-	playerX := player.XPos()
-	playerY := player.YPos()
+	playerX := world.Player.X
+	playerY := world.Player.Y
 
 	// Go beyond the min/max so we update cells we are moving away from
 	minX := max(playerX-viewDistance, 0)

@@ -106,8 +106,6 @@ func main() {
 
 	hud := NewHud(&player, world, 60, 0)
 
-	var turnCount uint64
-
 	for !quit {
 
 		event := sdl.PollEvent()
@@ -116,7 +114,7 @@ func main() {
 		// some more thinking and probably a further refactor around whether or not the
 		// player actually performed an action. Need to decouple turn advancement from
 		// input acquisition.
-		if turnCount == 0 || eventActionable(event) {
+		if world.turnCount == 0 || eventActionable(event) {
 			window.ClearWindow()
 
 			handleInput(event, world)
@@ -124,16 +122,14 @@ func main() {
 			world.AddInput(event)
 
 			updateLoops := 0
-			for !world.Update(turnCount) && !world.GameOver {
+			for !world.Update() && !world.GameOver {
 				updateLoops++
 			}
 			log.Printf("Ran %v update loops", updateLoops)
 
-			world.Render(turnCount)
+			world.Render()
 
 			hud.Render(world)
-
-			turnCount++
 		}
 
 		window.Refresh()

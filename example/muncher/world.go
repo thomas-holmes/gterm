@@ -182,6 +182,9 @@ func (world *World) AddPlayer(player *Player) {
 		world.CameraY = player.Y
 	}
 
+	world.CurrentLevel.VisionMap.UpdateVision(6, world)
+	world.CurrentLevel.ScentMap.UpdateScents(world)
+
 	world.AddEntity(player)
 }
 
@@ -230,12 +233,14 @@ func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 	}
 }
 
-func (world *World) Update(turn uint64) bool {
-	log.Printf("Updating turn [%v]", turn)
-	if turn == 0 {
-		world.CurrentLevel.VisionMap.UpdateVision(6, world.Player, world)
-		world.CurrentLevel.ScentMap.UpdateScents(turn, *world)
+func (world *World) Update() bool {
+	log.Printf("Updating turn [%v]", world.turnCount)
+
+	if world.CurrentLevel.NextEntity == 0 && world.CurrentLevel.NextEnergy == 0 {
+		world.turnCount++
 	}
+
+	turn := world.turnCount
 
 	world.needInput = false
 	for i := world.CurrentLevel.NextEntity; i < len(world.CurrentLevel.Entities); i++ {
@@ -276,9 +281,10 @@ func (world *World) Update(turn uint64) bool {
 				}
 			}
 		}
-		if p, ok := e.(*Player); ok {
-			world.CurrentLevel.VisionMap.UpdateVision(6, p, world)
-			world.CurrentLevel.ScentMap.UpdateScents(turn, *world)
+
+		if _, ok := e.(*Player); ok {
+			world.CurrentLevel.VisionMap.UpdateVision(6, world)
+			world.CurrentLevel.ScentMap.UpdateScents(world)
 		}
 		if world.LevelChanged {
 			world.LevelChanged = false
@@ -312,8 +318,7 @@ func (world *World) UpdateCamera() {
 }
 
 // Render redrwas everything!
-func (world *World) Render(turnCount uint64) {
-	world.turnCount = turnCount
+func (world *World) Render() {
 	world.UpdateCamera()
 	defer timeMe(time.Now(), "World.Render.TileLoop")
 	var minX, minY, maxX, maxY int
@@ -339,7 +344,7 @@ func (world *World) Render(turnCount uint64) {
 	}
 
 	if world.showScentOverlay {
-		world.OverlayScentMap(turnCount)
+		world.OverlayScentMap()
 	}
 }
 
@@ -368,7 +373,8 @@ func (world *World) ToggleScentOverlay() {
 	world.showScentOverlay = !world.showScentOverlay
 }
 
-func (world *World) OverlayScentMap(turn uint64) {
+func (world *World) OverlayScentMap() {
+	turn := world.turnCount
 	for y := 0; y < world.CurrentLevel.Rows; y++ {
 		for x := 0; x < world.CurrentLevel.Columns; x++ {
 			scent := world.CurrentLevel.ScentMap.getScent(x, y)
