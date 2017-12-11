@@ -295,7 +295,9 @@ func (world *World) Update() bool {
 					if inputtable.NeedsInput() {
 						if input, ok := world.PopInput(); ok {
 							if a.Update(turn, input, world) {
-								world.CurrentLevel.NextEntity = i + 1
+								if !a.CanAct() {
+									world.CurrentLevel.NextEntity = i + 1
+								}
 							} else {
 								world.needInput = true
 								break
@@ -306,11 +308,15 @@ func (world *World) Update() bool {
 						}
 					} else {
 						a.Update(turn, nil, world)
-						world.CurrentLevel.NextEntity = i + 1
+						if !a.CanAct() {
+							world.CurrentLevel.NextEntity = i + 1
+						}
 					}
 				} else {
 					a.Update(turn, nil, world)
-					world.CurrentLevel.NextEntity = i + 1
+					if !a.CanAct() { // All done
+						world.CurrentLevel.NextEntity = i + 1
+					}
 				}
 			}
 		}
