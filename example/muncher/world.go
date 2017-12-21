@@ -362,8 +362,8 @@ func (world *World) Render() {
 	defer timeMe(time.Now(), "World.Render.TileLoop")
 	var minX, minY, maxX, maxY int
 	if world.CameraCentered {
-		minY, maxY = max(0, world.CameraY-(world.CameraHeight/2)), min(world.CurrentLevel.Rows, world.CameraY+(world.CameraWidth/2))
-		minX, maxX = max(0, world.CameraX-(world.CameraWidth/2)), min(world.CurrentLevel.Columns, world.CameraX+(world.CameraHeight/2))
+		minY, maxY = max(0, world.CameraY-(world.CameraHeight/2)), min(world.CurrentLevel.Rows, world.CameraY+(world.CameraHeight/2))
+		minX, maxX = max(0, world.CameraX-(world.CameraWidth/2)), min(world.CurrentLevel.Columns, world.CameraX+(world.CameraWidth/2))
 	} else {
 		minY, maxY = 0, world.CurrentLevel.Rows
 		minX, maxX = 0, world.CurrentLevel.Columns

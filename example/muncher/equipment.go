@@ -62,6 +62,7 @@ func (pop *EquipmentPop) Update(event sdl.Event) bool {
 }
 
 func (pop *EquipmentPop) Render(window *gterm.Window) {
+	// TODO: Don't do this
 	inventoryPop := InventoryPop{
 		Inventory: pop.Player.Inventory,
 		X:         pop.X,
