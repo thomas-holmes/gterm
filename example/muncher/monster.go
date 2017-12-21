@@ -28,21 +28,15 @@ type Monster struct {
 }
 
 func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Monster {
+	// This is all garbage. creature is a mess and I hate it
+	creature := NewCreature(level, 100, hp)
+
+	creature.X = xPos
+	creature.Y = yPos
+	creature.Team = MonsterTeam
 	monster := Monster{
-		Color: color,
-		Creature: Creature{
-			Energy: Energy{
-				maxEnergy: 100,
-			},
-			Team:  MonsterTeam,
-			Level: level,
-			X:     xPos,
-			Y:     yPos,
-			HP: Health{
-				Current: hp,
-				Max:     hp,
-			},
-		},
+		Color:    color,
+		Creature: creature,
 	}
 
 	return monster
@@ -61,7 +55,7 @@ func (monster *Monster) Pursue(turn uint64, world *World) bool {
 	scent := world.CurrentLevel.ScentMap
 
 	// TODO: Maybe short circuit tracking here and just attack the player instead
-	// if in range?
+	// if in ranger?
 	candidates := scent.track(turn, monster.X, monster.Y)
 
 	// TODO: Sometimes the monster takes a suboptimal path

@@ -21,8 +21,13 @@ func (combat CombatSystem) fight(a Entity, d Entity) {
 	}
 	attacker, defender := aCombatant.Combatant(), dCombatant.Combatant()
 
-	defender.Damage(attacker.Level)
+	log.Printf("Fighting with %+v", attacker.Equipment)
+	defender.Damage(attacker.Equipment.Weapon.Power)
 
+	// This should be done by the entity instead of here, I think?
+	// I think this used to attribute the experience gain on death. Maybe
+	// need a more sophisticated combat/exp tracking system instead based
+	// on damage dealt & proximity?
 	if defender.HP.Current == 0 {
 		combat.Broadcast(KillEntity, KillEntityMessage{Attacker: a, Defender: d})
 	}

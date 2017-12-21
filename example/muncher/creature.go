@@ -24,6 +24,8 @@ type Creature struct {
 
 	Energy
 
+	Equipment
+
 	HP Health
 
 	Level int
@@ -49,6 +51,7 @@ func (c Creature) YPos() int {
 }
 
 func (c *Creature) Damage(damage int) {
+	log.Printf("%v is Taking damage of %v", *c, damage)
 	c.HP.Current = max(0, c.HP.Current-damage)
 }
 
@@ -74,6 +77,18 @@ func (c *Creature) TryMove(newX int, newY int, world *World) (MoveResult, interf
 	}
 
 	return MoveIsInvalid, nil
+}
+
+func NewCreature(level int, maxEnergy int, maxHP int) Creature {
+	return Creature{
+		Level: level,
+		Energy: Energy{
+			currentEnergy: maxEnergy,
+			maxEnergy:     maxEnergy,
+		},
+		HP: Health{Current: 5, Max: 5},
+		Equipment: NewEquipment(),
+	}
 }
 
 type MoveResult int

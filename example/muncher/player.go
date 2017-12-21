@@ -57,14 +57,7 @@ func NewPlayer() Player {
 	player := Player{
 		RenderGlyph: '@',
 		RenderColor: Red,
-		Creature: Creature{
-			Level: 1,
-			Energy: Energy{
-				currentEnergy: 100,
-				maxEnergy:     100,
-			},
-			HP: Health{Current: 5, Max: 5},
-		},
+		Creature:    NewCreature(1, 100, 5),
 	}
 
 	log.Printf("Made a player, %#v", player)

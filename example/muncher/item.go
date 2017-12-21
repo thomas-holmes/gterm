@@ -8,6 +8,9 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+// This is used for empty hands, maybe?
+var NoItem = Item{Power: 1}
+
 var SampleItems = []Item{
 	Item{Symbol: ')', Color: Red, Name: "Dagger", Description: "A plain dagger.", Power: 2},
 	Item{Symbol: ')', Color: Green, Name: "Rapier", Description: "A slender weapon, perfect for thursting.", Power: 4},
