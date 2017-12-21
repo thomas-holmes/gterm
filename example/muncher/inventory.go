@@ -85,7 +85,7 @@ func (pop *InventoryPop) renderItem(index int, row int, window *gterm.Window) in
 func (pop *InventoryPop) Render(window *gterm.Window) {
 	if err := window.ClearRegion(pop.X, pop.Y, pop.W, pop.H); err != nil {
 		log.Printf("(%v,%v) (%v,%v)", pop.X, pop.Y, pop.W, pop.H)
-		log.Printf("Failed to render inventory", err)
+		log.Println("Failed to render inventory", err)
 	}
 
 	nextRow := pop.Y + 1
