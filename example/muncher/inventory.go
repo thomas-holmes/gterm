@@ -9,12 +9,6 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-type Menu interface {
-	Update(sdl.Event) bool
-	Render(window *gterm.Window)
-	Done() bool
-}
-
 type Inventory struct {
 	Items []*Item
 }
@@ -34,10 +28,6 @@ type InventoryPop struct {
 
 func (pop *InventoryPop) Done() bool {
 	return pop.done
-}
-
-func testNotifier(n Notifier) {
-
 }
 
 func (pop *InventoryPop) tryShowItem(index int) {
