@@ -62,7 +62,6 @@ func (pop *EquipmentPop) Update(event sdl.Event) bool {
 }
 
 func (pop *EquipmentPop) Render(window *gterm.Window) {
-	log.Println("*********#*#*#**#*#*OIOSOISDJFOSDIJF*@#$*(U@#*(%@#*%@")
 	inventoryPop := InventoryPop{
 		Inventory: pop.Player.Inventory,
 		X:         pop.X,
