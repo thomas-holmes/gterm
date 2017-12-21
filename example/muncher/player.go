@@ -173,6 +173,10 @@ func (player *Player) HandleInput(event sdl.Event, world *World) bool {
 			menu := &InventoryPop{X: 10, Y: 2, W: 30, H: world.Window.Rows - 4, Inventory: player.Inventory}
 			player.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
 			return false
+		case sdl.K_e:
+			menu := &EquipmentPop{X: 10, Y: 2, W: 30, H: world.Window.Rows - 4, Player: player}
+			player.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
+			return false
 		case sdl.K_ESCAPE:
 			world.GameOver = true
 			world.QuitGame = true
@@ -232,6 +236,10 @@ func (player *Player) Notify(message Message, data interface{}) {
 			} else {
 				player.GainExp((defender.Level + 1) / 2)
 			}
+		}
+	case EquipItem:
+		if d, ok := data.(EquipItemMessage); ok {
+			player.Equipment.Weapon = d.Item // This is super low effort, but should work?
 		}
 	}
 }

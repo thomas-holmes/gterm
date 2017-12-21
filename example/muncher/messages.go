@@ -15,6 +15,7 @@ const (
 	PopUpHidden
 	PlayerFloorChange
 	ShowMenu
+	EquipItem
 )
 
 type ClearRegionMessage struct {
@@ -56,6 +57,10 @@ type PlayerFloorChangeMessage struct {
 
 type ShowMenuMessage struct {
 	Menu Menu
+}
+
+type EquipItemMessage struct {
+	Item
 }
 
 type Notifier interface {

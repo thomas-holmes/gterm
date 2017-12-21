@@ -84,6 +84,17 @@ func (hud *HUD) renderTurnCount(world *World) {
 	world.Window.PutString(hud.XPos, hud.GetNextRow(), turnCount, Yellow)
 }
 
+func (hud *HUD) renderEquippedWeapon(world *World) {
+	equipName := hud.Player.Equipment.Weapon.Name
+
+	offsetY := hud.GetNextRow()
+	offsetX := hud.XPos
+
+	wepaonStr := fmt.Sprintf("Weapon: %v", equipName)
+
+	world.Window.PutString(offsetX, offsetY, wepaonStr, Yellow)
+}
+
 func (hud *HUD) renderItemDisplay(world *World) {
 	hud.nextFreeRow += 3
 	offsetY := hud.GetNextRow()
@@ -129,5 +140,6 @@ func (hud *HUD) Render(world *World) {
 	hud.renderPlayerHealth(world)
 	hud.renderPlayerLevel(world)
 	hud.renderTurnCount(world)
+	hud.renderEquippedWeapon(world)
 	hud.renderItemDisplay(world)
 }

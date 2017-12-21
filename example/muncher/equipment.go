@@ -1,5 +1,12 @@
 package main
 
+import (
+	"log"
+
+	"github.com/thomas-holmes/gterm"
+	"github.com/veandco/go-sdl2/sdl"
+)
+
 type Equipment struct {
 	Weapon Item
 }
@@ -8,4 +15,61 @@ func NewEquipment() Equipment {
 	return Equipment{
 		Weapon: NoItem,
 	}
+}
+
+type EquipmentPop struct {
+	Player *Player
+
+	done bool
+
+	X int
+	Y int
+	W int
+	H int
+
+	Messaging
+}
+
+func (pop *EquipmentPop) Done() bool {
+	return pop.done
+}
+
+func (pop *EquipmentPop) equipItem(index int) {
+	// Should probably filter on equippable and change the list, whatever
+	if index < len(pop.Player.Inventory.Items) {
+		item := pop.Player.Inventory.Items[index]
+		log.Printf("Equipping item %+v", item)
+		pop.Broadcast(EquipItem, EquipItemMessage{*item})
+		pop.done = true
+	}
+}
+
+func (pop *EquipmentPop) Update(event sdl.Event) bool {
+	switch e := event.(type) {
+	case *sdl.KeyDownEvent:
+		k := e.Keysym.Sym
+		switch {
+		case k == sdl.K_ESCAPE:
+			pop.done = true
+			return true
+		case k >= sdl.K_a && k <= sdl.K_z:
+			pop.equipItem(int(k - sdl.K_a))
+		}
+
+	}
+
+	return true
+}
+
+func (pop *EquipmentPop) Render(window *gterm.Window) {
+	log.Println("*********#*#*#**#*#*OIOSOISDJFOSDIJF*@#$*(U@#*(%@#*%@")
+	inventoryPop := InventoryPop{
+		Inventory: pop.Player.Inventory,
+		X:         pop.X,
+		Y:         pop.Y,
+		W:         pop.W,
+		H:         pop.H,
+	}
+
+	inventoryPop.Render(window)
 }
