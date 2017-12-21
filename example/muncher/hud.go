@@ -90,9 +90,21 @@ func (hud *HUD) renderEquippedWeapon(world *World) {
 	offsetY := hud.GetNextRow()
 	offsetX := hud.XPos
 
-	wepaonStr := fmt.Sprintf("Weapon: %v", equipName)
+	weaponStr := fmt.Sprintf("Weapon: %v", equipName)
 
-	world.Window.PutString(offsetX, offsetY, wepaonStr, Yellow)
+	offsetX = hud.XPos
+	for {
+		if len(weaponStr) == 0 {
+			break
+		}
+		maxLength := (world.Window.Columns - offsetX)
+		cut := min(len(weaponStr), maxLength)
+		printable := weaponStr[:cut]
+		weaponStr = weaponStr[cut:]
+		world.Window.PutString(offsetX, offsetY, printable, Yellow)
+		offsetY = hud.GetNextRow()
+		offsetX = hud.XPos + 2
+	}
 }
 
 func (hud *HUD) renderItemDisplay(world *World) {
