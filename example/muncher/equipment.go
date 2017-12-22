@@ -36,6 +36,7 @@ func (pop *EquipmentPop) Done() bool {
 
 func (pop *EquipmentPop) equipItem(index int) {
 	// Should probably filter on equippable and change the list, whatever
+	// Consider doing this w/o message broadcast. We do have a ref to the player, after all
 	if index < len(pop.Player.Inventory.Items) {
 		item := pop.Player.Inventory.Items[index]
 		log.Printf("Equipping item %+v", item)
