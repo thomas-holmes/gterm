@@ -27,6 +27,7 @@ type World struct {
 
 	CurrentLevel *Level
 
+	MaxDepth     int
 	Levels       []Level
 	LevelChanged bool
 
@@ -79,9 +80,13 @@ func (world *World) SetCurrentLevel(index int) {
 }
 
 func (world *World) AddLevelFromCandidate(level *CandidateLevel) {
-	world.Levels = append(world.Levels, LoadCandidateLevel(level))
+	loadedLevel := LoadCandidateLevel(level)
+	loadedLevel.Depth = len(world.Levels)
+
+	world.Levels = append(world.Levels, loadedLevel)
 
 	levels := len(world.Levels)
+
 	if levels > 1 {
 		connectTwoLevels(&world.Levels[levels-2], &world.Levels[levels-1])
 	}
@@ -123,6 +128,8 @@ func (world *World) addPlayer(player *Creature) {
 }
 
 func (world *World) addCreature(creature *Creature) {
+	creature.Depth = world.CurrentLevel.Depth
+
 	if !world.CanStandOnTile(creature.X, creature.Y) {
 		for _, t := range world.CurrentLevel.tiles {
 			if !t.IsWall() && !(t.Creature != nil) {
@@ -459,11 +466,30 @@ const (
 	DefaultSeq uint64 = iota * 1000
 )
 
+func (world *World) BuildLevels() {
+	var genFlags LevelGenFlag
+	for i := 0; i < world.MaxDepth; i++ {
+		switch i {
+		case 0:
+			genFlags = GenDownStairs
+		case world.MaxDepth - 1:
+			genFlags = GenUpStairs
+		default:
+			genFlags = GenDownStairs | GenUpStairs
+		}
+
+		level := GenLevel(world.rng, 100, 100, genFlags)
+		world.AddLevelFromCandidate(level)
+	}
+	world.SetCurrentLevel(0)
+}
+
 func NewWorld(window *gterm.Window, centered bool, seed uint64) *World {
 
-	world := World{
+	world := &World{
 		Window:         window,
 		CameraCentered: centered,
+		MaxDepth:       15,
 		CameraX:        0,
 		CameraY:        0,
 		// TODO: Width/Height should probably be some function of the window dimensions
@@ -475,9 +501,11 @@ func NewWorld(window *gterm.Window, centered bool, seed uint64) *World {
 	world.rng.Seed(seed, DefaultSeq, seed*seed, DefaultSeq+1)
 
 	world.messageBus = &MessageBus{}
-	world.messageBus.Subscribe(&world)
+	world.messageBus.Subscribe(world)
 
-	world.GameLog = NewGameLog(0, window.Rows-4, 56, 3, &world, world.messageBus)
+	world.GameLog = NewGameLog(0, window.Rows-4, 56, 3, world, world.messageBus)
 
-	return &world
+	world.BuildLevels()
+
+	return world
 }

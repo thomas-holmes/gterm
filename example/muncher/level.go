@@ -32,6 +32,8 @@ type Level struct {
 	tiles     []Tile
 	stairs    []Stair
 
+	Depth int
+
 	NextEntity int
 	NextEnergy int
 	Entities   []Entity

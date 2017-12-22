@@ -32,6 +32,8 @@ type Creature struct {
 	RenderGlyph rune
 	RenderColor sdl.Color
 
+	Depth int
+
 	Team
 
 	State MonsterBehavior

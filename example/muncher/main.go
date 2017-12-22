@@ -87,15 +87,7 @@ func main() {
 	player.LevelUp()
 
 	player.Name = "Euclid"
-	level1 := GenLevel(world.rng, 80, 40, GenDownStairs)
-	log.Printf("Level1\n%v", level1.encodeAsString())
-	world.AddLevelFromCandidate(level1)
-	level2 := GenLevel(world.rng, 80, 40, GenUpStairs)
-	log.Printf("Level2\n%v", level2.encodeAsString())
-	world.AddLevelFromCandidate(level2)
-	world.SetCurrentLevel(0)
 
-	// WARNING: Fix Player needs to be added after level creation
 	world.AddEntity(&player)
 
 	// WARNING: Fix Monsters need to be added after level creation now

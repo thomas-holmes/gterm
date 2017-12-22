@@ -47,7 +47,7 @@ func (hud *HUD) renderPlayerName(world *World) {
 }
 
 func (hud *HUD) renderPlayerPosition(world *World) {
-	position := fmt.Sprintf("(%v, %v)", hud.Player.X, hud.Player.Y)
+	position := fmt.Sprintf("(%v, %v) - Level %v", hud.Player.X, hud.Player.Y, hud.Player.Depth+1)
 	world.Window.PutString(hud.XPos, hud.GetNextRow(), position, Yellow)
 }
 
