@@ -56,11 +56,13 @@ type World struct {
 	Messaging
 }
 
+// GetNextID Generates a monotonically increasing Entity ID
 func (world *World) GetNextID() int {
 	world.nextID++
 	return world.nextID
 }
 
+// PopInput get a queued input if there is one.
 func (world *World) PopInput() (sdl.Event, bool) {
 	if len(world.InputBuffer) > 0 {
 		input := world.InputBuffer[0]
@@ -71,14 +73,17 @@ func (world *World) PopInput() (sdl.Event, bool) {
 	return nil, false
 }
 
+// AddInput queue an input for the game loop
 func (world *World) AddInput(event sdl.Event) {
 	world.InputBuffer = append(world.InputBuffer, event)
 }
 
+// SetCurrentLevel update the worlds inner CurrentLevel pointer
 func (world *World) SetCurrentLevel(index int) {
 	world.CurrentLevel = world.Levels[index]
 }
 
+// AddLevelFromCandidate constructs a real level from an intermediate level representation
 func (world *World) AddLevelFromCandidate(level *CandidateLevel) {
 	loadedLevel := LoadCandidateLevel(level)
 	loadedLevel.Depth = len(world.Levels)
@@ -92,6 +97,7 @@ func (world *World) AddLevelFromCandidate(level *CandidateLevel) {
 	}
 }
 
+// GetTile get the tile at a specific map location
 func (world *World) GetTile(column int, row int) *Tile {
 	tile := world.CurrentLevel.getTile(column, row)
 	return tile
