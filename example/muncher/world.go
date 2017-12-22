@@ -464,7 +464,7 @@ func (world *World) Notify(message Message, data interface{}) {
 			world.Player.Y = d.DestY
 			world.CurrentLevel = d.DestLevel
 			world.LevelChanged = true
-			world.AddEntity(world.Player)
+			world.AddPlayer(world.Player)
 		}
 	case ShowMenu:
 		log.Printf("SHOW MENU")
