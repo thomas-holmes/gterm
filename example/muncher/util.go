@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"math"
+	"strings"
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -89,7 +90,14 @@ func putWrappedText(window *gterm.Window, content string, x int, y int, firstInd
 		maxLength := width - (offsetX - x)
 		cut := min(len(content), maxLength)
 		printable := content[:cut]
-		content = content[cut:]
+		lastSpace := strings.LastIndexAny(printable, " ")
+		log.Printf("content(%v) printable(%v) lastSpace (%v)", content, printable, lastSpace)
+		if printable != content && lastSpace > -1 {
+			printable = printable[:lastSpace]
+			content = strings.TrimSpace(content[lastSpace:])
+		} else {
+			content = strings.TrimSpace(content[cut:])
+		}
 		window.PutString(offsetX, offsetY, printable, color)
 		offsetY++
 		offsetX = x + afterIndent
