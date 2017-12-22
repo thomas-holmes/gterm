@@ -333,9 +333,9 @@ func (world *World) OverlayVisionMap() {
 	}
 }
 
-// TODO: Something isn't quite right with these colors or how I am selecting them
-// down below. The progress seems weird when I bring up the scent map display. The
-// second to last band of color seems to not be what I expect.
+// I'd maybe like this to be a bit better, but I cleaned up the weird coloration at the end.
+// I don't really understand why it was doing what it did before but it's now more correct
+// than it was.
 var ScentColors = []sdl.Color{
 	sdl.Color{R: 175, G: 50, B: 50, A: 1},
 	sdl.Color{R: 225, G: 50, B: 25, A: 1},
@@ -351,22 +351,31 @@ func (world *World) ToggleScentOverlay() {
 }
 
 func (world *World) OverlayScentMap() {
+	for i, color := range ScentColors {
+		if err := world.Window.PutRune(10+(i*2), 0, '.', White, color); err != nil {
+			log.Printf("Couldn't draw overlay debug colors?")
+		}
+	}
+
 	turn := world.turnCount
 	for y := 0; y < world.CurrentLevel.Rows; y++ {
 		for x := 0; x < world.CurrentLevel.Columns; x++ {
 			scent := world.CurrentLevel.ScentMap.getScent(x, y)
 
-			maxScent := float64(turn * 32)
+			maxScent := float64((turn - 1) * 32)
 			recent := float64((turn - 10) * 32)
 
-			turnsAgo := min(int((maxScent-scent)/32), len(ScentColors)-1)
+			turnsAgo := int((maxScent - scent) / 32)
+			if turnsAgo >= len(ScentColors) || turnsAgo < 0 {
+				continue
+			}
 			distance := ((turn - uint64(turnsAgo)) * 32) - uint64(scent)
 
 			bgColor := ScentColors[turnsAgo]
 
-			bgColor.R /= 2
-			bgColor.G /= 2
-			bgColor.B /= 2
+			bgColor.R /= 4
+			bgColor.G /= 4
+			bgColor.B /= 4
 
 			if bgColor.R > bgColor.G && bgColor.R > bgColor.B {
 				bgColor.R -= uint8(distance * 5)
