@@ -290,16 +290,16 @@ func (world *World) Render() {
 		}
 	}
 
-	// Render bottom to top
-	for _, m := range world.MenuStack {
-		m.Render(world.Window)
-	}
+	world.GameLog.Render(world.Window)
 
 	if world.showScentOverlay {
 		world.OverlayScentMap()
 	}
 
-	world.GameLog.Render(world.Window)
+	// Render bottom to top
+	for _, m := range world.MenuStack {
+		m.Render(world.Window)
+	}
 }
 
 func (world *World) OverlayVisionMap() {

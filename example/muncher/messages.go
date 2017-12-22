@@ -17,6 +17,7 @@ const (
 	ShowMenu
 	EquipItem
 	GameLogAppend
+	ShowFullGameLog
 )
 
 type ClearRegionMessage struct {
