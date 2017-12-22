@@ -109,20 +109,9 @@ func (world *World) CanStandOnTile(column int, row int) bool {
 	return !world.GetTile(column, row).IsWall() && !world.IsTileOccupied(column, row)
 }
 
-func (world *World) AddPlayer(player *Creature) {
+func (world *World) addPlayer(player *Creature) {
 	world.Player = player
-	if !world.CanStandOnTile(player.X, player.Y) {
-		for _, t := range world.CurrentLevel.tiles {
-			if !t.IsWall() && !(t.Creature != nil) {
-				player.X = t.X
-				player.Y = t.Y
-				log.Printf("Player position adjusted to (%v,%v)", player.X, player.Y)
-				break
-			}
-		}
-	}
 
-	// Center the camera on the player
 	if world.CameraCentered {
 		world.CameraX = player.X
 		world.CameraY = player.Y
@@ -130,14 +119,25 @@ func (world *World) AddPlayer(player *Creature) {
 
 	world.CurrentLevel.VisionMap.UpdateVision(6, world)
 	world.CurrentLevel.ScentMap.UpdateScents(world)
-
-	world.AddCreature(player)
 }
 
-func (world *World) AddCreature(creature *Creature) {
-	// Could step on another creature, whtaever.
+func (world *World) addCreature(creature *Creature) {
+	if !world.CanStandOnTile(creature.X, creature.Y) {
+		for _, t := range world.CurrentLevel.tiles {
+			if !t.IsWall() && !(t.Creature != nil) {
+				creature.X = t.X
+				creature.Y = t.Y
+				log.Printf("Creature position adjusted to (%v,%v)", creature.X, creature.Y)
+				break
+			}
+		}
+	}
+
 	world.GetTile(creature.X, creature.Y).Creature = creature
-	world.AddEntity(creature)
+
+	if creature.IsPlayer {
+		world.addPlayer(creature)
+	}
 }
 
 func (world *World) AddEntity(e Entity) {
@@ -153,11 +153,12 @@ func (world *World) AddEntity(e Entity) {
 	}
 
 	world.CurrentLevel.Entities = append(world.CurrentLevel.Entities, e)
+
+	if c, ok := e.(*Creature); ok {
+		world.addCreature(c)
+	}
 }
 
-// Track down these "out of bounds" errors and try to squash them. Either this function
-// needs to know enough to not write to Window or the caller should not try to write outside
-// of its viewport
 func (world *World) RenderRuneAt(x int, y int, out rune, fColor sdl.Color, bColor sdl.Color) {
 	err := world.Window.PutRune(x-world.CameraX+world.CameraOffsetX, y-world.CameraY+world.CameraOffsetY, out, fColor, bColor)
 	if err != nil {
@@ -165,7 +166,6 @@ func (world *World) RenderRuneAt(x int, y int, out rune, fColor sdl.Color, bColo
 	}
 }
 
-// Same above
 func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 	err := world.Window.PutString(x-world.CameraX+world.CameraOffsetX, y-world.CameraY+world.CameraOffsetY, out, color)
 	if err != nil {
@@ -439,17 +439,13 @@ func (world *World) Notify(message Message, data interface{}) {
 			world.Player.Y = d.DestY
 			world.CurrentLevel = d.DestLevel
 			world.LevelChanged = true
-			world.AddPlayer(world.Player)
+			world.AddEntity(world.Player)
 		}
 	case ShowMenu:
-		log.Printf("SHOW MENU")
 		if d, ok := data.(ShowMenuMessage); ok {
 			log.Printf("%T %+v", d.Menu, d.Menu)
 			if n, ok := d.Menu.(Notifier); ok {
-				log.Printf("ADDED IT!")
 				n.SetMessageBus(world.messageBus)
-			} else {
-				log.Printf("******* Did not satify requirement of Notifier %+v", d.Menu)
 			}
 			world.MenuStack = append(world.MenuStack, d.Menu)
 		}

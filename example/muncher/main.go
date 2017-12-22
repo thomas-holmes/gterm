@@ -49,7 +49,7 @@ func spawnRandomMonster(world *World) {
 		if world.CanStandOnTile(x, y) {
 			level := rand.Intn(8) + 1
 			monster := NewMonster(x, y, level, level)
-			world.AddCreature(&monster)
+			world.AddEntity(&monster)
 			return
 		}
 	}
@@ -96,7 +96,7 @@ func main() {
 	world.SetCurrentLevel(0)
 
 	// WARNING: Fix Player needs to be added after level creation
-	world.AddPlayer(&player)
+	world.AddEntity(&player)
 
 	// WARNING: Fix Monsters need to be added after level creation now
 	for i := 0; i < 10; i++ {
