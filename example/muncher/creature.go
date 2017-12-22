@@ -1,8 +1,7 @@
 package main
 
 import (
-	"log"
-	"math/rand" // Replace w/ PCG deterministic random
+	"log" // Replace w/ PCG deterministic random
 	"strconv"
 
 	"github.com/thomas-holmes/gterm"
@@ -351,45 +350,39 @@ func (monster *Creature) Pursue(turn uint64, world *World) bool {
 	scent := world.CurrentLevel.ScentMap
 
 	// TODO: Maybe short circuit tracking here and just attack the player instead
-	// if in ranger?
+	// if in range?
 	candidates := scent.track(turn, monster.X, monster.Y)
 
-	// TODO: Sometimes the monster takes a suboptimal path
 	if len(candidates) > 0 {
-		randomIndex := rand.Intn(len(candidates))
-		choice := candidates[randomIndex]
-		if len(candidates) > 1 {
-			// TODO: Not actually sure if this is invalid but for now I want to know if it happens.
-			log.Printf("More than one candidate, %+v", candidates)
-		}
-
-		result, data := monster.TryMove(choice.X, choice.Y, world)
-		log.Printf("Tried to move %#v, got result: %v, data %#v", monster, result, data)
-		switch result {
-		case MoveIsInvalid:
-			log.Panicf("Monsters aren't allowed to yield their turn")
-			return false
-		case MoveIsSuccess:
-			oldX := monster.X
-			oldY := monster.Y
-			monster.X = choice.X
-			monster.Y = choice.Y
-			monster.Broadcast(MoveEntity, MoveEntityMessage{
-				ID:   monster.ID,
-				OldX: oldX,
-				OldY: oldY,
-				NewX: choice.X,
-				NewY: choice.Y,
-			})
-		case MoveIsEnemy:
-			if data, ok := data.(MoveEnemy); ok {
-				monster.Broadcast(AttackEntity, AttackEntityMesasge{
-					Attacker: data.Attacker,
-					Defender: data.Defender,
+		for _, choice := range candidates {
+			result, data := monster.TryMove(choice.X, choice.Y, world)
+			log.Printf("Tried to move %#v, got result: %v, data %#v", monster, result, data)
+			switch result {
+			case MoveIsInvalid:
+				log.Printf("Couldn't move to choice %+v", choice)
+				continue
+			case MoveIsSuccess:
+				oldX := monster.X
+				oldY := monster.Y
+				monster.X = choice.X
+				monster.Y = choice.Y
+				monster.Broadcast(MoveEntity, MoveEntityMessage{
+					ID:   monster.ID,
+					OldX: oldX,
+					OldY: oldY,
+					NewX: choice.X,
+					NewY: choice.Y,
 				})
+			case MoveIsEnemy:
+				if data, ok := data.(MoveEnemy); ok {
+					monster.Broadcast(AttackEntity, AttackEntityMesasge{
+						Attacker: data.Attacker,
+						Defender: data.Defender,
+					})
+				}
 			}
+			return true
 		}
-		return true
 	}
 	return false
 }

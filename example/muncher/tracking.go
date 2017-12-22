@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"sort"
 	"time"
 )
 
@@ -9,6 +10,11 @@ type ScentMap struct {
 	columns int
 	rows    int
 	scent   []float64
+}
+
+type TrackCandidate struct {
+	Position
+	Scent float64
 }
 
 func (scentMap ScentMap) getScent(xPos int, yPos int) float64 {
@@ -19,13 +25,13 @@ func (scentMap ScentMap) dirty(xPos int, yPos int, turn uint64, distance float64
 	scentMap.scent[yPos*scentMap.columns+xPos] = float64(turn*32) - distance
 }
 
-func (scentMap ScentMap) track(turn uint64, xPos int, yPos int) []Position {
+func (scentMap ScentMap) track(turn uint64, xPos int, yPos int) []TrackCandidate {
 	minX := max(0, xPos-1)
 	maxX := min(scentMap.columns, xPos+2)
 	minY := max(0, yPos-1)
 	maxY := min(scentMap.columns, yPos+2)
 
-	candidates := make([]Position, 0, 8)
+	candidates := make([]TrackCandidate, 0, 8)
 	log.Printf("Turn %v", turn)
 	recent := float64((turn - (minu64(turn, 50))) * 32.0)
 	strongest := recent
@@ -36,19 +42,13 @@ func (scentMap ScentMap) track(turn uint64, xPos int, yPos int) []Position {
 			strength := scentMap.getScent(x, y)
 			log.Printf("Found Strength at (%v,%v) as %v", x, y, strength)
 
-			if strength > strongest {
-				candidates = candidates[:0]
-				strongest = strength
-			}
-
-			if strength == strongest {
-				log.Printf("Found a candidate at (%v,%v)", x, y)
-				candidates = append(candidates,
-					Position{X: x, Y: y},
-				)
-			}
+			log.Printf("Found a candidate at (%v,%v)", x, y)
+			candidates = append(candidates,
+				TrackCandidate{Position: Position{X: x, Y: y}, Scent: strength},
+			)
 		}
 	}
+	sort.Slice(candidates, func(i, j int) bool { return candidates[i].Scent > candidates[j].Scent })
 	return candidates
 }
 
