@@ -49,7 +49,7 @@ func spawnRandomMonster(world *World) {
 			level := rand.Intn(8) + 1
 			monster := NewMonster(x, y, level, level)
 			monster.Name = fmt.Sprintf("A Scary Number %v", level)
-			world.AddEntity(&monster)
+			world.AddEntityToCurrentLevel(&monster)
 			return
 		}
 	}
@@ -88,7 +88,7 @@ func main() {
 
 	player.Name = "Euclid"
 
-	world.AddEntity(&player)
+	world.AddEntityToCurrentLevel(&player)
 
 	// WARNING: Fix Monsters need to be added after level creation now
 	for i := 0; i < 10; i++ {

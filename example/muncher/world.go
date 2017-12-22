@@ -28,7 +28,7 @@ type World struct {
 	CurrentLevel *Level
 
 	MaxDepth     int
-	Levels       []Level
+	Levels       []*Level
 	LevelChanged bool
 
 	CameraCentered bool
@@ -76,21 +76,20 @@ func (world *World) AddInput(event sdl.Event) {
 }
 
 func (world *World) SetCurrentLevel(index int) {
-	world.CurrentLevel = &world.Levels[index]
+	world.CurrentLevel = world.Levels[index]
 }
 
 func (world *World) AddLevelFromCandidate(level *CandidateLevel) {
 	loadedLevel := LoadCandidateLevel(level)
 	loadedLevel.Depth = len(world.Levels)
 
-	world.Levels = append(world.Levels, loadedLevel)
+	world.Levels = append(world.Levels, &loadedLevel)
 
 	levels := len(world.Levels)
 
 	if levels > 1 {
-		connectTwoLevels(&world.Levels[levels-2], &world.Levels[levels-1])
+		connectTwoLevels(world.Levels[levels-2], world.Levels[levels-1])
 	}
-
 }
 
 func (world *World) GetTile(column int, row int) *Tile {
@@ -115,7 +114,7 @@ func (world *World) CanStandOnTile(column int, row int) bool {
 	return !world.GetTile(column, row).IsWall() && !world.IsTileOccupied(column, row)
 }
 
-func (world *World) addPlayer(player *Creature) {
+func (world *World) addPlayer(player *Creature, level *Level) {
 	world.Player = player
 
 	if world.CameraCentered {
@@ -123,15 +122,15 @@ func (world *World) addPlayer(player *Creature) {
 		world.CameraY = player.Y
 	}
 
-	world.CurrentLevel.VisionMap.UpdateVision(6, world)
-	world.CurrentLevel.ScentMap.UpdateScents(world)
+	level.VisionMap.UpdateVision(6, world)
+	level.ScentMap.UpdateScents(world)
 }
 
-func (world *World) addCreature(creature *Creature) {
-	creature.Depth = world.CurrentLevel.Depth
+func (world *World) addCreature(creature *Creature, level *Level) {
+	creature.Depth = level.Depth
 
 	if !world.CanStandOnTile(creature.X, creature.Y) {
-		for _, t := range world.CurrentLevel.tiles {
+		for _, t := range level.tiles {
 			if !t.IsWall() && !(t.Creature != nil) {
 				creature.X = t.X
 				creature.Y = t.Y
@@ -144,11 +143,15 @@ func (world *World) addCreature(creature *Creature) {
 	world.GetTile(creature.X, creature.Y).Creature = creature
 
 	if creature.IsPlayer {
-		world.addPlayer(creature)
+		world.addPlayer(creature, level)
 	}
 }
 
-func (world *World) AddEntity(e Entity) {
+func (world *World) AddEntityToCurrentLevel(e Entity) {
+	world.AddEntity(e, world.CurrentLevel)
+}
+
+func (world *World) AddEntity(e Entity, level *Level) {
 	e.SetIdentity(world.GetNextID())
 	log.Printf("Adding entity %+v", e)
 
@@ -160,10 +163,10 @@ func (world *World) AddEntity(e Entity) {
 		world.messageBus.Subscribe(l)
 	}
 
-	world.CurrentLevel.Entities = append(world.CurrentLevel.Entities, e)
+	level.Entities = append(level.Entities, e)
 
 	if c, ok := e.(*Creature); ok {
-		world.addCreature(c)
+		world.addCreature(c, level)
 	}
 }
 
@@ -244,6 +247,7 @@ func (world *World) Update() bool {
 			world.CurrentLevel.VisionMap.UpdateVision(6, world)
 			world.CurrentLevel.ScentMap.UpdateScents(world)
 		}
+
 		if world.LevelChanged {
 			world.LevelChanged = false
 			// Reset these or the player can end up in a spot where they have no energy but need input
@@ -439,7 +443,6 @@ func (world *World) Notify(message Message, data interface{}) {
 	case PlayerDead:
 		world.ShowPlayerDeathPopUp()
 	case PlayerFloorChange:
-		log.Printf("Changing floors %+v", data)
 		if d, ok := data.(PlayerFloorChangeMessage); ok {
 			if !d.Connected {
 				break
@@ -449,7 +452,7 @@ func (world *World) Notify(message Message, data interface{}) {
 			world.Player.Y = d.DestY
 			world.CurrentLevel = d.DestLevel
 			world.LevelChanged = true
-			world.AddEntity(world.Player)
+			world.AddEntityToCurrentLevel(world.Player)
 		}
 	case ShowMenu:
 		if d, ok := data.(ShowMenuMessage); ok {
