@@ -41,7 +41,6 @@ type World struct {
 
 	nextID int
 
-	Suspended        bool
 	showScentOverlay bool
 
 	InputBuffer []sdl.Event
@@ -109,21 +108,8 @@ func (world *World) CanStandOnTile(column int, row int) bool {
 	return !world.GetTile(column, row).IsWall() && !world.IsTileOccupied(column, row)
 }
 
-func (world *World) Suspend() {
-	log.Println("Suspending world")
-	world.Suspended = true
-}
-
-func (world *World) Resume() {
-	log.Println("Resuming world")
-	world.Suspended = false
-}
-
 func (world *World) HandleInput(event sdl.Event) {
 	// TODO: Do better here, we should check keyboard/mouse/modifier/etc... state
-	if world.Suspended {
-		return
-	}
 	if event != nil {
 		for _, entity := range world.CurrentLevel.Entities {
 			if inputtable, ok := entity.(Inputtable); ok {
@@ -456,12 +442,6 @@ func (world *World) Notify(message Message, data interface{}) {
 		if d, ok := data.(KillEntityMessage); ok {
 			world.RemoveEntity(d.Defender)
 		}
-	case PopUpShown:
-		log.Println("World, PopUp Shown")
-		world.Suspend()
-	case PopUpHidden:
-		log.Println("World, PopUp Hidden")
-		world.Resume()
 	case PlayerDead:
 		world.ShowPlayerDeathPopUp()
 	case PlayerFloorChange:

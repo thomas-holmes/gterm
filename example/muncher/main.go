@@ -95,10 +95,10 @@ func main() {
 	world.AddLevelFromCandidate(level2)
 	world.SetCurrentLevel(0)
 
-	// TODO: Fix Player needs to be added after level creation now
+	// WARNING: Fix Player needs to be added after level creation
 	world.AddPlayer(&player)
 
-	// TODO: Fix Monsters need to be added after level creation now
+	// WARNING: Fix Monsters need to be added after level creation now
 	for i := 0; i < 10; i++ {
 		spawnRandomMonster(world)
 	}
@@ -108,11 +108,6 @@ func main() {
 	for !quit && !world.QuitGame {
 
 		event := sdl.PollEvent()
-		// TODO: Don't advance turn count if we don't actually do something worthwhile
-		// Tried to fix this for a while but ended up with some weird issues. Will take
-		// some more thinking and probably a further refactor around whether or not the
-		// player actually performed an action. Need to decouple turn advancement from
-		// input acquisition.
 		if world.turnCount == 0 || eventActionable(event) {
 			window.ClearWindow()
 
