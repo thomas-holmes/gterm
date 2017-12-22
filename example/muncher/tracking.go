@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"sort"
 	"time"
 )
@@ -32,17 +31,10 @@ func (scentMap ScentMap) track(turn uint64, xPos int, yPos int) []TrackCandidate
 	maxY := min(scentMap.columns, yPos+2)
 
 	candidates := make([]TrackCandidate, 0, 8)
-	log.Printf("Turn %v", turn)
-	recent := float64((turn - (minu64(turn, 50))) * 32.0)
-	strongest := recent
-	log.Printf("Strongest is %v", strongest)
-	log.Printf("Scanning (%v,%x) to (%v,%v)", minX, minY, maxX, maxY)
 	for y := minY; y < maxY; y++ {
 		for x := minX; x < maxX; x++ {
 			strength := scentMap.getScent(x, y)
-			log.Printf("Found Strength at (%v,%v) as %v", x, y, strength)
 
-			log.Printf("Found a candidate at (%v,%v)", x, y)
 			candidates = append(candidates,
 				TrackCandidate{Position: Position{X: x, Y: y}, Scent: strength},
 			)

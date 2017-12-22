@@ -419,10 +419,11 @@ func (world *World) MoveEntity(message MoveEntityMessage) {
 	oldTile.Creature = nil
 }
 
-// TODO: This is has to perform a linear search which is less than ideal
+// WARNING: This is has to perform a linear search which is less than ideal
 // but I wanted ordered traversal, which you don't get with maps in go.
 // Keep an eye on the performance of this.
 func (world *World) GetEntity(id int) (Entity, bool) {
+	defer timeMe(time.Now(), "GetEntity")
 	for _, e := range world.CurrentLevel.Entities {
 		if e.Identity() == id {
 			return e, true
