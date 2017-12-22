@@ -49,7 +49,6 @@ func (level *CandidateLevel) genNextRoomID() int {
 	return id
 }
 
-// TODO: Exclude the edges of the whole level
 func (level *CandidateLevel) tryAddRandomRoom() {
 	widthBound := uint64(MaxRoomWidth - MinRoomWidth)
 	heightBound := uint64(MaxRoomHeight - MinRoomHeight)
@@ -241,7 +240,12 @@ func (level *CandidateLevel) encodeAsString() string {
 			case Wall:
 				levelStr += string(WallGlyph)
 			case Floor:
-				levelStr += string(FloorGlyph)
+				item := level.tiles[y*level.W+x].Item
+				if item != nil {
+					levelStr += string(item.Symbol)
+				} else {
+					levelStr += string(FloorGlyph)
+				}
 			case DownStair:
 				levelStr += string(DownStairGlyph)
 			case UpStair:

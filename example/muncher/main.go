@@ -34,7 +34,7 @@ func handleInput(event sdl.Event, world *World) {
 		case sdl.K_BACKSLASH:
 			world.ToggleScentOverlay()
 		case sdl.K_g:
-			log.Printf("\n%v", GenLevel(world.rng, 80, 40, GenDownStairs|GenUpStairs))
+			log.Printf("\n%v", GenLevel(world.rng, 80, 40, GenDownStairs|GenUpStairs).encodeAsString())
 		}
 	case *sdl.QuitEvent:
 		quit = true
