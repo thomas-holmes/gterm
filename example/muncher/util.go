@@ -91,7 +91,6 @@ func putWrappedText(window *gterm.Window, content string, x int, y int, firstInd
 		cut := min(len(content), maxLength)
 		printable := content[:cut]
 		lastSpace := strings.LastIndexAny(printable, " ")
-		log.Printf("content(%v) printable(%v) lastSpace (%v)", content, printable, lastSpace)
 		if printable != content && lastSpace > -1 {
 			printable = printable[:lastSpace]
 			content = strings.TrimSpace(content[lastSpace:])
