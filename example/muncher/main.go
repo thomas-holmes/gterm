@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"math/rand"
 	"path"
@@ -33,8 +34,6 @@ func handleInput(event sdl.Event, world *World) {
 			spawnRandomMonster(world)
 		case sdl.K_BACKSLASH:
 			world.ToggleScentOverlay()
-		case sdl.K_g:
-			log.Printf("\n%v", GenLevel(world.rng, 80, 40, GenDownStairs|GenUpStairs).encodeAsString())
 		}
 	case *sdl.QuitEvent:
 		quit = true
@@ -49,6 +48,7 @@ func spawnRandomMonster(world *World) {
 		if world.CanStandOnTile(x, y) {
 			level := rand.Intn(8) + 1
 			monster := NewMonster(x, y, level, level)
+			monster.Name = fmt.Sprintf("A Scary Number %v", level)
 			world.AddEntity(&monster)
 			return
 		}

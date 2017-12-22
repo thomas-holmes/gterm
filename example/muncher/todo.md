@@ -11,7 +11,6 @@ Spawn random monsters
 Drop loot?
 
 ### Monsters
-With a several monsters should not try to yield its turn, it should instead try to take an alternative route. (This is currently a panic condition)
 
 ### Game Loop
 Maybe move more of the game loop into World.Update, specifically the input

@@ -245,7 +245,7 @@ func (player *Creature) HandleInput(event sdl.Event, world *World) bool {
 		case sdl.K_2:
 			player.Heal(1)
 			return false
-		case sdl.K_p:
+		case sdl.K_g:
 			return player.PickupItem(world)
 		case sdl.K_i:
 			menu := &InventoryPop{X: 10, Y: 2, W: 30, H: world.Window.Rows - 4, Inventory: player.Inventory}
@@ -255,6 +255,9 @@ func (player *Creature) HandleInput(event sdl.Event, world *World) bool {
 			menu := &EquipmentPop{X: 10, Y: 2, W: 30, H: world.Window.Rows - 4, Player: player}
 			player.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
 			return false
+		case sdl.K_x:
+			menu := &InspectionPop{X: 60, Y: 20, W: 30, H: 5, World: world, InspectX: player.X, InspectY: player.Y}
+			player.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
 		case sdl.K_ESCAPE:
 			world.GameOver = true
 			world.QuitGame = true
