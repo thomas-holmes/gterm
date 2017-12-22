@@ -18,7 +18,7 @@ func NewEquipment() Equipment {
 }
 
 type EquipmentPop struct {
-	Player *Player
+	Player *Creature
 
 	done bool
 

@@ -9,7 +9,7 @@ import (
 
 type HUD struct {
 	World  *World
-	Player *Player
+	Player *Creature
 	XPos   int
 	YPos   int
 	Width  int
@@ -18,7 +18,7 @@ type HUD struct {
 	nextFreeRow int
 }
 
-func NewHud(player *Player, world *World, xPos int, yPos int) *HUD {
+func NewHud(player *Creature, world *World, xPos int, yPos int) *HUD {
 	hud := HUD{
 		Player:      player,
 		World:       world,

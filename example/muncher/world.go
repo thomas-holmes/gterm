@@ -24,7 +24,7 @@ type World struct {
 
 	rng *pcg.PCG64
 
-	Player *Player
+	Player *Creature
 
 	CurrentLevel *Level
 
@@ -105,27 +105,16 @@ func (world *World) GetTile(column int, row int) *Tile {
 
 func (world *World) GetCreatureAtTile(xPos int, yPos int) (*Creature, bool) {
 	if world.Player.X == xPos && world.Player.Y == yPos {
-		return &world.Player.Creature, true
-	} else if monster, ok := world.GetMonsterAtTile(xPos, yPos); ok {
-		return &monster.Creature, ok
-	}
-	return nil, false
-}
-
-func (world *World) GetMonsterAtTile(x int, y int) (*Monster, bool) {
-	if monster, ok := world.GetTile(x, y).Creature.(*Monster); ok {
-		return monster, ok
+		return world.Player, true
+	} else if creature := world.GetTile(xPos, yPos).Creature; creature != nil {
+		c, ok := creature.(*Creature)
+		return c, ok
 	}
 	return nil, false
 }
 
 func (world World) IsTileOccupied(x int, y int) bool {
 	return world.GetTile(x, y).Creature != nil
-}
-
-func (world *World) IsTileMonster(x int, y int) bool {
-	_, ok := world.GetMonsterAtTile(x, y)
-	return ok
 }
 
 func (world *World) CanStandOnTile(column int, row int) bool {
@@ -176,7 +165,7 @@ func (world *World) ClosePopUp() {
 	world.pop = nil
 }
 
-func (world *World) AddPlayer(player *Player) {
+func (world *World) AddPlayer(player *Creature) {
 	world.Player = player
 	if !world.CanStandOnTile(player.X, player.Y) {
 		for _, t := range world.CurrentLevel.tiles {
@@ -321,7 +310,7 @@ func (world *World) Update() bool {
 			}
 		}
 
-		if _, ok := e.(*Player); ok {
+		if c, ok := e.(*Creature); ok && c.IsPlayer {
 			world.CurrentLevel.VisionMap.UpdateVision(6, world)
 			world.CurrentLevel.ScentMap.UpdateScents(world)
 		}

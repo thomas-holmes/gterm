@@ -13,10 +13,12 @@ type Combatant interface {
 func (combat CombatSystem) fight(a Entity, d Entity) {
 	aCombatant, ok := a.(Combatant)
 	if !ok {
+		log.Panicf("Got a non-combatant %+v", a)
 		return
 	}
 	dCombatant, ok := d.(Combatant)
 	if !ok {
+		log.Panicf("Got a non-combatant %+v", d)
 		return
 	}
 	attacker, defender := aCombatant.Combatant(), dCombatant.Combatant()
