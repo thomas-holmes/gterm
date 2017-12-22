@@ -6,22 +6,17 @@ type CombatSystem struct {
 	Messaging
 }
 
-type Combatant interface {
-	Combatant() *Creature
-}
-
 func (combat CombatSystem) fight(a Entity, d Entity) {
-	aCombatant, ok := a.(Combatant)
+	attacker, ok := a.(*Creature)
 	if !ok {
-		log.Panicf("Got a non-combatant %+v", a)
+		log.Panicf("Got a non-creature %+v", a)
 		return
 	}
-	dCombatant, ok := d.(Combatant)
+	defender, ok := d.(*Creature)
 	if !ok {
-		log.Panicf("Got a non-combatant %+v", d)
+		log.Panicf("Got a non-creature %+v", d)
 		return
 	}
-	attacker, defender := aCombatant.Combatant(), dCombatant.Combatant()
 
 	log.Printf("Fighting with %+v", attacker.Equipment)
 	defender.Damage(attacker.Equipment.Weapon.Power)

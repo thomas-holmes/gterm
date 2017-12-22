@@ -48,7 +48,7 @@ func spawnRandomMonster(world *World) {
 
 		if world.CanStandOnTile(x, y) {
 			level := rand.Intn(8) + 1
-			monster := NewMonster(x, y, level, Green, level)
+			monster := NewMonster(x, y, level, level)
 			world.AddEntity(&monster)
 			return
 		}

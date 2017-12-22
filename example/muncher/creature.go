@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"math/rand"
+	"math/rand" // Replace w/ PCG deterministic random
 	"strconv"
 
 	"github.com/thomas-holmes/gterm"
@@ -12,7 +12,8 @@ import (
 type Team int
 
 const (
-	PlayerTeam Team = iota
+	NeutralTeam Team = iota
+	PlayerTeam
 	MonsterTeam
 )
 
@@ -77,11 +78,6 @@ func (c *Creature) Damage(damage int) {
 	}
 }
 
-// TODO: Delete once monster is a creature
-func (c *Creature) Combatant() *Creature {
-	return c
-}
-
 func (c *Creature) TryMove(newX int, newY int, world *World) (MoveResult, interface{}) {
 
 	if world.CanStandOnTile(newX, newY) {
@@ -102,28 +98,39 @@ func (c *Creature) TryMove(newX int, newY int, world *World) (MoveResult, interf
 	return MoveIsInvalid, nil
 }
 
-func NewPlayer() Creature {
-	player := NewCreature(1, 100, 5)
-	player.RenderGlyph = '@'
-	player.RenderColor = Red
-	player.IsPlayer = true
-	player.Team = PlayerTeam
-
-	log.Printf("Made a player, %#v", player)
-	return player
-}
-
-func NewCreature(level int, maxEnergy int, maxHP int) Creature {
+func NewCreature(level int, maxHP int) Creature {
 	return Creature{
 		Level: level,
-		Team:  MonsterTeam,
+		Team:  NeutralTeam,
 		Energy: Energy{
-			currentEnergy: maxEnergy,
-			maxEnergy:     maxEnergy,
+			currentEnergy: 100,
+			maxEnergy:     100,
 		},
 		HP:        Health{Current: 5, Max: 5},
 		Equipment: NewEquipment(),
 	}
+}
+
+func NewPlayer() Creature {
+	player := NewCreature(1, 5)
+	player.Team = PlayerTeam
+	player.RenderGlyph = '@'
+	player.RenderColor = Red
+	player.IsPlayer = true
+
+	return player
+}
+
+func NewMonster(xPos int, yPos int, level int, hp int) Creature {
+	monster := NewCreature(level, hp)
+
+	monster.X = xPos
+	monster.Y = yPos
+	monster.Team = MonsterTeam
+	monster.RenderColor = Green
+	monster.RenderGlyph = []rune(strconv.Itoa(monster.Level))[0]
+
+	return monster
 }
 
 func (player *Creature) LevelUp() {
@@ -169,18 +176,18 @@ func (player *Creature) PickupItem(world *World) bool {
 }
 
 func (creature *Creature) Update(turn uint64, event sdl.Event, world *World) bool {
-	// TODO: There should be a better way!
+	success := false
 	if creature.IsPlayer {
-		if creature.HandleInput(event, world) {
-			creature.currentEnergy -= 100
-			return true
-		}
+		success = creature.HandleInput(event, world)
 	} else {
-		if creature.Pursue(turn, world) {
-			creature.currentEnergy -= 100
-			return true
-		}
+		success = creature.Pursue(turn, world)
 	}
+
+	if success {
+		creature.currentEnergy -= 100
+		return true
+	}
+
 	return false
 }
 
@@ -288,15 +295,14 @@ func (creature *Creature) Notify(message Message, data interface{}) {
 	switch message {
 	case KillEntity:
 		if d, ok := data.(KillEntityMessage); ok {
-			aCombatant, ok := d.Attacker.(Combatant)
+			attacker, ok := d.Attacker.(*Creature)
 			if !ok {
 				return
 			}
-			dCombatant, ok := d.Defender.(Combatant)
+			defender, ok := d.Defender.(*Creature)
 			if !ok {
 				return
 			}
-			attacker, defender := aCombatant.Combatant(), dCombatant.Combatant()
 
 			if defender.ID == creature.ID {
 				creature.Broadcast(PlayerDead, nil)
@@ -332,18 +338,6 @@ func (creature *Creature) Render(world *World) {
 }
 
 // Monster Stuff
-func NewMonster(xPos int, yPos int, level int, color sdl.Color, hp int) Creature {
-	monster := NewCreature(level, 100, hp)
-
-	monster.X = xPos
-	monster.Y = yPos
-	monster.Team = MonsterTeam
-	monster.RenderColor = color
-	monster.RenderGlyph = []rune(strconv.Itoa(monster.Level))[0]
-
-	return monster
-}
-
 // TODO: If a monster is blocking the ideal path our monster should go around
 func (monster *Creature) Pursue(turn uint64, world *World) bool {
 	if world.CurrentLevel.VisionMap.VisibilityAt(monster.X, monster.Y) == Visible {
