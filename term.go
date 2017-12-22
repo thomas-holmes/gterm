@@ -394,6 +394,9 @@ func min(a uint32, b uint32) uint32 {
 func (window *Window) drawBackground(x int, y int, color sdl.Color) {
 	r, g, b, a := uint8(color.R), uint8(color.G), uint8(color.B), uint8(color.A)
 	window.SdlRenderer.SetDrawColor(r, g, b, a)
+	if err := window.SdlRenderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND); err != nil {
+		log.Println("failed to sent blendmode", err)
+	}
 	destinationRect := sdl.Rect{
 		X: int32(x * window.tileWidthPixel),
 		Y: int32(y * window.tileHeightPixel),

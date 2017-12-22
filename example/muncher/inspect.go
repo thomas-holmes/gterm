@@ -113,7 +113,15 @@ func (pop *InspectionPop) RenderTileDescription(tile *Tile) {
 
 // Maybe should interact with world/tiles than window directly
 func (pop *InspectionPop) RenderCursor(window *gterm.Window) {
-	pop.World.RenderRuneAt(pop.InspectX, pop.InspectY, 'X', Yellow, White)
+	white := White
+	white.A = 50
+	yellow := Yellow
+	yellow.A = 200
+	positions := PlotLine(pop.World.Player.X, pop.World.Player.Y, pop.InspectX, pop.InspectY)
+	for _, pos := range positions {
+		pop.World.RenderRuneAt(pos.X, pos.Y, ' ', gterm.NoColor, white)
+	}
+	pop.World.RenderRuneAt(pop.InspectX, pop.InspectY, ' ', gterm.NoColor, yellow)
 }
 
 func (pop *InspectionPop) Render(window *gterm.Window) {
