@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/thomas-holmes/gterm"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -50,7 +52,7 @@ type Tile struct {
 
 	Color sdl.Color
 
-	Creature Entity
+	Creature *Creature
 	Item     *Item
 
 	TileGlyph rune
@@ -69,9 +71,10 @@ func (tile *Tile) Render(world *World, visibility Visibility) {
 	}
 
 	if tile.Creature != nil && visibility == Visible {
-		if r, ok := tile.Creature.(Renderable); ok {
-			r.Render(world)
+		if tile.X == world.Player.X && tile.Y == world.Player.Y {
+			log.Printf("*** On the player tile. Can I render?")
 		}
+		tile.Creature.Render(world)
 	} else {
 		tile.RenderBackground(world, visibility) // bad API, refactor
 	}

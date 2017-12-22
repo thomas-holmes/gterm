@@ -44,7 +44,7 @@ func (scentMap ScentMap) track(turn uint64, xPos int, yPos int) []Position {
 			if strength == strongest {
 				log.Printf("Found a candidate at (%v,%v)", x, y)
 				candidates = append(candidates,
-					Position{XPos: x, YPos: y},
+					Position{X: x, Y: y},
 				)
 			}
 		}

@@ -12,8 +12,8 @@ import (
 )
 
 type Position struct {
-	XPos int
-	YPos int
+	X int
+	Y int
 }
 
 type World struct {
@@ -107,8 +107,7 @@ func (world *World) GetCreatureAtTile(xPos int, yPos int) (*Creature, bool) {
 	if world.Player.X == xPos && world.Player.Y == yPos {
 		return world.Player, true
 	} else if creature := world.GetTile(xPos, yPos).Creature; creature != nil {
-		c, ok := creature.(*Creature)
-		return c, ok
+		return creature, true
 	}
 	return nil, false
 }
@@ -187,13 +186,13 @@ func (world *World) AddPlayer(player *Creature) {
 	world.CurrentLevel.VisionMap.UpdateVision(6, world)
 	world.CurrentLevel.ScentMap.UpdateScents(world)
 
-	world.AddEntity(player)
+	world.AddCreature(player)
 }
 
-// TODO: This is kinda janky. Figure out something better for this. Probably don't need
-// the Renderable interface any more
-func (world *World) AddRenderable(entity Entity, x int, y int) {
-	world.GetTile(x, y).Creature = entity
+func (world *World) AddCreature(creature *Creature) {
+	// Could step on another creature, whtaever.
+	world.GetTile(creature.X, creature.Y).Creature = creature
+	world.AddEntity(creature)
 }
 
 func (world *World) AddEntity(e Entity) {
@@ -206,12 +205,6 @@ func (world *World) AddEntity(e Entity) {
 
 	if l, ok := e.(Listener); ok {
 		world.MessageBus.Subscribe(l)
-	}
-
-	// TODO: Clean this up too
-	switch actual := e.(type) {
-	case Renderable:
-		world.AddRenderable(e, actual.XPos(), actual.YPos())
 	}
 
 	world.CurrentLevel.Entities = append(world.CurrentLevel.Entities, e)
@@ -454,8 +447,8 @@ func (world *World) RemoveEntity(entity Entity) {
 		world.CurrentLevel.Entities = append(world.CurrentLevel.Entities[:foundIndex], world.CurrentLevel.Entities[foundIndex+1:]...)
 	}
 
-	if renderable, ok := foundEntity.(Renderable); ok {
-		world.GetTile(renderable.XPos(), renderable.YPos()).Creature = nil
+	if creature, ok := foundEntity.(*Creature); ok {
+		world.GetTile(creature.X, creature.Y).Creature = nil
 	}
 }
 

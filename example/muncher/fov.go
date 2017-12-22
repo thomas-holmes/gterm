@@ -79,9 +79,9 @@ func (vision *VisionMap) CheckVision(playerX int, playerY int, candidateX int, c
 			return false
 		}
 		// Either a wall or on the way to a wall, so we can see it.
-		vision.Map[cell.YPos*vision.Columns+cell.XPos] = vision.Current
+		vision.Map[cell.Y*vision.Columns+cell.X] = vision.Current
 
-		tile := world.GetTile(cell.XPos, cell.YPos)
+		tile := world.GetTile(cell.X, cell.Y)
 
 		if tile.IsWall() {
 			foundWall = true
@@ -112,7 +112,7 @@ func PlotLine(x0 int, y0 int, x1 int, y1 int) []Position {
 
 	for x := x0; x <= x1; x++ {
 		correctedX, correctedY := fromOctantZero(octant, x, y)
-		coordinates = append(coordinates, Position{XPos: correctedX, YPos: correctedY})
+		coordinates = append(coordinates, Position{X: correctedX, Y: correctedY})
 
 		if d > 0 {
 			y++

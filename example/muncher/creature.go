@@ -363,7 +363,7 @@ func (monster *Creature) Pursue(turn uint64, world *World) bool {
 			log.Printf("More than one candidate, %+v", candidates)
 		}
 
-		result, data := monster.TryMove(choice.XPos, choice.YPos, world)
+		result, data := monster.TryMove(choice.X, choice.Y, world)
 		log.Printf("Tried to move %#v, got result: %v, data %#v", monster, result, data)
 		switch result {
 		case MoveIsInvalid:
@@ -372,14 +372,14 @@ func (monster *Creature) Pursue(turn uint64, world *World) bool {
 		case MoveIsSuccess:
 			oldX := monster.X
 			oldY := monster.Y
-			monster.X = choice.XPos
-			monster.Y = choice.YPos
+			monster.X = choice.X
+			monster.Y = choice.Y
 			monster.Broadcast(MoveEntity, MoveEntityMessage{
 				ID:   monster.ID,
 				OldX: oldX,
 				OldY: oldY,
-				NewX: choice.XPos,
-				NewY: choice.YPos,
+				NewX: choice.X,
+				NewY: choice.Y,
 			})
 		case MoveIsEnemy:
 			if data, ok := data.(MoveEnemy); ok {
