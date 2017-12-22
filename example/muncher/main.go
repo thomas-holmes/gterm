@@ -113,6 +113,7 @@ func main() {
 
 			handleInput(event, world)
 
+			// TODO: Consider moving this into the world update loop?
 			world.AddInput(event)
 
 			updateLoops := 0
