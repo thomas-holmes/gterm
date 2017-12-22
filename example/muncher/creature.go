@@ -174,6 +174,7 @@ func (player *Creature) PickupItem(world *World) bool {
 	return true
 }
 
+// Update returns true if an action that would constitute advancing the turn took place
 func (creature *Creature) Update(turn uint64, event sdl.Event, world *World) bool {
 	success := false
 	if creature.IsPlayer {

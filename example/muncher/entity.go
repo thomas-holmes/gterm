@@ -16,3 +16,7 @@ type Entity interface {
 	Identity() int
 	SetIdentity(int)
 }
+
+func foo(entity Entity) {
+
+}

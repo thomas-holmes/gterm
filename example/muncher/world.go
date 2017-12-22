@@ -108,17 +108,6 @@ func (world *World) CanStandOnTile(column int, row int) bool {
 	return !world.GetTile(column, row).IsWall() && !world.IsTileOccupied(column, row)
 }
 
-func (world *World) HandleInput(event sdl.Event) {
-	// TODO: Do better here, we should check keyboard/mouse/modifier/etc... state
-	if event != nil {
-		for _, entity := range world.CurrentLevel.Entities {
-			if inputtable, ok := entity.(Inputtable); ok {
-				inputtable.HandleInput(event, world)
-			}
-		}
-	}
-}
-
 func (world *World) AddPlayer(player *Creature) {
 	world.Player = player
 	if !world.CanStandOnTile(player.X, player.Y) {
@@ -223,38 +212,22 @@ func (world *World) Update() bool {
 			world.CurrentLevel.NextEnergy = i + 1
 		}
 
-		// TODO: Need to unravel this somehow, this is gross.
-		// Maybe I put proxies for some of these methods, CanAct, NeedsInput etc... on Entity
-		// but not on the interface and they can do cast and ask or return the proper default
+		// TODO: Still some more optimization to do here, I think but this
+		// is a lot better than it was.
 		if a, ok := e.(Actor); ok {
 			if a.CanAct() {
-				if inputtable, ok := e.(Inputtable); ok {
-					if inputtable.NeedsInput() {
-						if input, ok := world.PopInput(); ok {
-							if a.Update(turn, input, world) {
-								if !a.CanAct() {
-									world.CurrentLevel.NextEntity = i + 1
-								}
-							} else {
-								world.needInput = true
-								break
-							}
-						} else {
-							world.needInput = true
-							break
-						}
-					} else {
-						a.Update(turn, nil, world)
-						if !a.CanAct() {
-							world.CurrentLevel.NextEntity = i + 1
-						}
+				if a.NeedsInput() {
+					input, ok := world.PopInput()
+					if !ok || !a.Update(turn, input, world) {
+						world.needInput = true
+						break
 					}
 				} else {
 					a.Update(turn, nil, world)
-					if !a.CanAct() { // All done
-						world.CurrentLevel.NextEntity = i + 1
-					}
+					break
 				}
+			} else {
+				world.CurrentLevel.NextEntity = i + 1
 			}
 		}
 
