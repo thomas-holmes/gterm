@@ -41,8 +41,6 @@ type World struct {
 
 	nextID int
 
-	pop *PopUp
-
 	Suspended        bool
 	showScentOverlay bool
 
@@ -133,26 +131,6 @@ func (world *World) HandleInput(event sdl.Event) {
 			}
 		}
 	}
-}
-
-// TODO: The way this works kind of sucks. Don't have great ideas for how to make it better
-// but need to come up with something. I made the "PopUp" specifically for showing the game over
-// overlay and have a bunch of code that ~sort of~ suspends the game. Need to probably come up
-// with a better system so they can take input, spawn other popups, etc...
-func (world *World) ShowPopUp(pop PopUp) {
-	pop.SetMessageBus(&world.MessageBus)
-	world.pop = &pop
-	world.pop.Show()
-}
-
-func (world *World) ClosePopUp() {
-	if world.pop == nil {
-		return
-	}
-
-	world.pop.Hide()
-	world.pop.RemoveMessageBus()
-	world.pop = nil
 }
 
 func (world *World) AddPlayer(player *Creature) {
@@ -351,10 +329,6 @@ func (world *World) Render() {
 		}
 	}
 
-	if world.pop != nil && world.pop.Shown {
-		world.pop.Render(world.Window)
-	}
-
 	// Render bottom to top
 	for _, m := range world.MenuStack {
 		m.Render(world.Window)
@@ -462,11 +436,17 @@ func (world *World) GetEntity(id int) (Entity, bool) {
 	return nil, false
 }
 
+func (world *World) ShowPlayerDeathPopUp() {
+	pop := NewPopUp(10, 5, 40, 6, Red, "YOU ARE VERY DEAD", "I AM SO SORRY :(")
+	world.GameOver = true
+	world.MessageBus.Broadcast(ShowMenu, ShowMenuMessage{Menu: &pop})
+}
+
 func (world *World) Notify(message Message, data interface{}) {
 	switch message {
 	case ClearRegion:
 		if d, ok := data.(ClearRegionMessage); ok {
-			world.Window.ClearRegion(d.XPos, d.YPos, d.Width, d.Height)
+			world.Window.ClearRegion(d.X, d.Y, d.W, d.H)
 		}
 	case MoveEntity:
 		if d, ok := data.(MoveEntityMessage); ok {
@@ -483,9 +463,7 @@ func (world *World) Notify(message Message, data interface{}) {
 		log.Println("World, PopUp Hidden")
 		world.Resume()
 	case PlayerDead:
-		pop := NewPopUp(10, 5, 40, 6, Red, "YOU ARE VERY DEAD", "I AM SO SORRY :(")
-		world.GameOver = true
-		world.ShowPopUp(pop)
+		world.ShowPlayerDeathPopUp()
 	case PlayerFloorChange:
 		log.Printf("Changing floors %+v", data)
 		if d, ok := data.(PlayerFloorChangeMessage); ok {
@@ -506,6 +484,8 @@ func (world *World) Notify(message Message, data interface{}) {
 			if n, ok := d.Menu.(Notifier); ok {
 				log.Printf("ADDED IT!")
 				n.SetMessageBus(&world.MessageBus)
+			} else {
+				log.Printf("******* Did not satify requirement of Notifier %+v", d.Menu)
 			}
 			world.MenuStack = append(world.MenuStack, d.Menu)
 		}

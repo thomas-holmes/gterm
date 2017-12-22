@@ -19,10 +19,10 @@ const (
 )
 
 type ClearRegionMessage struct {
-	XPos   int
-	YPos   int
-	Width  int
-	Height int
+	X int
+	Y int
+	W int
+	H int
 }
 
 type MoveEntityMessage struct {

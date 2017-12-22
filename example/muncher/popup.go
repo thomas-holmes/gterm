@@ -1,23 +1,23 @@
 package main
 
 import (
-	"time"
-
 	"github.com/thomas-holmes/gterm"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
 type PopUp struct {
-	XPos             int
-	YPos             int
-	Width            int
-	Height           int
+	X                int
+	Y                int
+	W                int
+	H                int
 	Content          []string
 	ContentColor     sdl.Color
 	ContentRelativeX int
 	ContentRelativeY int
 
 	Shown bool
+
+	done bool
 
 	Messaging
 }
@@ -37,10 +37,10 @@ func NewPopUp(xPos int, yPos int, width int, height int, color sdl.Color, conten
 	centeredYOffset := (height - contentLen) / 2
 
 	pop := PopUp{
-		XPos:             xPos,
-		YPos:             yPos,
-		Width:            width,
-		Height:           height,
+		X:                xPos,
+		Y:                yPos,
+		W:                width,
+		H:                height,
 		ContentRelativeX: centeredXOffset,
 		ContentRelativeY: centeredYOffset,
 		Content:          contents,
@@ -50,17 +50,17 @@ func NewPopUp(xPos int, yPos int, width int, height int, color sdl.Color, conten
 	return pop
 }
 
+func (pop PopUp) Done() bool {
+	return pop.done
+}
+
 func (pop PopUp) ClearUnderlying() {
-	for y := pop.YPos; y < pop.YPos+pop.Height; y++ {
-		for x := pop.XPos; x < pop.XPos+pop.Width; x++ {
-			pop.Broadcast(ClearRegion, ClearRegionMessage{
-				XPos:   x,
-				YPos:   y,
-				Width:  pop.Width,
-				Height: pop.Height,
-			})
-		}
-	}
+	pop.Broadcast(ClearRegion, ClearRegionMessage{
+		X: pop.X,
+		Y: pop.Y,
+		W: pop.W,
+		H: pop.H,
+	})
 }
 
 func (pop *PopUp) Show() {
@@ -76,11 +76,11 @@ func (pop *PopUp) Hide() {
 }
 
 func (pop *PopUp) RenderBorder(window *gterm.Window) {
-	leftX := pop.XPos
-	rightX := pop.XPos + pop.Width - 1
+	leftX := pop.X
+	rightX := pop.X + pop.W - 1
 
-	topY := pop.YPos
-	bottomY := pop.YPos + pop.Height - 1
+	topY := pop.Y
+	bottomY := pop.Y + pop.H - 1
 
 	for y := topY; y <= bottomY; y++ {
 		for x := leftX; x <= rightX; x++ {
@@ -92,17 +92,29 @@ func (pop *PopUp) RenderBorder(window *gterm.Window) {
 }
 
 func (pop PopUp) RenderContents(window *gterm.Window) {
-	xOffset := pop.XPos + pop.ContentRelativeX
-	yOffset := pop.YPos + pop.ContentRelativeY
+	xOffset := pop.X + pop.ContentRelativeX
+	yOffset := pop.Y + pop.ContentRelativeY
 
 	for line, content := range pop.Content {
 		window.PutString(xOffset, yOffset+line, content, pop.ContentColor)
 	}
 }
 
-func (pop *PopUp) Render(window *gterm.Window) {
-	defer timeMe(time.Now(), "PopUp.Render")
+func (pop PopUp) Render(window *gterm.Window) {
 	pop.ClearUnderlying()
 	pop.RenderBorder(window)
 	pop.RenderContents(window)
+}
+
+func (pop *PopUp) Update(event sdl.Event) bool {
+	switch e := event.(type) {
+	case *sdl.KeyDownEvent:
+		k := e.Keysym.Sym
+		switch {
+		case k == sdl.K_ESCAPE:
+			pop.done = true
+			return true
+		}
+	}
+	return false
 }
