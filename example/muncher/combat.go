@@ -1,6 +1,9 @@
 package main
 
-import "log"
+import (
+	"fmt"
+	"log"
+)
 
 type CombatSystem struct {
 	Messaging
@@ -20,6 +23,9 @@ func (combat CombatSystem) fight(a Entity, d Entity) {
 
 	log.Printf("Fighting with %+v", attacker.Equipment)
 	defender.Damage(attacker.Equipment.Weapon.Power)
+	logString := fmt.Sprintf("%v hits %v for %v damage!", attacker.Name, defender.Name, attacker.Equipment.Weapon.Power)
+
+	combat.Broadcast(GameLogAppend, GameLogAppendMessage{[]string{logString}})
 
 	// This should be done by the entity instead of here, I think?
 	// I think this used to attribute the experience gain on death. Maybe

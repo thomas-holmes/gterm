@@ -16,6 +16,7 @@ const (
 	PlayerFloorChange
 	ShowMenu
 	EquipItem
+	GameLogAppend
 )
 
 type ClearRegionMessage struct {
@@ -61,6 +62,10 @@ type ShowMenuMessage struct {
 
 type EquipItemMessage struct {
 	Item
+}
+
+type GameLogAppendMessage struct {
+	Messages []string
 }
 
 type Notifier interface {

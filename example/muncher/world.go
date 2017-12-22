@@ -51,6 +51,7 @@ type World struct {
 
 	needInput bool
 
+	*GameLog
 	Messaging
 }
 
@@ -297,6 +298,8 @@ func (world *World) Render() {
 	if world.showScentOverlay {
 		world.OverlayScentMap()
 	}
+
+	world.GameLog.Render(world.Window)
 }
 
 func (world *World) OverlayVisionMap() {
@@ -465,7 +468,7 @@ func NewWorld(window *gterm.Window, centered bool, seed uint64) *World {
 		CameraY:        0,
 		// TODO: Width/Height should probably be some function of the window dimensions
 		CameraWidth:  56,
-		CameraHeight: 28,
+		CameraHeight: 25,
 		rng:          pcg.NewPCG64(),
 	}
 
@@ -473,6 +476,8 @@ func NewWorld(window *gterm.Window, centered bool, seed uint64) *World {
 
 	world.messageBus = &MessageBus{}
 	world.messageBus.Subscribe(&world)
+
+	world.GameLog = NewGameLog(0, window.Rows-4, 56, 3, &world, world.messageBus)
 
 	return &world
 }

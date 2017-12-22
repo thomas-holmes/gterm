@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log" // Replace w/ PCG deterministic random
 	"strconv"
 
@@ -137,11 +138,11 @@ func (player *Creature) LevelUp() {
 	player.Level++
 	player.HP.Max = int(float32(player.HP.Max) * 1.5)
 	player.HP.Current = player.HP.Max
+	player.Broadcast(GameLogAppend, GameLogAppendMessage{[]string{fmt.Sprintf("You are now level %v", player.Level)}})
 }
 
 func (player *Creature) GainExp(exp int) {
 	player.Experience += exp
-	log.Println("Got some exp", exp)
 	if player.Experience >= player.Level {
 		player.LevelUp()
 		player.Broadcast(PlayerUpdate, nil)
