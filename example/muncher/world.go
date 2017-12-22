@@ -17,8 +17,7 @@ type Position struct {
 }
 
 type World struct {
-	Window     *gterm.Window
-	MessageBus MessageBus
+	Window *gterm.Window
 
 	turnCount uint64
 
@@ -51,6 +50,8 @@ type World struct {
 	QuitGame bool
 
 	needInput bool
+
+	Messaging
 }
 
 func (world *World) GetNextID() int {
@@ -144,11 +145,11 @@ func (world *World) AddEntity(e Entity) {
 	log.Printf("Adding entity %+v", e)
 
 	if n, ok := e.(Notifier); ok {
-		n.SetMessageBus(&world.MessageBus)
+		n.SetMessageBus(world.messageBus)
 	}
 
 	if l, ok := e.(Listener); ok {
-		world.MessageBus.Subscribe(l)
+		world.messageBus.Subscribe(l)
 	}
 
 	world.CurrentLevel.Entities = append(world.CurrentLevel.Entities, e)
@@ -408,7 +409,7 @@ func (world *World) GetEntity(id int) (Entity, bool) {
 func (world *World) ShowPlayerDeathPopUp() {
 	pop := NewPopUp(10, 5, 40, 6, Red, "YOU ARE VERY DEAD", "I AM SO SORRY :(")
 	world.GameOver = true
-	world.MessageBus.Broadcast(ShowMenu, ShowMenuMessage{Menu: &pop})
+	world.Broadcast(ShowMenu, ShowMenuMessage{Menu: &pop})
 }
 
 func (world *World) Notify(message Message, data interface{}) {
@@ -446,7 +447,7 @@ func (world *World) Notify(message Message, data interface{}) {
 			log.Printf("%T %+v", d.Menu, d.Menu)
 			if n, ok := d.Menu.(Notifier); ok {
 				log.Printf("ADDED IT!")
-				n.SetMessageBus(&world.MessageBus)
+				n.SetMessageBus(world.messageBus)
 			} else {
 				log.Printf("******* Did not satify requirement of Notifier %+v", d.Menu)
 			}
@@ -474,7 +475,8 @@ func NewWorld(window *gterm.Window, centered bool, seed uint64) *World {
 
 	world.rng.Seed(seed, DefaultSeq, seed*seed, DefaultSeq+1)
 
-	world.MessageBus.Subscribe(&world)
+	world.messageBus = &MessageBus{}
+	world.messageBus.Subscribe(&world)
 
 	return &world
 }

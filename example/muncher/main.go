@@ -74,8 +74,8 @@ func main() {
 		// TODO: Roll this up into some kind of registering a system function on the world
 		combat := CombatSystem{}
 
-		combat.SetMessageBus(&world.MessageBus)
-		world.MessageBus.Subscribe(combat)
+		combat.SetMessageBus(world.messageBus)
+		world.messageBus.Subscribe(combat)
 	}
 
 	player := NewPlayer()

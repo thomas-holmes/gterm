@@ -27,7 +27,7 @@ func NewHud(player *Creature, world *World, xPos int, yPos int) *HUD {
 		nextFreeRow: 0,
 	}
 
-	world.MessageBus.Subscribe(&hud)
+	world.messageBus.Subscribe(&hud)
 
 	return &hud
 }
