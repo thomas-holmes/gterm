@@ -71,24 +71,13 @@ func (pop *ItemDetails) renderShortDescription(row int, window *gterm.Window) in
 }
 
 func (pop *ItemDetails) renderLongDescription(row int, window *gterm.Window) int {
-	offsetX := pop.X + 4
+	offsetX := pop.X + 2
 	offsetY := row + 1
 
 	description := pop.Item.Description
-	for {
-		if len(description) == 0 {
-			break
-		}
-		maxLength := pop.W - offsetX + pop.X - 1
-		cut := min(len(description), maxLength)
-		printable := description[:cut]
-		description = description[cut:]
-		window.PutString(offsetX, offsetY, printable, White)
-		offsetY++
-		offsetX = pop.X
-	}
+	offsetY += putWrappedText(window, description, offsetX, offsetY, 4, 0, pop.W-offsetX+pop.X-1, White)
 
-	return offsetY + 1
+	return offsetY
 }
 
 func (pop *ItemDetails) renderPower(row int, window *gterm.Window) int {

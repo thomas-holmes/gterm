@@ -66,19 +66,8 @@ func (pop *InventoryPop) renderItem(index int, row int, window *gterm.Window) in
 	window.PutString(offsetX, offsetY, selectionStr, White)
 
 	name := item.Name
-	offsetX += len(selectionStr)
-	for {
-		if len(name) == 0 {
-			break
-		}
-		maxLength := pop.W - offsetX + pop.X - 1
-		cut := min(len(name), maxLength)
-		printable := name[:cut]
-		name = name[cut:]
-		window.PutString(offsetX, offsetY, printable, White)
-		offsetY++
-		offsetX = pop.X + len(selectionStr) - 2
-	}
+
+	offsetY += putWrappedText(window, name, offsetX, offsetY, len(selectionStr), 2, pop.W-offsetX+pop.X-1, White)
 	return offsetY
 }
 

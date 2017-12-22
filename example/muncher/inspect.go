@@ -82,10 +82,9 @@ func (pop *InspectionPop) RenderTileDescription(tile *Tile) {
 	if i := tile.Item; i != nil {
 		xOffset := 0
 		pop.World.Window.PutRune(pop.X+xOffset, pop.Y+yOffset, i.Symbol, i.Color, gterm.NoColor)
-		xOffset += 2
+
 		itemLine1 := fmt.Sprintf("- %v (%v)", i.Name, i.Power)
-		pop.World.Window.PutString(pop.X+xOffset, pop.Y+yOffset, itemLine1, Yellow)
-		yOffset++
+		yOffset += putWrappedText(pop.World.Window, itemLine1, pop.X, pop.Y+yOffset, 2, 4, pop.W-xOffset, Yellow)
 	}
 	{
 		terrainLine1 := ""

@@ -28,4 +28,4 @@ Do when the player has more stuff, armour, stats, etc... integrate this into com
 You know, fireball!
 
 ### Interface
-Inspect mode would be good. X and target over square, get info? Inspect would be useful for debugging things like vision/scent?
+Inspect mode should either move the camera or not go beyond the bounds of the camera

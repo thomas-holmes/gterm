@@ -93,18 +93,7 @@ func (hud *HUD) renderEquippedWeapon(world *World) {
 	weaponStr := fmt.Sprintf("Weapon: %v", equipName)
 
 	offsetX = hud.XPos
-	for {
-		if len(weaponStr) == 0 {
-			break
-		}
-		maxLength := (world.Window.Columns - offsetX)
-		cut := min(len(weaponStr), maxLength)
-		printable := weaponStr[:cut]
-		weaponStr = weaponStr[cut:]
-		world.Window.PutString(offsetX, offsetY, printable, Yellow)
-		offsetY = hud.GetNextRow()
-		offsetX = hud.XPos + 2
-	}
+	hud.nextFreeRow += putWrappedText(world.Window, weaponStr, offsetX, offsetY, 0, 2, world.Window.Columns-offsetX, Yellow)
 }
 
 func (hud *HUD) renderItemDisplay(world *World) {
@@ -127,19 +116,8 @@ func (hud *HUD) renderItemDisplay(world *World) {
 		world.Window.PutRune(hud.XPos, offsetY, item.Symbol, item.Color, gterm.NoColor)
 		name := item.Name
 		offsetX = hud.XPos
-		for {
-			offsetX = hud.XPos + 2
-			if len(name) == 0 {
-				break
-			}
-			maxLength := (world.Window.Columns - offsetX)
-			cut := min(len(name), maxLength)
-			printable := name[:cut]
-			name = name[cut:]
-			world.Window.PutString(offsetX, offsetY, printable, Yellow)
-			offsetY = hud.GetNextRow()
-			offsetX = hud.XPos + 1
-		}
+		hud.nextFreeRow += (putWrappedText(world.Window, name, offsetX, offsetY, 2, 4, world.Window.Columns-offsetX, Yellow) - 1)
+		offsetY = hud.GetNextRow()
 	}
 	offsetX = hud.XPos
 }

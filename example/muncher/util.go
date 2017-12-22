@@ -4,6 +4,10 @@ import (
 	"log"
 	"math"
 	"time"
+
+	"github.com/veandco/go-sdl2/sdl"
+
+	"github.com/thomas-holmes/gterm"
 )
 
 func max(a int, b int) int {
@@ -72,4 +76,24 @@ func distance(x0 int, y0 int, x1 int, y1 int) float64 {
 	x := x1 - x0
 	y := y1 - y0
 	return math.Sqrt(float64(x*x) + float64(y*y))
+}
+
+func putWrappedText(window *gterm.Window, content string, x int, y int, firstIndent int, afterIndent int, width int, color sdl.Color) int {
+	offsetX := x + firstIndent
+	offsetY := y
+
+	for {
+		if len(content) == 0 {
+			break
+		}
+		maxLength := width - (offsetX - x)
+		cut := min(len(content), maxLength)
+		printable := content[:cut]
+		content = content[cut:]
+		window.PutString(offsetX, offsetY, printable, color)
+		offsetY++
+		offsetX = x + afterIndent
+	}
+
+	return offsetY - y
 }
