@@ -336,8 +336,6 @@ func (creature *Creature) Render(world *World) {
 	world.RenderRuneAt(creature.X, creature.Y, creature.RenderGlyph, creature.RenderColor, gterm.NoColor)
 }
 
-// Monster Stuff
-// TODO: If a monster is blocking the ideal path our monster should go around
 func (monster *Creature) Pursue(turn uint64, world *World) bool {
 	if world.CurrentLevel.VisionMap.VisibilityAt(monster.X, monster.Y) == Visible {
 		monster.State = Pursuing

@@ -79,15 +79,6 @@ func (world *World) SetCurrentLevel(index int) {
 	world.CurrentLevel = &world.Levels[index]
 }
 
-func (world *World) AddLevelFromString(levelString string) {
-	world.Levels = append(world.Levels, LoadFromString(levelString))
-
-	levels := len(world.Levels)
-	if levels > 1 {
-		connectTwoLevels(&world.Levels[levels-2], &world.Levels[levels-1])
-	}
-}
-
 func (world *World) AddLevelFromCandidate(level *CandidateLevel) {
 	world.Levels = append(world.Levels, LoadCandidateLevel(level))
 
