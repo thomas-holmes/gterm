@@ -52,7 +52,9 @@ func (pop *InspectionPop) Update(event sdl.Event) bool {
 		}
 	}
 
-	if newX != pop.InspectX || newY != pop.InspectY {
+	if (newX != pop.InspectX || newY != pop.InspectY) &&
+		(newX > 0 && newX < pop.World.CurrentLevel.Columns) &&
+		(newY > 0 && newY < pop.World.CurrentLevel.Rows) {
 		// Guard against level boundaries
 		pop.InspectX = newX
 		pop.InspectY = newY
@@ -64,6 +66,9 @@ func (pop *InspectionPop) Update(event sdl.Event) bool {
 }
 
 func (pop *InspectionPop) RenderTileDescription(tile *Tile) {
+	if pop.World.CurrentLevel.VisionMap.VisibilityAt(tile.X, tile.Y) == Unseen {
+		return
+	}
 	yOffset := 0
 	if c := tile.Creature; c != nil {
 		xOffset := 0

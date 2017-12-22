@@ -57,8 +57,6 @@ type Tile struct {
 
 	TileGlyph rune
 	TileKind
-
-	WasVisible bool
 }
 
 func (tile Tile) IsWall() bool {
