@@ -105,7 +105,7 @@ func (hud *HUD) renderItemDisplay(world *World) {
 	for y := 0; y < world.CurrentLevel.Rows; y++ {
 		for x := 0; x < world.CurrentLevel.Columns; x++ {
 			if world.CurrentLevel.VisionMap.VisibilityAt(x, y) == Visible {
-				tile := world.GetTile(x, y)
+				tile := world.CurrentLevel.GetTile(x, y)
 				if tile.Item != nil {
 					items = append(items, tile.Item)
 				}

@@ -1,5 +1,7 @@
 package main
 
+import "log"
+
 func (level Level) getStair(x int, y int) (Stair, bool) {
 	for _, s := range level.stairs {
 		if s.X == x && s.Y == y {
@@ -9,8 +11,26 @@ func (level Level) getStair(x int, y int) (Stair, bool) {
 	return Stair{}, false
 }
 
-func (level Level) getTile(x int, y int) *Tile {
+func (level Level) GetTile(x int, y int) *Tile {
 	return &level.tiles[y*level.Columns+x]
+}
+
+func (level *Level) IsTileOccupied(x int, y int) bool {
+	return level.GetTile(x, y).Creature != nil
+}
+
+func (level *Level) CanStandOnTile(column int, row int) bool {
+	if level == nil {
+		log.Panicf("Wtf is going on")
+	}
+	return !level.GetTile(column, row).IsWall() && !level.IsTileOccupied(column, row)
+}
+
+func (level *Level) GetCreatureAtTile(xPos int, yPos int) (*Creature, bool) {
+	if creature := level.GetTile(xPos, yPos).Creature; creature != nil {
+		return creature, true
+	}
+	return nil, false
 }
 
 type Stair struct {
@@ -27,10 +47,12 @@ type Stair struct {
 type Level struct {
 	Columns   int
 	Rows      int
-	VisionMap VisionMap
-	ScentMap  ScentMap
+	VisionMap *VisionMap
+	ScentMap  *ScentMap
 	tiles     []Tile
 	stairs    []Stair
+
+	MonsterDensity int
 
 	Depth int
 
@@ -105,6 +127,7 @@ func LoadCandidateLevel(candidate *CandidateLevel) Level {
 	level.Rows = candidate.H
 	level.tiles = tiles
 	level.stairs = stairs
+	level.MonsterDensity = 50
 
 	level.VisionMap = NewVisionMap(level.Columns, level.Rows)
 	level.ScentMap = NewScentMap(level.Columns, level.Rows)

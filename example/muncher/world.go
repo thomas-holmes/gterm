@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -83,6 +85,20 @@ func (world *World) SetCurrentLevel(index int) {
 	world.CurrentLevel = world.Levels[index]
 }
 
+func (world *World) addInitialMonsters(level *Level) {
+	for tries := 0; tries < level.MonsterDensity; tries++ {
+		x := int(world.rng.Bounded(uint64(level.Columns)))
+		y := int(world.rng.Bounded(uint64(level.Rows)))
+
+		if level.CanStandOnTile(x, y) {
+			creatureLevel := rand.Intn(8) + 1
+			monster := NewMonster(x, y, creatureLevel, creatureLevel)
+			monster.Name = fmt.Sprintf("A Scary Number %v", creatureLevel)
+			world.AddEntity(&monster, level)
+		}
+	}
+}
+
 // AddLevelFromCandidate constructs a real level from an intermediate level representation
 func (world *World) AddLevelFromCandidate(level *CandidateLevel) {
 	loadedLevel := LoadCandidateLevel(level)
@@ -95,29 +111,7 @@ func (world *World) AddLevelFromCandidate(level *CandidateLevel) {
 	if levels > 1 {
 		connectTwoLevels(world.Levels[levels-2], world.Levels[levels-1])
 	}
-}
-
-// GetTile get the tile at a specific map location
-func (world *World) GetTile(column int, row int) *Tile {
-	tile := world.CurrentLevel.getTile(column, row)
-	return tile
-}
-
-func (world *World) GetCreatureAtTile(xPos int, yPos int) (*Creature, bool) {
-	if world.Player.X == xPos && world.Player.Y == yPos {
-		return world.Player, true
-	} else if creature := world.GetTile(xPos, yPos).Creature; creature != nil {
-		return creature, true
-	}
-	return nil, false
-}
-
-func (world World) IsTileOccupied(x int, y int) bool {
-	return world.GetTile(x, y).Creature != nil
-}
-
-func (world *World) CanStandOnTile(column int, row int) bool {
-	return !world.GetTile(column, row).IsWall() && !world.IsTileOccupied(column, row)
+	world.addInitialMonsters(&loadedLevel)
 }
 
 func (world *World) addPlayer(player *Creature, level *Level) {
@@ -128,14 +122,14 @@ func (world *World) addPlayer(player *Creature, level *Level) {
 		world.CameraY = player.Y
 	}
 
-	level.VisionMap.UpdateVision(6, world)
+	level.VisionMap.UpdateVision(12, world)
 	level.ScentMap.UpdateScents(world)
 }
 
 func (world *World) addCreature(creature *Creature, level *Level) {
 	creature.Depth = level.Depth
 
-	if !world.CanStandOnTile(creature.X, creature.Y) {
+	if !level.CanStandOnTile(creature.X, creature.Y) {
 		for _, t := range level.tiles {
 			if !t.IsWall() && !(t.Creature != nil) {
 				creature.X = t.X
@@ -146,7 +140,7 @@ func (world *World) addCreature(creature *Creature, level *Level) {
 		}
 	}
 
-	world.GetTile(creature.X, creature.Y).Creature = creature
+	level.GetTile(creature.X, creature.Y).Creature = creature
 
 	if creature.IsPlayer {
 		world.addPlayer(creature, level)
@@ -221,6 +215,7 @@ func (world *World) Update() bool {
 	turn := world.turnCount
 
 	world.needInput = false
+	log.Printf("nextEntity (%v), nextEnergy(%v) entityCount(%v)", world.CurrentLevel.NextEntity, world.CurrentLevel.NextEnergy, len(world.CurrentLevel.Entities))
 	for i := world.CurrentLevel.NextEntity; i < len(world.CurrentLevel.Entities); i++ {
 		e := world.CurrentLevel.Entities[i]
 
@@ -237,20 +232,23 @@ func (world *World) Update() bool {
 				if a.NeedsInput() {
 					input, ok := world.PopInput()
 					if !ok || !a.Update(turn, input, world) {
+						log.Printf("[%v] Bailed out of update, due to !ok || !a.Update", e.Identity())
 						world.needInput = true
 						break
 					}
 				} else {
+					log.Printf("[%v] Didn't need input", e.Identity())
 					a.Update(turn, nil, world)
 					break
 				}
 			} else {
+				log.Printf("[%v] Couldn't act", e.Identity())
 				world.CurrentLevel.NextEntity = i + 1
 			}
 		}
 
 		if c, ok := e.(*Creature); ok && c.IsPlayer {
-			world.CurrentLevel.VisionMap.UpdateVision(6, world)
+			world.CurrentLevel.VisionMap.UpdateVision(12, world)
 			world.CurrentLevel.ScentMap.UpdateScents(world)
 		}
 
@@ -300,7 +298,7 @@ func (world *World) Render() {
 	log.Printf(" min x/y (%v,%v)  max x/y(%v,%v)", minX, minY, maxX, maxY)
 	for row := minY; row < maxY; row++ {
 		for col := minX; col < maxX; col++ {
-			tile := world.GetTile(col, row)
+			tile := world.CurrentLevel.GetTile(col, row)
 
 			visibility := world.CurrentLevel.VisionMap.VisibilityAt(col, row)
 			tile.Render(world, visibility)
@@ -331,16 +329,17 @@ func (world *World) OverlayVisionMap() {
 // I don't really understand why it was doing what it did before but it's now more correct
 // than it was.
 var ScentColors = []sdl.Color{
-	sdl.Color{R: 175, G: 50, B: 50, A: 1},
-	sdl.Color{R: 225, G: 50, B: 25, A: 1},
-	sdl.Color{R: 255, G: 0, B: 0, A: 1},
-	sdl.Color{R: 100, G: 175, B: 50, A: 1},
-	sdl.Color{R: 50, G: 255, B: 100, A: 1},
-	sdl.Color{R: 0, G: 150, B: 175, A: 1},
-	sdl.Color{R: 0, G: 50, B: 255, A: 1},
+	sdl.Color{R: 175, G: 50, B: 50, A: 200},
+	sdl.Color{R: 225, G: 50, B: 25, A: 200},
+	sdl.Color{R: 255, G: 0, B: 0, A: 200},
+	sdl.Color{R: 100, G: 175, B: 50, A: 200},
+	sdl.Color{R: 50, G: 255, B: 100, A: 200},
+	sdl.Color{R: 0, G: 150, B: 175, A: 200},
+	sdl.Color{R: 0, G: 50, B: 255, A: 200},
 }
 
 func (world *World) ToggleScentOverlay() {
+	log.Printf("Scent Map Toggle pointer: %+p", world.CurrentLevel.ScentMap)
 	world.showScentOverlay = !world.showScentOverlay
 }
 
@@ -402,13 +401,13 @@ func (world *World) RemoveEntity(entity Entity) {
 	}
 
 	if creature, ok := foundEntity.(*Creature); ok {
-		world.GetTile(creature.X, creature.Y).Creature = nil
+		world.CurrentLevel.GetTile(creature.X, creature.Y).Creature = nil
 	}
 }
 
 func (world *World) MoveEntity(message MoveEntityMessage) {
-	oldTile := world.GetTile(message.OldX, message.OldY)
-	newTile := world.GetTile(message.NewX, message.NewY)
+	oldTile := world.CurrentLevel.GetTile(message.OldX, message.OldY)
+	newTile := world.CurrentLevel.GetTile(message.NewX, message.NewY)
 	newTile.Creature = oldTile.Creature
 	oldTile.Creature = nil
 }

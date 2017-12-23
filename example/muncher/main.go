@@ -45,7 +45,7 @@ func spawnRandomMonster(world *World) {
 		x := rand.Intn(world.CurrentLevel.Columns)
 		y := rand.Intn(world.CurrentLevel.Rows)
 
-		if world.CanStandOnTile(x, y) {
+		if world.CurrentLevel.CanStandOnTile(x, y) {
 			level := rand.Intn(8) + 1
 			monster := NewMonster(x, y, level, level)
 			monster.Name = fmt.Sprintf("A Scary Number %v", level)
@@ -96,6 +96,8 @@ func main() {
 	}
 
 	hud := NewHud(&player, world, 60, 0)
+
+	level := world.Levels[1]
 
 	for !quit && !world.QuitGame {
 

@@ -81,7 +81,7 @@ func (vision *VisionMap) CheckVision(playerX int, playerY int, candidateX int, c
 		// Either a wall or on the way to a wall, so we can see it.
 		vision.Map[cell.Y*vision.Columns+cell.X] = vision.Current
 
-		tile := world.GetTile(cell.X, cell.Y)
+		tile := world.CurrentLevel.GetTile(cell.X, cell.Y)
 
 		if tile.IsWall() {
 			foundWall = true
@@ -90,8 +90,8 @@ func (vision *VisionMap) CheckVision(playerX int, playerY int, candidateX int, c
 	return true
 }
 
-func NewVisionMap(columns int, rows int) VisionMap {
-	return VisionMap{
+func NewVisionMap(columns int, rows int) *VisionMap {
+	return &VisionMap{
 		Columns: columns,
 		Rows:    rows,
 		Map:     make([]int64, columns*rows),

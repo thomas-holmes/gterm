@@ -77,6 +77,7 @@ func (pop *InspectionPop) RenderTileDescription(tile *Tile) {
 
 		creatureLine1 := fmt.Sprintf("%v (%v/%v)", c.Name, c.HP.Current, c.HP.Max)
 		pop.World.Window.PutString(pop.X+xOffset, pop.Y+yOffset, creatureLine1, Yellow)
+
 		yOffset++
 	}
 	if i := tile.Item; i != nil {
@@ -129,7 +130,7 @@ func (pop *InspectionPop) Render(window *gterm.Window) {
 
 	pop.RenderCursor(window)
 
-	tile := pop.World.GetTile(pop.InspectX, pop.InspectY)
+	tile := pop.World.CurrentLevel.GetTile(pop.InspectX, pop.InspectY)
 
 	pop.RenderTileDescription(tile)
 }

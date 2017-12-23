@@ -81,12 +81,11 @@ func (c *Creature) Damage(damage int) {
 }
 
 func (c *Creature) TryMove(newX int, newY int, world *World) (MoveResult, interface{}) {
-
-	if world.CanStandOnTile(newX, newY) {
+	if world.CurrentLevel.CanStandOnTile(newX, newY) {
 		return MoveIsSuccess, nil
 	}
 
-	if defender, ok := world.GetCreatureAtTile(newX, newY); ok {
+	if defender, ok := world.CurrentLevel.GetCreatureAtTile(newX, newY); ok {
 		log.Printf("Got a creature in TryMove, %+v", *defender)
 		if c.Team != defender.Team {
 			a, aOk := world.GetEntity(c.ID)
@@ -167,7 +166,7 @@ func (player *Creature) Heal(amount int) {
 }
 
 func (player *Creature) PickupItem(world *World) bool {
-	tile := world.GetTile(player.X, player.Y)
+	tile := world.CurrentLevel.GetTile(player.X, player.Y)
 	if tile.Item == nil {
 		return false
 	}
@@ -203,7 +202,7 @@ func (player *Creature) HandleInput(event sdl.Event, world *World) bool {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
 		case sdl.K_COMMA:
-			tile := world.GetTile(player.X, player.Y)
+			tile := world.CurrentLevel.GetTile(player.X, player.Y)
 			if tile.TileKind == UpStair {
 				if stair, ok := world.CurrentLevel.getStair(player.X, player.Y); ok {
 					player.Broadcast(PlayerFloorChange, PlayerFloorChangeMessage{
@@ -215,7 +214,7 @@ func (player *Creature) HandleInput(event sdl.Event, world *World) bool {
 			}
 			return true
 		case sdl.K_PERIOD:
-			tile := world.GetTile(player.X, player.Y)
+			tile := world.CurrentLevel.GetTile(player.X, player.Y)
 			if tile.TileKind == DownStair {
 				if stair, ok := world.CurrentLevel.getStair(player.X, player.Y); ok {
 					player.Broadcast(PlayerFloorChange, PlayerFloorChangeMessage{
@@ -365,10 +364,8 @@ func (monster *Creature) Pursue(turn uint64, world *World) bool {
 	if len(candidates) > 0 {
 		for _, choice := range candidates {
 			result, data := monster.TryMove(choice.X, choice.Y, world)
-			log.Printf("Tried to move %#v, got result: %v, data %#v", monster, result, data)
 			switch result {
 			case MoveIsInvalid:
-				log.Printf("Couldn't move to choice %+v", choice)
 				continue
 			case MoveIsSuccess:
 				oldX := monster.X
@@ -392,6 +389,8 @@ func (monster *Creature) Pursue(turn uint64, world *World) bool {
 			}
 			return true
 		}
+	} else {
+		return true
 	}
 	return false
 }

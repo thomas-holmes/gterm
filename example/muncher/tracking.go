@@ -28,7 +28,7 @@ func (scentMap ScentMap) track(turn uint64, xPos int, yPos int) []TrackCandidate
 	minX := max(0, xPos-1)
 	maxX := min(scentMap.columns, xPos+2)
 	minY := max(0, yPos-1)
-	maxY := min(scentMap.columns, yPos+2)
+	maxY := min(scentMap.rows, yPos+2)
 
 	candidates := make([]TrackCandidate, 0, 8)
 	for y := minY; y < maxY; y++ {
@@ -44,7 +44,7 @@ func (scentMap ScentMap) track(turn uint64, xPos int, yPos int) []TrackCandidate
 	return candidates
 }
 
-func (scentMap ScentMap) UpdateScents(world *World) {
+func (scentMap *ScentMap) UpdateScents(world *World) {
 	defer timeMe(time.Now(), "ScentMap.UpdateScents")
 
 	vision := world.CurrentLevel.VisionMap
@@ -52,15 +52,15 @@ func (scentMap ScentMap) UpdateScents(world *World) {
 	for y := 0; y < scentMap.rows; y++ {
 		for x := 0; x < scentMap.columns; x++ {
 			vision := vision.VisibilityAt(x, y)
-			if vision == Visible && !world.GetTile(x, y).IsWall() {
+			if vision == Visible && !world.CurrentLevel.GetTile(x, y).IsWall() {
 				scentMap.dirty(x, y, world.turnCount, distance(player.X, player.Y, x, y))
 			}
 		}
 	}
 }
 
-func NewScentMap(columns int, rows int) ScentMap {
-	return ScentMap{
+func NewScentMap(columns int, rows int) *ScentMap {
+	return &ScentMap{
 		columns: columns,
 		rows:    rows,
 		scent:   make([]float64, columns*rows, columns*rows),
