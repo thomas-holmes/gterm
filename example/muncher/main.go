@@ -97,8 +97,6 @@ func main() {
 
 	hud := NewHud(&player, world, 60, 0)
 
-	level := world.Levels[1]
-
 	for !quit && !world.QuitGame {
 
 		event := sdl.PollEvent()

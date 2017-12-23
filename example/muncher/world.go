@@ -295,7 +295,6 @@ func (world *World) Render() {
 		minY, maxY = 0, world.CurrentLevel.Rows
 		minX, maxX = 0, world.CurrentLevel.Columns
 	}
-	log.Printf(" min x/y (%v,%v)  max x/y(%v,%v)", minX, minY, maxX, maxY)
 	for row := minY; row < maxY; row++ {
 		for col := minX; col < maxX; col++ {
 			tile := world.CurrentLevel.GetTile(col, row)
