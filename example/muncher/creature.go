@@ -135,9 +135,9 @@ func NewMonster(xPos int, yPos int, level int, hp int) Creature {
 }
 
 func (player *Creature) LevelUp() {
-	player.Experience -= max(0, player.Experience-player.Level)
+	player.Experience = max(0, player.Experience-player.Level)
 	player.Level++
-	player.HP.Max = int(float32(player.HP.Max) * 1.5)
+	player.HP.Max = player.HP.Max + max(1, int(float64(player.HP.Max)*0.1))
 	player.HP.Current = player.HP.Max
 	player.Broadcast(GameLogAppend, GameLogAppendMessage{[]string{fmt.Sprintf("You are now level %v", player.Level)}})
 }
@@ -320,10 +320,11 @@ func (creature *Creature) Notify(message Message, data interface{}) {
 			if attacker.ID != creature.ID {
 				return
 			}
+			attacker.GainExp(defender.Level)
 			if creature.Level > defender.Level {
-				creature.GainExp((defender.Level + 1) / 4)
+				//creature.GainExp((defender.Level + 1) / 4)
 			} else {
-				creature.GainExp((defender.Level + 1) / 2)
+				//creature.GainExp((defender.Level + 1) / 2)
 			}
 		}
 	case EquipItem:

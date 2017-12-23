@@ -75,7 +75,7 @@ func (hud *HUD) renderPlayerHealth(world *World) {
 }
 
 func (hud *HUD) renderPlayerLevel(world *World) {
-	level := fmt.Sprintf("Level: %v", hud.Player.Level)
+	level := fmt.Sprintf("Level: %v (%v / %v)", hud.Player.Level, hud.Player.Experience, hud.Player.Level)
 	world.Window.PutString(hud.XPos, hud.GetNextRow(), level, Yellow)
 }
 
