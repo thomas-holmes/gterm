@@ -3,17 +3,16 @@ Save the game & optionally resume?
 Restart after death
 Change the seed
 Move content (monster, items, spells, etc...) definitions out of code?
-Update input handling to deal w/ modifier keys
 
 ### Dungeon
 Generate more levels
 Spawn random monsters
-Drop loot?
 
 ### Monsters
+Drop loot?
 
 ### Game Loop
-Maybe move more of the game loop into World.Update, specifically the input
+Maybe move more of the game loop into World.Update, specifically the input (Not sure?)
 
 ### Equipment
 More slots, armour, rings, etc...
