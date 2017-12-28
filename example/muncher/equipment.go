@@ -45,8 +45,8 @@ func (pop *EquipmentPop) equipItem(index int) {
 	}
 }
 
-func (pop *EquipmentPop) Update(event sdl.Event) bool {
-	switch e := event.(type) {
+func (pop *EquipmentPop) Update(input InputEvent) bool {
+	switch e := input.Event.(type) {
 	case *sdl.KeyDownEvent:
 		k := e.Keysym.Sym
 		switch {

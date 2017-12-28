@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/thomas-holmes/gterm"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -69,9 +67,6 @@ func (tile *Tile) Render(world *World, visibility Visibility) {
 	}
 
 	if tile.Creature != nil && visibility == Visible {
-		if tile.X == world.Player.X && tile.Y == world.Player.Y {
-			log.Printf("*** On the player tile. Can I render?")
-		}
 		tile.Creature.Render(world)
 	} else {
 		tile.RenderBackground(world, visibility) // bad API, refactor

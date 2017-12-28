@@ -38,8 +38,8 @@ func (pop *InventoryPop) tryShowItem(index int) {
 	}
 }
 
-func (pop *InventoryPop) Update(event sdl.Event) bool {
-	switch e := event.(type) {
+func (pop *InventoryPop) Update(input InputEvent) bool {
+	switch e := input.Event.(type) {
 	case *sdl.KeyDownEvent:
 		k := e.Keysym.Sym
 		switch {

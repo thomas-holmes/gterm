@@ -177,10 +177,10 @@ func (player *Creature) PickupItem(world *World) bool {
 }
 
 // Update returns true if an action that would constitute advancing the turn took place
-func (creature *Creature) Update(turn uint64, event sdl.Event, world *World) bool {
+func (creature *Creature) Update(turn uint64, input InputEvent, world *World) bool {
 	success := false
 	if creature.IsPlayer {
-		success = creature.HandleInput(event, world)
+		success = creature.HandleInput(input, world)
 	} else {
 		success = creature.Pursue(turn, world)
 	}
@@ -194,36 +194,41 @@ func (creature *Creature) Update(turn uint64, event sdl.Event, world *World) boo
 }
 
 // HandleInput updates player position based on user input
-func (player *Creature) HandleInput(event sdl.Event, world *World) bool {
+func (player *Creature) HandleInput(input InputEvent, world *World) bool {
 	newX := player.X
 	newY := player.Y
 
-	switch e := event.(type) {
+	switch e := input.Event.(type) {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
 		case sdl.K_COMMA:
-			tile := world.CurrentLevel.GetTile(player.X, player.Y)
-			if tile.TileKind == UpStair {
-				if stair, ok := world.CurrentLevel.getStair(player.X, player.Y); ok {
-					player.Broadcast(PlayerFloorChange, PlayerFloorChangeMessage{
-						Stair: stair,
-					})
-				} else {
-					return false
+			if input.Keymod&sdl.KMOD_SHIFT > 0 {
+				tile := world.CurrentLevel.GetTile(player.X, player.Y)
+				if tile.TileKind == UpStair {
+					if stair, ok := world.CurrentLevel.getStair(player.X, player.Y); ok {
+						player.Broadcast(PlayerFloorChange, PlayerFloorChangeMessage{
+							Stair: stair,
+						})
+					} else {
+						return false
+					}
 				}
 			}
-			return true
+			return false
 		case sdl.K_PERIOD:
-			tile := world.CurrentLevel.GetTile(player.X, player.Y)
-			if tile.TileKind == DownStair {
-				if stair, ok := world.CurrentLevel.getStair(player.X, player.Y); ok {
-					player.Broadcast(PlayerFloorChange, PlayerFloorChangeMessage{
-						Stair: stair,
-					})
-				} else {
-					return false
+			if input.Keymod&sdl.KMOD_SHIFT > 0 {
+				tile := world.CurrentLevel.GetTile(player.X, player.Y)
+				if tile.TileKind == DownStair {
+					if stair, ok := world.CurrentLevel.getStair(player.X, player.Y); ok {
+						player.Broadcast(PlayerFloorChange, PlayerFloorChangeMessage{
+							Stair: stair,
+						})
+					} else {
+						return false
+					}
 				}
 			}
+			// Period returns true because it means "wait"
 			return true
 		case sdl.K_h:
 			newX = player.X - 1

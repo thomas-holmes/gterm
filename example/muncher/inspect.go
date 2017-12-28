@@ -25,9 +25,9 @@ func (pop *InspectionPop) Done() bool {
 	return pop.done
 }
 
-func (pop *InspectionPop) Update(event sdl.Event) bool {
+func (pop *InspectionPop) Update(input InputEvent) bool {
 	newX, newY := pop.InspectX, pop.InspectY
-	switch e := event.(type) {
+	switch e := input.Event.(type) {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
 		case sdl.K_ESCAPE:

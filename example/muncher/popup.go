@@ -106,8 +106,8 @@ func (pop PopUp) Render(window *gterm.Window) {
 	pop.RenderContents(window)
 }
 
-func (pop *PopUp) Update(event sdl.Event) bool {
-	switch e := event.(type) {
+func (pop *PopUp) Update(input InputEvent) bool {
+	switch e := input.Event.(type) {
 	case *sdl.KeyDownEvent:
 		k := e.Keysym.Sym
 		switch {

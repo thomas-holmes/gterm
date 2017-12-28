@@ -46,8 +46,8 @@ func (pop *ItemDetails) Done() bool {
 	return pop.done
 }
 
-func (pop *ItemDetails) Update(event sdl.Event) bool {
-	switch e := event.(type) {
+func (pop *ItemDetails) Update(input InputEvent) bool {
+	switch e := input.Event.(type) {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
 		case sdl.K_ESCAPE:

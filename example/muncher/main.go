@@ -16,8 +16,8 @@ import (
 
 var quit = false
 
-func eventActionable(event sdl.Event) bool {
-	switch event.(type) {
+func eventActionable(input InputEvent) bool {
+	switch input.Event.(type) {
 	case *sdl.KeyDownEvent:
 		return true
 	case *sdl.QuitEvent:
@@ -26,8 +26,8 @@ func eventActionable(event sdl.Event) bool {
 	return false
 }
 
-func handleInput(event sdl.Event, world *World) {
-	switch e := event.(type) {
+func handleInput(input InputEvent, world *World) {
+	switch e := input.Event.(type) {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
 		case sdl.K_5:
@@ -99,14 +99,14 @@ func main() {
 
 	for !quit && !world.QuitGame {
 
-		event := sdl.PollEvent()
-		if world.turnCount == 0 || eventActionable(event) {
+		inputEvent := InputEvent{Event: sdl.PollEvent(), Keymod: sdl.GetModState()}
+		if world.turnCount == 0 || eventActionable(inputEvent) {
 			window.ClearWindow()
 
-			handleInput(event, world)
+			handleInput(inputEvent, world)
 
 			// TODO: Consider moving this into the world update loop?
-			world.AddInput(event)
+			world.AddInput(inputEvent)
 
 			updateLoops := 0
 			for !world.Update() && !world.GameOver {

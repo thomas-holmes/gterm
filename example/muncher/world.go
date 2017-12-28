@@ -45,7 +45,7 @@ type World struct {
 
 	showScentOverlay bool
 
-	InputBuffer []sdl.Event
+	InputBuffer []InputEvent
 
 	MenuStack []Menu
 
@@ -65,19 +65,19 @@ func (world *World) GetNextID() int {
 }
 
 // PopInput get a queued input if there is one.
-func (world *World) PopInput() (sdl.Event, bool) {
+func (world *World) PopInput() (InputEvent, bool) {
 	if len(world.InputBuffer) > 0 {
 		input := world.InputBuffer[0]
 		world.InputBuffer = world.InputBuffer[1:]
 		return input, true
 	}
 
-	return nil, false
+	return InputEvent{}, false
 }
 
 // AddInput queue an input for the game loop
-func (world *World) AddInput(event sdl.Event) {
-	world.InputBuffer = append(world.InputBuffer, event)
+func (world *World) AddInput(input InputEvent) {
+	world.InputBuffer = append(world.InputBuffer, input)
 }
 
 // SetCurrentLevel update the worlds inner CurrentLevel pointer
@@ -196,7 +196,7 @@ func (world *World) tidyMenus() bool {
 }
 
 func (world *World) Update() bool {
-	log.Printf("Updating turn [%v]", world.turnCount)
+	// log.Printf("Updating turn [%v]", world.turnCount)
 
 	if world.tidyMenus() {
 		currentMenu := world.MenuStack[len(world.MenuStack)-1]
@@ -215,7 +215,7 @@ func (world *World) Update() bool {
 	turn := world.turnCount
 
 	world.needInput = false
-	log.Printf("nextEntity (%v), nextEnergy(%v) entityCount(%v)", world.CurrentLevel.NextEntity, world.CurrentLevel.NextEnergy, len(world.CurrentLevel.Entities))
+	// log.Printf("nextEntity (%v), nextEnergy(%v) entityCount(%v)", world.CurrentLevel.NextEntity, world.CurrentLevel.NextEnergy, len(world.CurrentLevel.Entities))
 	for i := world.CurrentLevel.NextEntity; i < len(world.CurrentLevel.Entities); i++ {
 		e := world.CurrentLevel.Entities[i]
 
@@ -232,17 +232,17 @@ func (world *World) Update() bool {
 				if a.NeedsInput() {
 					input, ok := world.PopInput()
 					if !ok || !a.Update(turn, input, world) {
-						log.Printf("[%v] Bailed out of update, due to !ok || !a.Update", e.Identity())
+						// log.Printf("[%v] Bailed out of update, due to !ok || !a.Update", e.Identity())
 						world.needInput = true
 						break
 					}
 				} else {
-					log.Printf("[%v] Didn't need input", e.Identity())
-					a.Update(turn, nil, world)
+					// log.Printf("[%v] Didn't need input", e.Identity())
+					a.Update(turn, InputEvent{}, world)
 					break
 				}
 			} else {
-				log.Printf("[%v] Couldn't act", e.Identity())
+				// log.Printf("[%v] Couldn't act", e.Identity())
 				world.CurrentLevel.NextEntity = i + 1
 			}
 		}

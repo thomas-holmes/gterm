@@ -20,8 +20,8 @@ type FullGameLog struct {
 	ScrollPosition int
 }
 
-func (pop *FullGameLog) Update(event sdl.Event) bool {
-	switch e := event.(type) {
+func (pop *FullGameLog) Update(input InputEvent) bool {
+	switch e := input.Event.(type) {
 	case *sdl.KeyDownEvent:
 		k := e.Keysym.Sym
 		switch {
