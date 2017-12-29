@@ -202,9 +202,18 @@ func (creature *Creature) Update(turn uint64, input InputEvent, world *World) bo
 	return false
 }
 
-func (creature *Creature) CastSpell(spell Spell, world *World) {
+func (creature *Creature) TargetSpell(spell Spell, world *World) {
 	menu := &SpellTargeting{X: 0, Y: 0, W: 0, H: 0, TargetX: creature.X, TargetY: creature.Y, World: world, Spell: spell}
 	creature.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
+}
+
+func (creature *Creature) CastSpell(spell Spell, world *World, targetX int, targetY int) {
+	fmt.Printf("Firing at (%v,%v) with %+v", targetX, targetY, spell)
+	if defender, ok := world.CurrentLevel.GetCreatureAtTile(targetX, targetY); ok {
+		// Can attack self. Do we care?
+		world.Broadcast(SpellAttackEntity, SpellAttackEntityMessage{Attacker: creature, Defender: defender, Spell: spell})
+	}
+
 }
 
 // HandleInput updates player position based on user input

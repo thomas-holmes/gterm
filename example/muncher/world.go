@@ -185,8 +185,6 @@ func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 }
 
 func (world *World) tidyMenus() bool {
-	log.Printf("Before tidying, %v", world.MenuStack)
-
 	insertionIndex := 0
 	for _, menu := range world.MenuStack {
 		if !menu.Done() {
@@ -195,7 +193,6 @@ func (world *World) tidyMenus() bool {
 		}
 	}
 	world.MenuStack = world.MenuStack[:insertionIndex]
-	log.Printf("After tidying, %v", world.MenuStack)
 
 	return len(world.MenuStack) > 0
 }

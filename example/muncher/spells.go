@@ -52,7 +52,7 @@ func (pop *SpellPop) castSpell(index int) {
 
 		// Doing something a little different on purpose, going to call
 		// back onto the creature instead of broadcasting directly
-		pop.World.Player.CastSpell(spell, pop.World)
+		pop.World.Player.TargetSpell(spell, pop.World)
 	}
 }
 
@@ -134,6 +134,10 @@ func (pop *SpellTargeting) Update(input InputEvent) bool {
 	switch e := input.Event.(type) {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
+		case sdl.K_RETURN:
+			pop.done = true
+			pop.World.Player.CastSpell(pop.Spell, pop.World, pop.TargetX, pop.TargetY)
+			return true
 		case sdl.K_ESCAPE:
 			pop.done = true
 			return true
@@ -170,7 +174,6 @@ func (pop *SpellTargeting) Update(input InputEvent) bool {
 }
 
 func (pop SpellTargeting) Render(window *gterm.Window) {
-	log.Printf("&**&*& Rendering SpellTargeting")
 	white := White
 	white.A = 50
 	yellow := Yellow
