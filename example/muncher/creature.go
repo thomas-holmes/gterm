@@ -165,6 +165,12 @@ func (player Creature) HealthPercentage() float32 {
 	return current / max
 }
 
+func (player Creature) MagicPercentage() float32 {
+	current := float32(player.HP.Current)
+	max := float32(player.HP.Max)
+	return current / max
+}
+
 func (player *Creature) Heal(amount int) {
 	amount = max(amount, 0)
 

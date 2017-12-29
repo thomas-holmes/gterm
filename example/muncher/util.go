@@ -73,7 +73,18 @@ func timeMe(start time.Time, name string) {
 
 }
 
-func distance(x0 int, y0 int, x1 int, y1 int) float64 {
+func squareDistance(x0 int, y0 int, x1 int, y1 int) int {
+	xDelta := abs(x0 - x1)
+	yDelta := abs(y0 - y1)
+
+	if xDelta > yDelta {
+		return xDelta
+	}
+
+	return yDelta
+}
+
+func euclideanDistance(x0 int, y0 int, x1 int, y1 int) float64 {
 	x := x1 - x0
 	y := y1 - y0
 	return math.Sqrt(float64(x*x) + float64(y*y))

@@ -53,7 +53,7 @@ func (scentMap *ScentMap) UpdateScents(world *World) {
 		for x := 0; x < scentMap.columns; x++ {
 			vision := vision.VisibilityAt(x, y)
 			if vision == Visible && !world.CurrentLevel.GetTile(x, y).IsWall() {
-				scentMap.dirty(x, y, world.turnCount, distance(player.X, player.Y, x, y))
+				scentMap.dirty(x, y, world.turnCount, euclideanDistance(player.X, player.Y, x, y))
 			}
 		}
 	}

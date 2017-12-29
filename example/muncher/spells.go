@@ -117,10 +117,15 @@ type SpellTargeting struct {
 	TargetX int
 	TargetY int
 
+	distance int
+
 	X int
 	Y int
 	W int
 	H int
+
+	cursorColor sdl.Color
+	lineColor   sdl.Color
 
 	done bool
 }
@@ -130,17 +135,20 @@ func (pop SpellTargeting) Done() bool {
 }
 
 func (pop *SpellTargeting) Update(input InputEvent) bool {
+	player := pop.World.Player
 	newX, newY := pop.TargetX, pop.TargetY
 	switch e := input.Event.(type) {
 	case *sdl.KeyDownEvent:
 		switch e.Keysym.Sym {
 		case sdl.K_RETURN:
-			pop.done = true
-			pop.World.Player.CastSpell(pop.Spell, pop.World, pop.TargetX, pop.TargetY)
-			return true
+			if pop.distance <= pop.Spell.Range {
+				pop.done = true
+				pop.World.Player.CastSpell(pop.Spell, pop.World, pop.TargetX, pop.TargetY)
+			} else {
+				fmt.Println("Can't cast, out of range.")
+			}
 		case sdl.K_ESCAPE:
 			pop.done = true
-			return true
 		case sdl.K_h:
 			newX = pop.TargetX - 1
 		case sdl.K_j:
@@ -166,21 +174,31 @@ func (pop *SpellTargeting) Update(input InputEvent) bool {
 		// Guard against level boundaries
 		pop.TargetX = newX
 		pop.TargetY = newY
+	}
 
-		return true
+	pop.distance = squareDistance(player.X, player.Y, pop.TargetX, pop.TargetY)
+
+	if pop.distance > pop.Spell.Range {
+		pop.cursorColor = Red
+		pop.lineColor = Red
+	} else {
+		pop.cursorColor = Yellow
+		pop.lineColor = White
 	}
 
 	return false
 }
 
 func (pop SpellTargeting) Render(window *gterm.Window) {
-	white := White
-	white.A = 50
-	yellow := Yellow
-	yellow.A = 200
+	cursorColor := pop.cursorColor
+	lineColor := pop.lineColor
+
+	cursorColor.A = 200
+	lineColor.A = 50
+
 	positions := PlotLine(pop.World.Player.X, pop.World.Player.Y, pop.TargetX, pop.TargetY)
 	for _, pos := range positions {
-		pop.World.RenderRuneAt(pos.X, pos.Y, ' ', gterm.NoColor, white)
+		pop.World.RenderRuneAt(pos.X, pos.Y, ' ', gterm.NoColor, lineColor)
 	}
-	pop.World.RenderRuneAt(pop.TargetX, pop.TargetY, ' ', gterm.NoColor, yellow)
+	pop.World.RenderRuneAt(pop.TargetX, pop.TargetY, ' ', gterm.NoColor, cursorColor)
 }

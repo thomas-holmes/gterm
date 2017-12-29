@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/thomas-holmes/gterm"
@@ -66,12 +67,50 @@ func (hud *HUD) renderPlayerHealth(world *World) {
 		hpColor = Red
 	}
 
+	label := "Health:"
 	hp := fmt.Sprintf("%v/%v", hud.Player.HP.Current, hud.Player.HP.Max)
 	if hud.Player.HP.Current == 0 {
 		hp += " *DEAD*"
 	}
 
-	world.Window.PutString(hud.XPos, hud.GetNextRow(), hp, hpColor)
+	row := hud.GetNextRow()
+	if err := world.Window.PutString(hud.XPos, row, label, Yellow); err != nil {
+		log.Fatalln("Couldn't write HUD hp label", err)
+	}
+
+	if err := world.Window.PutString(hud.XPos+len(label)+1, row, hp, hpColor); err != nil {
+		log.Fatalln("Couldn't write HUD hp", err)
+	}
+}
+
+func (hud *HUD) renderPlayerMagic(world *World) {
+	mpColor := Red
+	pct := hud.Player.MagicPercentage()
+	switch {
+	case pct >= 0.8:
+		mpColor = Green
+	case pct >= 0.6:
+		mpColor = Yellow
+	case pct >= 0.4:
+		mpColor = Orange
+	default:
+		mpColor = Red
+	}
+
+	label := "Magic:"
+	mp := fmt.Sprintf("%v/%v", hud.Player.MP.Current, hud.Player.MP.Max)
+	if hud.Player.HP.Current == 0 {
+		mp += " *DEAD*"
+	}
+
+	row := hud.GetNextRow()
+	if err := world.Window.PutString(hud.XPos, row, label, Yellow); err != nil {
+		log.Fatalln("Couldn't write HUD mp label", err)
+	}
+
+	if err := world.Window.PutString(hud.XPos+len(label)+1, row, mp, mpColor); err != nil {
+		log.Fatalln("Couldn't write HUD mp", err)
+	}
 }
 
 func (hud *HUD) renderPlayerLevel(world *World) {
@@ -128,6 +167,7 @@ func (hud *HUD) Render(world *World) {
 	hud.renderPlayerName(world)
 	hud.renderPlayerPosition(world)
 	hud.renderPlayerHealth(world)
+	hud.renderPlayerMagic(world)
 	hud.renderPlayerLevel(world)
 	hud.renderTurnCount(world)
 	hud.renderEquippedWeapon(world)
