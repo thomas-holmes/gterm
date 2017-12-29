@@ -44,6 +44,8 @@ func (creature *Creature) Regen() {
 type Creature struct {
 	Identifiable
 
+	CompletedExternalAction bool
+
 	IsPlayer bool
 
 	Experience int
@@ -234,6 +236,7 @@ func (creature *Creature) CanCast(spell Spell) bool {
 
 func (creature *Creature) CastSpell(spell Spell, world *World, targetX int, targetY int) {
 	fmt.Printf("Firing at (%v,%v) with %+v", targetX, targetY, spell)
+	creature.CompletedExternalAction = true
 	creature.MP.Current -= spell.Cost
 	if defender, ok := world.CurrentLevel.GetCreatureAtTile(targetX, targetY); ok {
 		// Can attack self. Do we care?
@@ -245,6 +248,11 @@ func (creature *Creature) CastSpell(spell Spell, world *World, targetX int, targ
 func (player *Creature) HandleInput(input InputEvent, world *World) bool {
 	newX := player.X
 	newY := player.Y
+
+	if player.CompletedExternalAction {
+		player.CompletedExternalAction = false
+		return true
+	}
 
 	switch e := input.Event.(type) {
 	case *sdl.KeyDownEvent:
@@ -386,13 +394,14 @@ func (creature *Creature) Notify(message Message, data interface{}) {
 		}
 	case EquipItem:
 		if d, ok := data.(EquipItemMessage); ok {
+			creature.CompletedExternalAction = true
 			creature.Equipment.Weapon = d.Item // This is super low effort, but should work?
 		}
 	}
 }
 
 func (c *Creature) NeedsInput() bool {
-	return c.IsPlayer
+	return c.IsPlayer && !c.CompletedExternalAction
 }
 
 // SetColor updates the render color of the player

@@ -52,14 +52,13 @@ func (pop *EquipmentPop) Update(input InputEvent) bool {
 		switch {
 		case k == sdl.K_ESCAPE:
 			pop.done = true
-			return true
 		case k >= sdl.K_a && k <= sdl.K_z:
 			pop.equipItem(int(k - sdl.K_a))
 		}
 
 	}
 
-	return true
+	return false
 }
 
 func (pop *EquipmentPop) Render(window *gterm.Window) {
