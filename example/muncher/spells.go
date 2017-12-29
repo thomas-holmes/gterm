@@ -124,6 +124,10 @@ type SpellTargeting struct {
 	TargetX int
 	TargetY int
 
+	initialized   bool
+	creatures     []*Creature
+	creatureIndex int
+
 	distance int
 
 	X int
@@ -141,8 +145,25 @@ func (pop SpellTargeting) Done() bool {
 	return pop.done
 }
 
+func (pop *SpellTargeting) setInitialState() {
+	if !pop.initialized {
+		player := pop.World.Player
+		pop.creatures = pop.World.CurrentLevel.GetVisibleCreatures(player.X, player.Y)
+		pop.initialized = true
+		for i, c := range pop.creatures {
+			if c.Team != player.Team {
+				pop.TargetX = c.X
+				pop.TargetY = c.Y
+				pop.creatureIndex = i
+				return
+			}
+		}
+	}
+}
+
 func (pop *SpellTargeting) Update(input InputEvent) bool {
 	player := pop.World.Player
+	pop.setInitialState()
 	newX, newY := pop.TargetX, pop.TargetY
 	switch e := input.Event.(type) {
 	case *sdl.KeyDownEvent:
@@ -172,6 +193,17 @@ func (pop *SpellTargeting) Update(input InputEvent) bool {
 			newX, newY = pop.TargetX-1, pop.TargetY-1
 		case sdl.K_u:
 			newX, newY = pop.TargetX+1, pop.TargetY-1
+		case sdl.K_EQUALS:
+			if input.Keymod&sdl.KMOD_SHIFT > 0 {
+				pop.creatureIndex = (pop.creatureIndex + 1) % len(pop.creatures)
+				newX, newY = pop.creatures[pop.creatureIndex].X, pop.creatures[pop.creatureIndex].Y
+			}
+		case sdl.K_MINUS:
+			pop.creatureIndex = (pop.creatureIndex - 1)
+			if pop.creatureIndex < 0 {
+				pop.creatureIndex = len(pop.creatures) - 1
+			}
+			newX, newY = pop.creatures[pop.creatureIndex].X, pop.creatures[pop.creatureIndex].Y
 		}
 	}
 

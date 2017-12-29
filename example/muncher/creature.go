@@ -46,7 +46,8 @@ type Creature struct {
 
 	CompletedExternalAction bool
 
-	IsPlayer bool
+	IsPlayer       bool
+	VisionDistance int
 
 	Experience int
 
@@ -144,6 +145,7 @@ func NewPlayer() Creature {
 	player.RenderColor = Red
 	player.IsPlayer = true
 	player.Spells = DefaultSpells
+	player.VisionDistance = 12
 
 	return player
 }

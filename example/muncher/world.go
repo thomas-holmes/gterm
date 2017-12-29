@@ -122,7 +122,7 @@ func (world *World) addPlayer(player *Creature, level *Level) {
 		world.CameraY = player.Y
 	}
 
-	level.VisionMap.UpdateVision(12, world)
+	level.VisionMap.UpdateVision(world.Player.VisionDistance, world)
 	level.ScentMap.UpdateScents(world)
 }
 
@@ -250,7 +250,7 @@ func (world *World) Update() bool {
 		}
 
 		if c, ok := e.(*Creature); ok && c.IsPlayer {
-			world.CurrentLevel.VisionMap.UpdateVision(12, world)
+			world.CurrentLevel.VisionMap.UpdateVision(world.Player.VisionDistance, world)
 			world.CurrentLevel.ScentMap.UpdateScents(world)
 		}
 
@@ -466,6 +466,7 @@ func (world *World) Notify(message Message, data interface{}) {
 			if n, ok := d.Menu.(Notifier); ok {
 				n.SetMessageBus(world.messageBus)
 			}
+			d.Menu.Update(InputEvent{})
 			world.MenuStack = append(world.MenuStack, d.Menu)
 		}
 	}

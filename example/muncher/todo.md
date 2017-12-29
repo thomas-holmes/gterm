@@ -3,7 +3,6 @@ Save the game & optionally resume?
 Restart after death
 Change the seed
 Move content (monster, items, spells, etc...) definitions out of code?
-Menu based player actions don't consume a turn
 
 ### Dungeon
 Generate more levels
@@ -25,7 +24,7 @@ Add attributes/stats
 Do when the player has more stuff, armour, stats, etc... integrate this into combat
 
 ### Magic
-You know, fireball!
+Base system in place. Need to figure out how to implement different spell behaviors
 
 ### Interface
-Inspect mode should either move the camera or not go beyond the bounds of the camera
+Inspect mode should either move the camera or not go beyond the bounds of the cameraa

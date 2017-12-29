@@ -1,6 +1,14 @@
 package main
 
-import "log"
+import (
+	"log"
+	"sort"
+)
+
+type DistanceCandidate struct {
+	Distance float64
+	Position
+}
 
 func (level Level) getStair(x int, y int) (Stair, bool) {
 	for _, s := range level.stairs {
@@ -31,6 +39,30 @@ func (level *Level) GetCreatureAtTile(xPos int, yPos int) (*Creature, bool) {
 		return creature, true
 	}
 	return nil, false
+}
+
+// GetVisibleCreatures returns a slice of creatures sorted so that the first is the closest
+// based on euclidean distance.
+func (level *Level) GetVisibleCreatures(originX int, originY int) []*Creature {
+	candidates := make([]DistanceCandidate, 0, 8)
+	for y := 0; y < level.VisionMap.Rows; y++ {
+		for x := 0; x < level.VisionMap.Columns; x++ {
+			if level.VisionMap.VisibilityAt(x, y) == Visible {
+				candidates = append(candidates, DistanceCandidate{Position: Position{X: x, Y: y}, Distance: euclideanDistance(originX, originY, x, y)})
+			}
+		}
+	}
+
+	sort.Slice(candidates, func(i, j int) bool { return candidates[i].Distance < candidates[j].Distance })
+
+	creatures := make([]*Creature, 0, len(candidates))
+	for _, candidate := range candidates {
+		if creature, ok := level.GetCreatureAtTile(candidate.X, candidate.Y); ok {
+			creatures = append(creatures, creature)
+		}
+	}
+
+	return creatures
 }
 
 type Stair struct {
