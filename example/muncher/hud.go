@@ -55,7 +55,7 @@ func (hud *HUD) renderPlayerPosition(world *World) {
 func (hud *HUD) renderPlayerHealth(world *World) {
 	hpColor := Red
 
-	pct := hud.Player.HealthPercentage()
+	pct := hud.Player.HP.Percentage()
 	switch {
 	case pct >= 0.8:
 		hpColor = Green
@@ -85,7 +85,7 @@ func (hud *HUD) renderPlayerHealth(world *World) {
 
 func (hud *HUD) renderPlayerMagic(world *World) {
 	mpColor := Red
-	pct := hud.Player.MagicPercentage()
+	pct := hud.Player.MP.Percentage()
 	switch {
 	case pct >= 0.8:
 		mpColor = Green

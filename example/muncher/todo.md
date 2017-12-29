@@ -3,6 +3,7 @@ Save the game & optionally resume?
 Restart after death
 Change the seed
 Move content (monster, items, spells, etc...) definitions out of code?
+Menu based player actions don't consume a turn
 
 ### Dungeon
 Generate more levels

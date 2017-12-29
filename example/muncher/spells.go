@@ -19,13 +19,13 @@ type Spell struct {
 
 var DefaultSpells = []Spell{
 	// Hits 1
-	Spell{Name: "Fire Bolt", Description: "Launches a small ball of fire at an oponnent", Range: 8, Power: 4, Cost: 1},
+	Spell{Name: "Fire Bolt", Description: "Launches a small ball of fire at an oponnent", Range: 8, Power: 2, Cost: 1},
 
 	// Hits 1, 3 times
-	Spell{Name: "Magic Missile", Description: "Fires 3 magic missiles, which are guaranteed to strike their target", Range: 8, Power: 3, Cost: 1},
+	Spell{Name: "Magic Missile", Description: "Fires 3 magic missiles, which are guaranteed to strike their target", Range: 8, Power: 1, Cost: 2},
 
 	// Hits 3x3
-	Spell{Name: "Fire Ball", Description: "Hurls a large ball of fire at a group of oponnents", Range: 8, Power: 6, Cost: 4},
+	Spell{Name: "Fire Ball", Description: "Hurls a large ball of fire at a group of oponnents", Range: 8, Power: 4, Cost: 4},
 }
 
 type SpellPop struct {
@@ -46,13 +46,16 @@ func (pop SpellPop) Done() bool {
 func (pop *SpellPop) castSpell(index int) {
 	if index < len(pop.World.Player.Spells) {
 		spell := pop.World.Player.Spells[index]
-		log.Printf("Casting spell %+v", spell)
 
-		pop.done = true // Maybe needs to be before player.CastSpell
+		if pop.World.Player.CanCast(spell) {
+			log.Printf("Casting spell %+v", spell)
 
-		// Doing something a little different on purpose, going to call
-		// back onto the creature instead of broadcasting directly
-		pop.World.Player.TargetSpell(spell, pop.World)
+			pop.done = true // Maybe needs to be before player.CastSpell
+
+			// Doing something a little different on purpose, going to call
+			// back onto the creature instead of broadcasting directly
+			pop.World.Player.TargetSpell(spell, pop.World)
+		}
 	}
 }
 
@@ -77,15 +80,19 @@ func (pop SpellPop) renderItem(index int, row int, window *gterm.Window) int {
 	offsetY := row
 	offsetX := pop.X + 1
 
-	item := pop.World.Player.Spells[index]
+	spell := pop.World.Player.Spells[index]
 
+	itemColor := Grey
+	if pop.World.Player.CanCast(spell) {
+		itemColor = White
+	}
 	selectionStr := fmt.Sprintf("%v - ", string('a'+index))
 
-	window.PutString(offsetX, offsetY, selectionStr, White)
+	window.PutString(offsetX, offsetY, selectionStr, itemColor)
 
-	name := item.Name
+	name := spell.Name
 
-	offsetY += putWrappedText(window, name, offsetX, offsetY, len(selectionStr), 2, pop.W-offsetX+pop.X-1, White)
+	offsetY += putWrappedText(window, name, offsetX, offsetY, len(selectionStr), 2, pop.W-offsetX+pop.X-1, itemColor)
 	return offsetY
 }
 

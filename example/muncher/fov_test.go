@@ -12,7 +12,7 @@ func TestPlotLineHorizontalRight(t *testing.T) {
 	}
 	for x := 0; x <= 5; x++ {
 		testPos := cells[x]
-		expectedPos := Position{XPos: x, YPos: 0}
+		expectedPos := Position{X: x, Y: 0}
 		if testPos != expectedPos {
 			t.Errorf("Expected %+v but got %+v", expectedPos, testPos)
 		}
@@ -27,7 +27,7 @@ func TestPLotLineVertialDown(t *testing.T) {
 	}
 	for y := 5; y <= 10; y++ {
 		testPos := cells[y-5]
-		expectedPos := Position{XPos: 5, YPos: y}
+		expectedPos := Position{X: 5, Y: y}
 		if testPos != expectedPos {
 			t.Errorf("Expected %+v but got %+v", expectedPos, testPos)
 		}
@@ -38,13 +38,13 @@ func TestDiagonalDownRight(t *testing.T) {
 	cells := PlotLine(0, 1, 6, 4)
 
 	expected := []Position{
-		Position{XPos: 0, YPos: 1},
-		Position{XPos: 1, YPos: 1},
-		Position{XPos: 2, YPos: 2},
-		Position{XPos: 3, YPos: 2},
-		Position{XPos: 4, YPos: 3},
-		Position{XPos: 5, YPos: 3},
-		Position{XPos: 6, YPos: 4},
+		Position{X: 0, Y: 1},
+		Position{X: 1, Y: 1},
+		Position{X: 2, Y: 2},
+		Position{X: 3, Y: 2},
+		Position{X: 4, Y: 3},
+		Position{X: 5, Y: 3},
+		Position{X: 6, Y: 4},
 	}
 
 	if len(cells) != len(expected) {

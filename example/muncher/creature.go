@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log" // Replace w/ PCG deterministic random
+	"math"
 	"strconv"
 
 	"github.com/thomas-holmes/gterm"
@@ -17,14 +18,27 @@ const (
 	MonsterTeam
 )
 
-type Health struct {
+type Resource struct {
+	RegenRate float64
+
 	Current int
 	Max     int
+
+	regenPartial float64
 }
 
-type Magic struct {
-	Current int
-	Max     int
+func (resource *Resource) Regen() {
+	resource.regenPartial += resource.RegenRate
+
+	if math.Floor(resource.regenPartial) >= 1 {
+		resource.Current = min(int(math.Floor(resource.regenPartial))+resource.Current, resource.Max)
+		resource.regenPartial -= math.Floor(resource.regenPartial)
+	}
+}
+
+func (creature *Creature) Regen() {
+	creature.HP.Regen()
+	creature.MP.Regen()
 }
 
 type Creature struct {
@@ -52,8 +66,8 @@ type Creature struct {
 
 	Equipment
 
-	HP Health
-	MP Magic
+	HP Resource
+	MP Resource
 
 	Spells []Spell
 
@@ -115,7 +129,8 @@ func NewCreature(level int, maxHP int) Creature {
 			currentEnergy: 100,
 			maxEnergy:     100,
 		},
-		HP:        Health{Current: 5, Max: 5},
+		HP:        Resource{Current: 5, Max: 5, RegenRate: 0.25},
+		MP:        Resource{Current: 2, Max: 2, RegenRate: 0.25},
 		Equipment: NewEquipment(),
 	}
 }
@@ -148,6 +163,8 @@ func (player *Creature) LevelUp() {
 	player.Level++
 	player.HP.Max = player.HP.Max + max(1, int(float64(player.HP.Max)*0.1))
 	player.HP.Current = player.HP.Max
+	player.MP.Max = player.MP.Max + max(1, int(float64(player.MP.Max)*0.1))
+	player.MP.Current = player.MP.Max
 	player.Broadcast(GameLogAppend, GameLogAppendMessage{[]string{fmt.Sprintf("You are now level %v", player.Level)}})
 }
 
@@ -159,15 +176,9 @@ func (player *Creature) GainExp(exp int) {
 	}
 }
 
-func (player Creature) HealthPercentage() float32 {
-	current := float32(player.HP.Current)
-	max := float32(player.HP.Max)
-	return current / max
-}
-
-func (player Creature) MagicPercentage() float32 {
-	current := float32(player.HP.Current)
-	max := float32(player.HP.Max)
+func (resource Resource) Percentage() float64 {
+	current := float64(resource.Current)
+	max := float64(resource.Max)
 	return current / max
 }
 
@@ -202,6 +213,7 @@ func (creature *Creature) Update(turn uint64, input InputEvent, world *World) bo
 
 	if success {
 		creature.currentEnergy -= 100
+		creature.Regen()
 		return true
 	}
 
@@ -213,13 +225,20 @@ func (creature *Creature) TargetSpell(spell Spell, world *World) {
 	creature.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
 }
 
+func (creature *Creature) CanCast(spell Spell) bool {
+	if spell.Cost <= creature.MP.Current {
+		return true
+	}
+	return false
+}
+
 func (creature *Creature) CastSpell(spell Spell, world *World, targetX int, targetY int) {
 	fmt.Printf("Firing at (%v,%v) with %+v", targetX, targetY, spell)
+	creature.MP.Current -= spell.Cost
 	if defender, ok := world.CurrentLevel.GetCreatureAtTile(targetX, targetY); ok {
 		// Can attack self. Do we care?
 		world.Broadcast(SpellAttackEntity, SpellAttackEntityMessage{Attacker: creature, Defender: defender, Spell: spell})
 	}
-
 }
 
 // HandleInput updates player position based on user input
