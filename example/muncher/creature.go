@@ -22,6 +22,11 @@ type Health struct {
 	Max     int
 }
 
+type Magic struct {
+	Current int
+	Max     int
+}
+
 type Creature struct {
 	Identifiable
 
@@ -48,6 +53,9 @@ type Creature struct {
 	Equipment
 
 	HP Health
+	MP Magic
+
+	Spells []Spell
 
 	Level int
 
@@ -118,6 +126,7 @@ func NewPlayer() Creature {
 	player.RenderGlyph = '@'
 	player.RenderColor = Red
 	player.IsPlayer = true
+	player.Spells = DefaultSpells
 
 	return player
 }
@@ -193,6 +202,11 @@ func (creature *Creature) Update(turn uint64, input InputEvent, world *World) bo
 	return false
 }
 
+func (creature *Creature) CastSpell(spell Spell, world *World) {
+	menu := &SpellTargeting{X: 0, Y: 0, W: 0, H: 0, TargetX: creature.X, TargetY: creature.Y, World: world, Spell: spell}
+	creature.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
+}
+
 // HandleInput updates player position based on user input
 func (player *Creature) HandleInput(input InputEvent, world *World) bool {
 	newX := player.X
@@ -264,6 +278,10 @@ func (player *Creature) HandleInput(input InputEvent, world *World) bool {
 			return false
 		case sdl.K_x:
 			menu := &InspectionPop{X: 60, Y: 20, W: 30, H: 5, World: world, InspectX: player.X, InspectY: player.Y}
+			player.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
+			return false
+		case sdl.K_z:
+			menu := &SpellPop{X: 10, Y: 2, W: 30, H: world.Window.Rows - 4, World: world}
 			player.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
 			return false
 		case sdl.K_m:
