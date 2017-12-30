@@ -50,10 +50,12 @@ func (combat CombatSystem) zap(a Entity, d Entity, s Spell) {
 	}
 
 	log.Printf("Spell attacking with %+v", s)
-	defender.Damage(s.Power)
-	logString := fmt.Sprintf("%v hits %v with %v for %v damage!", attacker.Name, defender.Name, s.Name, s.Power)
+	for i := 0; i < s.Hits; i++ {
+		defender.Damage(s.Power)
+		logString := fmt.Sprintf("%v hits %v with %v for %v damage!", attacker.Name, defender.Name, s.Name, s.Power)
 
-	combat.Broadcast(GameLogAppend, GameLogAppendMessage{[]string{logString}})
+		combat.Broadcast(GameLogAppend, GameLogAppendMessage{[]string{logString}})
+	}
 
 	// This should be done by the entity instead of here, I think?
 	// I think this used to attribute the experience gain on death. Maybe
