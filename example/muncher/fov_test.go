@@ -57,3 +57,62 @@ func TestDiagonalDownRight(t *testing.T) {
 		}
 	}
 }
+
+func TestOctantComputations(t *testing.T) {
+	x0, y0 := 12, 2
+	x1, y1 := 13, 2
+	expected := 0
+	octant := computeOctant(x0, y0, x1, y1)
+	if octant != expected {
+		t.Errorf("Line (%v,%v) to (%v,%v) computed octant (%v) but expected (%v)", x0, y0, x1, y1, octant, expected)
+	}
+
+	x1, y1 = 13, 1
+	expected = 0
+	octant = computeOctant(x0, y0, x1, y1)
+	if octant != expected {
+		t.Errorf("Line (%v,%v) to (%v,%v) computed octant (%v) but expected (%v)", x0, y0, x1, y1, octant, expected)
+	}
+
+	x1, y1 = 12, 1
+	expected = 0
+	octant = computeOctant(x0, y0, x1, y1)
+	if octant != expected {
+		t.Errorf("Line (%v,%v) to (%v,%v) computed octant (%v) but expected (%v)", x0, y0, x1, y1, octant, expected)
+	}
+
+	x1, y1 = 11, 1
+	expected = 0
+	octant = computeOctant(x0, y0, x1, y1)
+	if octant != expected {
+		t.Errorf("Line (%v,%v) to (%v,%v) computed octant (%v) but expected (%v)", x0, y0, x1, y1, octant, expected)
+	}
+
+	x1, y1 = 11, 2
+	expected = 0
+	octant = computeOctant(x0, y0, x1, y1)
+	if octant != expected {
+		t.Errorf("Line (%v,%v) to (%v,%v) computed octant (%v) but expected (%v)", x0, y0, x1, y1, octant, expected)
+	}
+
+	x1, y1 = 11, 3
+	expected = 0
+	octant = computeOctant(x0, y0, x1, y1)
+	if octant != expected {
+		t.Errorf("Line (%v,%v) to (%v,%v) computed octant (%v) but expected (%v)", x0, y0, x1, y1, octant, expected)
+	}
+
+	x1, y1 = 12, 3
+	expected = 0
+	octant = computeOctant(x0, y0, x1, y1)
+	if octant != expected {
+		t.Errorf("Line (%v,%v) to (%v,%v) computed octant (%v) but expected (%v)", x0, y0, x1, y1, octant, expected)
+	}
+
+	x1, y1 = 13, 3
+	expected = 0
+	octant = computeOctant(x0, y0, x1, y1)
+	if octant != expected {
+		t.Errorf("Line (%v,%v) to (%v,%v) computed octant (%v) but expected (%v)", x0, y0, x1, y1, octant, expected)
+	}
+}

@@ -24,21 +24,22 @@ type Spell struct {
 	Power       int
 	Cost        int
 	Shape       SpellShape
+	Hits        int
 	Size        int
 }
 
 var DefaultSpells = []Spell{
 	// Hits 1
-	Spell{Name: "Fire Bolt", Description: "Launches a small ball of fire at an oponnent", Range: 8, Power: 2, Cost: 1, Shape: Square, Size: 0},
+	Spell{Name: "Fire Bolt", Description: "Launches a small ball of fire at an oponnent", Range: 8, Power: 2, Cost: 1, Shape: Square, Size: 0, Hits: 1},
 
 	// Hits 1, 3 times
-	Spell{Name: "Magic Missile", Description: "Fires 3 magic missiles, which are guaranteed to strike their target", Range: 8, Power: 1, Cost: 2, Shape: Square, Size: 0},
+	Spell{Name: "Magic Missile", Description: "Fires 3 magic missiles, which are guaranteed to strike their target", Range: 8, Power: 1, Cost: 2, Shape: Square, Size: 0, Hits: 3},
 
-	// Hits 1, 3 times
-	Spell{Name: "Cone of Cold", Description: "A cone of ice extends from your hands, damaging and chilling all in front of you", Range: 1, Power: 3, Cost: 3, Shape: Cone, Size: 4},
+	// Hits 7 wide cone
+	Spell{Name: "Cone of Cold", Description: "A cone of ice extends from your hands, damaging and chilling all in front of you", Range: 1, Power: 3, Cost: 3, Shape: Cone, Size: 3, Hits: 1},
 
-	// Hits 3x3
-	Spell{Name: "Fire Ball", Description: "Hurls a large ball of fire at a group of oponnents", Range: 8, Power: 4, Cost: 4, Shape: Square, Size: 2},
+	// Hits 5x5
+	Spell{Name: "Fire Ball", Description: "Hurls a large ball of fire at a group of oponnents", Range: 8, Power: 4, Cost: 4, Shape: Square, Size: 2, Hits: 1},
 }
 
 type SpellPop struct {
@@ -147,10 +148,18 @@ func (pop *SpellTargeting) setInitialState() {
 		pop.initialized = true
 		for i, c := range pop.creatures {
 			if c.Team != player.Team {
-				pop.TargetX = c.X
-				pop.TargetY = c.Y
-				pop.creatureIndex = i
-				return
+				if pop.Spell.Shape == Cone {
+					positions := PlotLine(pop.World.Player.X, pop.World.Player.Y, c.X, c.Y)
+					closestPosition := positions[1]
+					pop.TargetX = closestPosition.X
+					pop.TargetY = closestPosition.Y
+					return
+				} else {
+					pop.TargetX = c.X
+					pop.TargetY = c.Y
+					pop.creatureIndex = i
+					return
+				}
 			}
 		}
 	}
@@ -243,6 +252,58 @@ func (pop SpellTargeting) renderSquareCursor() {
 	pop.World.RenderRuneAt(pop.TargetX, pop.TargetY, ' ', gterm.NoColor, cursorColor)
 }
 
+func conePositions(pX, pY, x0, y0, size int) []Position {
+	endX, endY := x0, y0
+	if endX > pX {
+		endX += size
+	} else if endX < pX {
+		endX -= size
+	}
+
+	if endY > pY {
+		endY += size
+	} else if endY < pY {
+		endY -= size
+	}
+
+	coords := PlotLine(x0, y0, endX, endY)
+	octant := computeOctant(x0, y0, endX, endY)
+	conePositions := make([]Position, 0)
+	for i, pos := range coords {
+		oX, oY := toOctantZero(octant, pos.X, pos.Y)
+		for j := 0; j < i+1; j++ {
+			if j == 0 {
+				realX, realY := fromOctantZero(octant, oX, oY)
+				conePositions = append(conePositions, Position{X: realX, Y: realY})
+			} else {
+				realX, realY := fromOctantZero(octant, oX, oY+j)
+				conePositions = append(conePositions, Position{X: realX, Y: realY})
+				realX, realY = fromOctantZero(octant, oX, oY-j)
+				conePositions = append(conePositions, Position{X: realX, Y: realY})
+			}
+		}
+
+	}
+
+	log.Printf("%+v", conePositions)
+	return conePositions
+}
+
+func (pop SpellTargeting) renderConeCursor() {
+	cursorColor := pop.cursorColor
+	spell := pop.Spell
+	player := pop.World.Player
+
+	cursorColor.A = 125
+	for _, pos := range conePositions(player.X, player.Y, pop.TargetX, pop.TargetY, spell.Size) {
+		pop.World.RenderRuneAt(pos.X, pos.Y, ' ', gterm.NoColor, cursorColor)
+	}
+
+	cursorColor.A = 200
+	pop.World.RenderRuneAt(pop.TargetX, pop.TargetY, ' ', gterm.NoColor, cursorColor)
+
+}
+
 func (pop SpellTargeting) Render(window *gterm.Window) {
 	lineColor := pop.lineColor
 
@@ -255,7 +316,7 @@ func (pop SpellTargeting) Render(window *gterm.Window) {
 
 	switch pop.Spell.Shape {
 	case Cone:
-		fallthrough
+		pop.renderConeCursor()
 	case Line:
 		fallthrough
 	case Square:

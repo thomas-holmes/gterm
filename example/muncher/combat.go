@@ -65,6 +65,19 @@ func (combat CombatSystem) zap(a Entity, d Entity, s Spell) {
 
 }
 
+func (combat CombatSystem) zapCone(launch SpellLaunchMessage) {
+	spell := launch.Spell
+	player := combat.World.Player
+	for _, pos := range conePositions(player.X, player.Y, launch.X, launch.Y, spell.Size) {
+		if pos.X < 0 || pos.Y < 0 || pos.X >= combat.World.CurrentLevel.Columns || pos.Y >= combat.World.CurrentLevel.Rows {
+			continue
+		}
+		if c, ok := combat.World.CurrentLevel.GetCreatureAtTile(pos.X, pos.Y); ok {
+			combat.zap(launch.Caster, c, spell)
+		}
+	}
+}
+
 func (combat CombatSystem) zapSquare(launch SpellLaunchMessage) {
 	spell := launch.Spell
 	minX := max(launch.X-spell.Size, 0)
@@ -89,11 +102,7 @@ func (combat CombatSystem) resolveSpell(launch SpellLaunchMessage) {
 	case Line:
 		// Nothing yet
 	case Cone:
-		// CoC
-	}
-
-	if creature, ok := combat.World.CurrentLevel.GetCreatureAtTile(launch.X, launch.Y); ok {
-		combat.zap(launch.Caster, creature, launch.Spell)
+		combat.zapCone(launch)
 	}
 }
 
