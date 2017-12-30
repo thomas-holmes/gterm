@@ -10,19 +10,10 @@ import (
 type InspectionPop struct {
 	World *World
 
-	done bool
-
-	X int
-	Y int
-	W int
-	H int
+	PopMenu
 
 	InspectX int
 	InspectY int
-}
-
-func (pop *InspectionPop) Done() bool {
-	return pop.done
 }
 
 func (pop *InspectionPop) Update(input InputEvent) bool {

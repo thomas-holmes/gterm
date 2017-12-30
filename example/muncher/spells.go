@@ -31,16 +31,7 @@ var DefaultSpells = []Spell{
 type SpellPop struct {
 	World *World
 
-	X int
-	Y int
-	W int
-	H int
-
-	done bool
-}
-
-func (pop SpellPop) Done() bool {
-	return pop.done
+	PopMenu
 }
 
 func (pop *SpellPop) castSpell(index int) {
@@ -130,19 +121,10 @@ type SpellTargeting struct {
 
 	distance int
 
-	X int
-	Y int
-	W int
-	H int
-
 	cursorColor sdl.Color
 	lineColor   sdl.Color
 
-	done bool
-}
-
-func (pop SpellTargeting) Done() bool {
-	return pop.done
+	PopMenu
 }
 
 func (pop *SpellTargeting) setInitialState() {
@@ -194,10 +176,8 @@ func (pop *SpellTargeting) Update(input InputEvent) bool {
 		case sdl.K_u:
 			newX, newY = pop.TargetX+1, pop.TargetY-1
 		case sdl.K_EQUALS:
-			if input.Keymod&sdl.KMOD_SHIFT > 0 {
-				pop.creatureIndex = (pop.creatureIndex + 1) % len(pop.creatures)
-				newX, newY = pop.creatures[pop.creatureIndex].X, pop.creatures[pop.creatureIndex].Y
-			}
+			pop.creatureIndex = (pop.creatureIndex + 1) % len(pop.creatures)
+			newX, newY = pop.creatures[pop.creatureIndex].X, pop.creatures[pop.creatureIndex].Y
 		case sdl.K_MINUS:
 			pop.creatureIndex = (pop.creatureIndex - 1)
 			if pop.creatureIndex < 0 {

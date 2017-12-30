@@ -12,8 +12,6 @@ const (
 	SpellAttackEntity
 	PlayerDead
 	KillEntity
-	PopUpShown
-	PopUpHidden
 	PlayerFloorChange
 	ShowMenu
 	EquipItem

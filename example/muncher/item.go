@@ -34,16 +34,7 @@ type Item struct {
 type ItemDetails struct {
 	*Item
 
-	done bool
-
-	X int
-	Y int
-	W int
-	H int
-}
-
-func (pop *ItemDetails) Done() bool {
-	return pop.done
+	PopMenu
 }
 
 func (pop *ItemDetails) Update(input InputEvent) bool {

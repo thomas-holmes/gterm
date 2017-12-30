@@ -426,8 +426,8 @@ func (world *World) GetEntity(id int) (Entity, bool) {
 	return nil, false
 }
 
-func (world *World) ShowPlayerDeathPopUp() {
-	pop := NewPopUp(10, 5, 40, 6, Red, "YOU ARE VERY DEAD", "I AM SO SORRY :(")
+func (world *World) ShowEndGameMenu() {
+	pop := NewEndGameMenu(10, 5, 40, 6, Red, "YOU ARE VERY DEAD", "I AM SO SORRY :(")
 	world.GameOver = true
 	world.Broadcast(ShowMenu, ShowMenuMessage{Menu: &pop})
 }
@@ -447,7 +447,7 @@ func (world *World) Notify(message Message, data interface{}) {
 			world.RemoveEntity(d.Defender)
 		}
 	case PlayerDead:
-		world.ShowPlayerDeathPopUp()
+		world.ShowEndGameMenu()
 	case PlayerFloorChange:
 		if d, ok := data.(PlayerFloorChangeMessage); ok {
 			if !d.Connected {

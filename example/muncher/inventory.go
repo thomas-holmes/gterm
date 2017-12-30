@@ -16,23 +16,14 @@ type Inventory struct {
 type InventoryPop struct {
 	Inventory
 
-	done bool
-
-	X int
-	Y int
-	W int
-	H int
+	PopMenu
 
 	Messaging
 }
 
-func (pop *InventoryPop) Done() bool {
-	return pop.done
-}
-
 func (pop *InventoryPop) tryShowItem(index int) {
 	if index < len(pop.Items) {
-		menu := ItemDetails{X: 2, Y: 2, W: 50, H: 26, Item: pop.Items[index]}
+		menu := ItemDetails{PopMenu: PopMenu{X: 2, Y: 2, W: 50, H: 26}, Item: pop.Items[index]}
 		log.Printf("Trying to broadcast %+v", menu)
 		pop.Broadcast(ShowMenu, ShowMenuMessage{Menu: &menu})
 	}

@@ -8,14 +8,9 @@ import (
 )
 
 type FullGameLog struct {
-	*GameLog
+	GameLog *GameLog
 
-	done bool
-
-	X int
-	Y int
-	W int
-	H int
+	PopMenu
 
 	ScrollPosition int
 }
@@ -38,16 +33,12 @@ func (pop *FullGameLog) Render(window *gterm.Window) {
 		log.Println("Got an error clearing FullGameLog region", err)
 	}
 
-	messagesToRender := min(len(pop.Messages), pop.H)
+	messagesToRender := min(len(pop.GameLog.Messages), pop.H)
 
 	yOffset := 0
 	for i := messagesToRender - 1; i >= 0; i-- {
-		message := pop.Messages[i]
+		message := pop.GameLog.Messages[i]
 		window.PutString(pop.X, pop.Y+yOffset, message, White)
 		yOffset++
 	}
-}
-
-func (pop FullGameLog) Done() bool {
-	return pop.done
 }

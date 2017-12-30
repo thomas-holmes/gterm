@@ -225,7 +225,7 @@ func (creature *Creature) Update(turn uint64, input InputEvent, world *World) bo
 }
 
 func (creature *Creature) TargetSpell(spell Spell, world *World) {
-	menu := &SpellTargeting{X: 0, Y: 0, W: 0, H: 0, TargetX: creature.X, TargetY: creature.Y, World: world, Spell: spell}
+	menu := &SpellTargeting{PopMenu: PopMenu{X: 0, Y: 0, W: 0, H: 0}, TargetX: creature.X, TargetY: creature.Y, World: world, Spell: spell}
 	creature.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
 }
 
@@ -313,19 +313,19 @@ func (player *Creature) HandleInput(input InputEvent, world *World) bool {
 		case sdl.K_g:
 			return player.PickupItem(world)
 		case sdl.K_i:
-			menu := &InventoryPop{X: 10, Y: 2, W: 30, H: world.Window.Rows - 4, Inventory: player.Inventory}
+			menu := &InventoryPop{PopMenu: PopMenu{X: 10, Y: 2, W: 30, H: world.Window.Rows - 4}, Inventory: player.Inventory}
 			player.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
 			return false
 		case sdl.K_e:
-			menu := &EquipmentPop{X: 10, Y: 2, W: 30, H: world.Window.Rows - 4, Player: player}
+			menu := &EquipmentPop{PopMenu: PopMenu{X: 10, Y: 2, W: 30, H: world.Window.Rows - 4}, Player: player}
 			player.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
 			return false
 		case sdl.K_x:
-			menu := &InspectionPop{X: 60, Y: 20, W: 30, H: 5, World: world, InspectX: player.X, InspectY: player.Y}
+			menu := &InspectionPop{PopMenu: PopMenu{X: 60, Y: 20, W: 30, H: 5}, World: world, InspectX: player.X, InspectY: player.Y}
 			player.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
 			return false
 		case sdl.K_z:
-			menu := &SpellPop{X: 10, Y: 2, W: 30, H: world.Window.Rows - 4, World: world}
+			menu := &SpellPop{PopMenu: PopMenu{X: 10, Y: 2, W: 30, H: world.Window.Rows - 4}, World: world}
 			player.Broadcast(ShowMenu, ShowMenuMessage{Menu: menu})
 			return false
 		case sdl.K_m:

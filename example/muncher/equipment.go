@@ -20,18 +20,9 @@ func NewEquipment() Equipment {
 type EquipmentPop struct {
 	Player *Creature
 
-	done bool
-
-	X int
-	Y int
-	W int
-	H int
+	PopMenu
 
 	Messaging
-}
-
-func (pop *EquipmentPop) Done() bool {
-	return pop.done
 }
 
 func (pop *EquipmentPop) equipItem(index int) {
@@ -65,10 +56,12 @@ func (pop *EquipmentPop) Render(window *gterm.Window) {
 	// TODO: Don't do this
 	inventoryPop := InventoryPop{
 		Inventory: pop.Player.Inventory,
-		X:         pop.X,
-		Y:         pop.Y,
-		W:         pop.W,
-		H:         pop.H,
+		PopMenu: PopMenu{
+			X: pop.X,
+			Y: pop.Y,
+			W: pop.W,
+			H: pop.H,
+		},
 	}
 
 	inventoryPop.Render(window)
