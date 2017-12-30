@@ -72,7 +72,7 @@ func main() {
 	world := NewWorld(window, true, 99)
 	{
 		// TODO: Roll this up into some kind of registering a system function on the world
-		combat := CombatSystem{}
+		combat := CombatSystem{World: world}
 
 		combat.SetMessageBus(world.messageBus)
 		world.messageBus.Subscribe(combat)

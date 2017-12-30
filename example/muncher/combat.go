@@ -6,6 +6,7 @@ import (
 )
 
 type CombatSystem struct {
+	World *World
 	Messaging
 }
 
@@ -64,6 +65,38 @@ func (combat CombatSystem) zap(a Entity, d Entity, s Spell) {
 
 }
 
+func (combat CombatSystem) zapSquare(launch SpellLaunchMessage) {
+	spell := launch.Spell
+	minX := max(launch.X-spell.Size, 0)
+	maxX := min(launch.X+spell.Size, combat.World.CurrentLevel.Columns)
+
+	minY := max(launch.Y-spell.Size, 0)
+	maxY := min(launch.Y+spell.Size, combat.World.CurrentLevel.Rows)
+
+	for y := minY; y < maxY+1; y++ {
+		for x := minX; x < maxX+1; x++ {
+			if c, ok := combat.World.CurrentLevel.GetCreatureAtTile(x, y); ok {
+				combat.zap(launch.Caster, c, spell)
+			}
+		}
+	}
+}
+
+func (combat CombatSystem) resolveSpell(launch SpellLaunchMessage) {
+	switch launch.Spell.Shape {
+	case Square:
+		combat.zapSquare(launch)
+	case Line:
+		// Nothing yet
+	case Cone:
+		// CoC
+	}
+
+	if creature, ok := combat.World.CurrentLevel.GetCreatureAtTile(launch.X, launch.Y); ok {
+		combat.zap(launch.Caster, creature, launch.Spell)
+	}
+}
+
 func (combat CombatSystem) Notify(message Message, data interface{}) {
 	switch message {
 	case AttackEntity:
@@ -71,10 +104,10 @@ func (combat CombatSystem) Notify(message Message, data interface{}) {
 			log.Printf("Got a fight message, %+v, %+v, %+v", d, d.Attacker, d.Defender)
 			combat.fight(d.Attacker, d.Defender)
 		}
-	case SpellAttackEntity:
-		if d, ok := data.(SpellAttackEntityMessage); ok {
-			log.Printf("Got a spell attack, %v, %+v, %+v, %+v", d.Spell.Name, d, d.Attacker, d.Defender)
-			combat.zap(d.Attacker, d.Defender, d.Spell)
+	case SpellLaunch:
+		if d, ok := data.(SpellLaunchMessage); ok {
+			log.Printf("Got a spell attack, %+v", d)
+			combat.resolveSpell(d)
 		}
 	}
 }

@@ -240,10 +240,8 @@ func (creature *Creature) CastSpell(spell Spell, world *World, targetX int, targ
 	fmt.Printf("Firing at (%v,%v) with %+v", targetX, targetY, spell)
 	creature.CompletedExternalAction = true
 	creature.MP.Current -= spell.Cost
-	if defender, ok := world.CurrentLevel.GetCreatureAtTile(targetX, targetY); ok {
-		// Can attack self. Do we care?
-		world.Broadcast(SpellAttackEntity, SpellAttackEntityMessage{Attacker: creature, Defender: defender, Spell: spell})
-	}
+	// Can attack self. Do we care?
+	world.Broadcast(SpellLaunch, SpellLaunchMessage{Caster: creature, Spell: spell, X: targetX, Y: targetY})
 }
 
 // HandleInput updates player position based on user input

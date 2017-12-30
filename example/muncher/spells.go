@@ -9,23 +9,36 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+type SpellShape int
+
+const (
+	Square SpellShape = iota
+	Line
+	Cone
+)
+
 type Spell struct {
 	Name        string
 	Description string
 	Range       int
 	Power       int
 	Cost        int
+	Shape       SpellShape
+	Size        int
 }
 
 var DefaultSpells = []Spell{
 	// Hits 1
-	Spell{Name: "Fire Bolt", Description: "Launches a small ball of fire at an oponnent", Range: 8, Power: 2, Cost: 1},
+	Spell{Name: "Fire Bolt", Description: "Launches a small ball of fire at an oponnent", Range: 8, Power: 2, Cost: 1, Shape: Square, Size: 0},
 
 	// Hits 1, 3 times
-	Spell{Name: "Magic Missile", Description: "Fires 3 magic missiles, which are guaranteed to strike their target", Range: 8, Power: 1, Cost: 2},
+	Spell{Name: "Magic Missile", Description: "Fires 3 magic missiles, which are guaranteed to strike their target", Range: 8, Power: 1, Cost: 2, Shape: Square, Size: 0},
+
+	// Hits 1, 3 times
+	Spell{Name: "Cone of Cold", Description: "A cone of ice extends from your hands, damaging and chilling all in front of you", Range: 1, Power: 3, Cost: 3, Shape: Cone, Size: 4},
 
 	// Hits 3x3
-	Spell{Name: "Fire Ball", Description: "Hurls a large ball of fire at a group of oponnents", Range: 8, Power: 4, Cost: 4},
+	Spell{Name: "Fire Ball", Description: "Hurls a large ball of fire at a group of oponnents", Range: 8, Power: 4, Cost: 4, Shape: Square, Size: 2},
 }
 
 type SpellPop struct {
@@ -208,16 +221,44 @@ func (pop *SpellTargeting) Update(input InputEvent) bool {
 	return false
 }
 
-func (pop SpellTargeting) Render(window *gterm.Window) {
+func (pop SpellTargeting) renderSquareCursor() {
 	cursorColor := pop.cursorColor
-	lineColor := pop.lineColor
+
+	spell := pop.Spell
+
+	minX := max(pop.TargetX-spell.Size, 0)
+	maxX := min(pop.TargetX+spell.Size, pop.World.CurrentLevel.Columns)
+
+	minY := max(pop.TargetY-spell.Size, 0)
+	maxY := min(pop.TargetY+spell.Size, pop.World.CurrentLevel.Rows)
+
+	cursorColor.A = 125
+	for y := minY; y < maxY+1; y++ {
+		for x := minX; x < maxX+1; x++ {
+			pop.World.RenderRuneAt(x, y, ' ', gterm.NoColor, cursorColor)
+		}
+	}
 
 	cursorColor.A = 200
+	pop.World.RenderRuneAt(pop.TargetX, pop.TargetY, ' ', gterm.NoColor, cursorColor)
+}
+
+func (pop SpellTargeting) Render(window *gterm.Window) {
+	lineColor := pop.lineColor
+
 	lineColor.A = 50
 
 	positions := PlotLine(pop.World.Player.X, pop.World.Player.Y, pop.TargetX, pop.TargetY)
 	for _, pos := range positions {
 		pop.World.RenderRuneAt(pos.X, pos.Y, ' ', gterm.NoColor, lineColor)
 	}
-	pop.World.RenderRuneAt(pop.TargetX, pop.TargetY, ' ', gterm.NoColor, cursorColor)
+
+	switch pop.Spell.Shape {
+	case Cone:
+		fallthrough
+	case Line:
+		fallthrough
+	case Square:
+		pop.renderSquareCursor()
+	}
 }
