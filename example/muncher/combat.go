@@ -100,9 +100,17 @@ func (combat CombatSystem) zapSquare(launch SpellLaunchMessage) {
 func (combat CombatSystem) resolveSpell(launch SpellLaunchMessage) {
 	if launch.Spell.Name == "Fire Bolt" {
 		if c, ok := launch.Caster.(*Creature); ok {
-			a := NewFireBoltAnimation(c.X, c.Y, launch.X, launch.Y, 20)
+			a := NewLinearSpellAnimation(c.X, c.Y, launch.X, launch.Y, 20, 0, '*', Red)
 			combat.World.AddAnimation(&a)
 		}
+	} else if launch.Spell.Name == "Magic Missile" {
+		if c, ok := launch.Caster.(*Creature); ok {
+			for i := 0; i < launch.Spell.Hits; i++ {
+				a := NewLinearSpellAnimation(c.X, c.Y, launch.X, launch.Y, 20, uint32(i*40), '*', LightBlue)
+				combat.World.AddAnimation(&a)
+			}
+		}
+
 	}
 	switch launch.Spell.Shape {
 	case Square:

@@ -477,7 +477,6 @@ func (world *World) UpdateAnimations() {
 
 func (world *World) AddAnimation(a Animation) {
 	a.Start(world.CurrentUpdateTicks)
-	log.Printf("Adding an animation, %+v", a)
 	world.Animations = append(world.Animations, a)
 }
 
