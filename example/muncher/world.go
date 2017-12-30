@@ -33,6 +33,9 @@ type World struct {
 	Levels       []*Level
 	LevelChanged bool
 
+	CurrentUpdateTicks uint32
+	CurrentTickDelta   uint32
+
 	CameraCentered bool
 	CameraWidth    int
 	CameraHeight   int
@@ -47,7 +50,8 @@ type World struct {
 
 	InputBuffer []InputEvent
 
-	MenuStack []Menu
+	MenuStack  []Menu
+	Animations []Animation
 
 	GameOver bool
 	QuitGame bool
@@ -183,6 +187,18 @@ func (world *World) RenderStringAt(x int, y int, out string, color sdl.Color) {
 		log.Printf("Out of bounds %s", err)
 	}
 }
+func (world *World) tidyAnimations() bool {
+	insertionIndex := 0
+	for _, a := range world.Animations {
+		if !a.Done() {
+			world.Animations[insertionIndex] = a
+			insertionIndex++
+		}
+	}
+	world.Animations = world.Animations[:insertionIndex]
+
+	return len(world.Animations) > 0
+}
 
 func (world *World) tidyMenus() bool {
 	insertionIndex := 0
@@ -199,6 +215,9 @@ func (world *World) tidyMenus() bool {
 
 func (world *World) Update() bool {
 	// log.Printf("Updating turn [%v]", world.turnCount)
+	currentTicks := sdl.GetTicks()
+	world.CurrentTickDelta = currentTicks - world.CurrentUpdateTicks
+	world.CurrentUpdateTicks = currentTicks
 
 	if world.tidyMenus() {
 		currentMenu := world.MenuStack[len(world.MenuStack)-1]
@@ -209,6 +228,14 @@ func (world *World) Update() bool {
 			world.needInput = true
 		}
 		return world.needInput
+	}
+
+	if world.tidyAnimations() {
+		for _, a := range world.Animations {
+			a.Update(world.CurrentTickDelta)
+		}
+		world.needInput = false
+		return true
 	}
 
 	if world.CurrentLevel.NextEntity == 0 && world.CurrentLevel.NextEnergy == 0 {
@@ -310,6 +337,10 @@ func (world *World) Render() {
 
 	if world.showScentOverlay {
 		world.OverlayScentMap()
+	}
+
+	for _, a := range world.Animations {
+		a.Render(world)
 	}
 
 	// Render bottom to top
@@ -426,6 +457,30 @@ func (world *World) GetEntity(id int) (Entity, bool) {
 	return nil, false
 }
 
+func (world *World) Animating() bool {
+	return len(world.Animations) > 0
+}
+
+func (world *World) UpdateAnimations() {
+	currentTicks := sdl.GetTicks()
+	world.CurrentTickDelta = currentTicks - world.CurrentUpdateTicks
+	world.CurrentUpdateTicks = currentTicks
+
+	if world.tidyAnimations() {
+		for _, a := range world.Animations {
+			a.Update(world.CurrentTickDelta)
+		}
+		world.needInput = false
+	}
+
+}
+
+func (world *World) AddAnimation(a Animation) {
+	a.Start(world.CurrentUpdateTicks)
+	log.Printf("Adding an animation, %+v", a)
+	world.Animations = append(world.Animations, a)
+}
+
 func (world *World) ShowEndGameMenu() {
 	pop := NewEndGameMenu(10, 5, 40, 6, Red, "YOU ARE VERY DEAD", "I AM SO SORRY :(")
 	world.GameOver = true
@@ -503,9 +558,10 @@ func NewWorld(window *gterm.Window, centered bool, seed uint64) *World {
 		CameraX:        0,
 		CameraY:        0,
 		// TODO: Width/Height should probably be some function of the window dimensions
-		CameraWidth:  56,
-		CameraHeight: 25,
-		rng:          pcg.NewPCG64(),
+		CameraWidth:        56,
+		CameraHeight:       25,
+		CurrentUpdateTicks: sdl.GetTicks(),
+		rng:                pcg.NewPCG64(),
 	}
 
 	world.rng.Seed(seed, DefaultSeq, seed*seed, DefaultSeq+1)

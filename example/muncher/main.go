@@ -100,8 +100,8 @@ func main() {
 	for !quit && !world.QuitGame {
 
 		inputEvent := InputEvent{Event: sdl.PollEvent(), Keymod: sdl.GetModState()}
+		window.ClearWindow()
 		if world.turnCount == 0 || eventActionable(inputEvent) {
-			window.ClearWindow()
 
 			handleInput(inputEvent, world)
 
@@ -113,11 +113,14 @@ func main() {
 				updateLoops++
 			}
 			log.Printf("Ran %v update loops", updateLoops)
-
-			world.Render()
-
-			hud.Render(world)
 		}
+		if world.Animating() {
+			world.UpdateAnimations()
+		}
+
+		world.Render()
+
+		hud.Render(world)
 
 		window.Refresh()
 	}

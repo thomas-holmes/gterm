@@ -41,7 +41,6 @@ func NewGameLog(x int, y int, w int, h int, world *World, messageBus *MessageBus
 func (gameLog *GameLog) Render(window *gterm.Window) {
 	for i := 0; i < gameLog.H && i < len(gameLog.Messages); i++ {
 		message := gameLog.Messages[i]
-		log.Printf("writing %v", message)
 		cut := min(len(message), gameLog.W)
 		err := window.PutString(gameLog.X, gameLog.Y+gameLog.H-i, gameLog.Messages[i][:cut], White)
 		if err != nil {

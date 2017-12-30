@@ -98,6 +98,12 @@ func (combat CombatSystem) zapSquare(launch SpellLaunchMessage) {
 }
 
 func (combat CombatSystem) resolveSpell(launch SpellLaunchMessage) {
+	if launch.Spell.Name == "Fire Bolt" {
+		if c, ok := launch.Caster.(*Creature); ok {
+			a := NewFireBoltAnimation(c.X, c.Y, launch.X, launch.Y, 20)
+			combat.World.AddAnimation(&a)
+		}
+	}
 	switch launch.Spell.Shape {
 	case Square:
 		combat.zapSquare(launch)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"math"
 	"strings"
 	"time"
@@ -68,8 +67,8 @@ func abs(a int) int {
 }
 
 func timeMe(start time.Time, name string) {
-	elapsed := time.Since(start)
-	log.Printf("%v %s", name, elapsed)
+	// elapsed := time.Since(start)
+	// log.Printf("%v %s", name, elapsed)
 
 }
 
