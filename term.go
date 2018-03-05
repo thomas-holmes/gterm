@@ -73,8 +73,6 @@ func (window *Window) AddTexturePage(start int) error {
 	pageBase := start & 0xFF00
 	pageMax := pageBase + 0x00FF
 
-	log.Printf("Generating texture page from %v to %v", pageBase, pageMax)
-
 	page := fontPage{lookup: make(map[rune]sdl.Rect)}
 
 	var surfaces []*sdl.Surface
@@ -91,7 +89,6 @@ func (window *Window) AddTexturePage(start int) error {
 		}
 		defer surface.Free()
 
-		log.Println(string(b))
 		rect := sdl.Rect{X: textureWidth, Y: 0, W: surface.W, H: surface.H}
 		page.lookup[rune(b)] = rect
 
@@ -143,7 +140,6 @@ func (window *Window) AddTexturePage(start int) error {
 func computeCellSize(font *ttf.Font) (width int, height int, err error) {
 	w, h, err := font.SizeUTF8("@")
 	if err != nil {
-		log.Printf("Computed cell size of w: %v, h: %v", w, h)
 		return 0, 0, err
 	}
 	return w, h, nil
@@ -179,7 +175,6 @@ func (window *Window) Init() error {
 	window.heightPixel = tileHeight * window.Rows
 	window.widthPixel = tileWidth * window.Columns
 
-	log.Printf("Creating window w:%v, h:%v", window.widthPixel, window.heightPixel)
 	sdlWindow, err := sdl.CreateWindow("", sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, window.widthPixel, window.heightPixel, sdl.WINDOW_SHOWN)
 	if err != nil {
 		return err
