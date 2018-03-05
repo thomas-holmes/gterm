@@ -244,14 +244,6 @@ func (window *Window) renderCell(col int, row int) error {
 		idx := int(renderItem.Glyph) & 0xFF00
 		page := window.texturePages[idx]
 
-		atlas := page.texture
-
-		sourceRect := page.lookup[renderItem.Glyph]
-
-		if err != nil {
-			return err
-		}
-
 		destinationRect := sdl.Rect{
 			X: int32(col * window.tileWidthPixel),
 			Y: int32(row * window.tileHeightPixel),
@@ -259,14 +251,12 @@ func (window *Window) renderCell(col int, row int) error {
 			H: int32(window.tileHeightPixel),
 		}
 
-		// atlas := window.fontAtlas
-		fontPage := window.texturePages[0]
-
-		sourceRect, ok := fontPage.lookup[renderItem.Glyph]
+		sourceRect, ok := page.lookup[renderItem.Glyph]
 		if !ok {
 			log.Printf("Couldn't lookup glyph %v", renderItem.Glyph)
 		}
 
+		atlas := page.texture
 		atlas.SetColorMod(renderItem.FColor.R, renderItem.FColor.G, renderItem.FColor.B)
 		err = window.SdlRenderer.Copy(atlas, &sourceRect, &destinationRect)
 		if err != nil {
