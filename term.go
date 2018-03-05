@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
@@ -27,9 +28,15 @@ type Window struct {
 	backgroundColor sdl.Color
 	cells           []cell
 	fps             fpsCounter
-	fontAtlas       *sdl.Texture
 	drawInterval    uint32
 	vsync           bool
+
+	texturePages map[int]fontPage
+}
+
+type fontPage struct {
+	lookup  map[rune]sdl.Rect
+	texture *sdl.Texture
 }
 
 type cell struct {
@@ -56,47 +63,65 @@ func NewWindow(columns int, rows int, fontPath string, fontSize int, vsync bool)
 		cells:        cells,
 		vsync:        vsync,
 		drawInterval: drawInterval,
+		texturePages: make(map[int]fontPage),
 	}
 
 	return window
 }
 
-var testTexture *sdl.Texture
+func (window *Window) AddTexturePage(start int) error {
+	pageBase := start & 0xFF00
+	pageMax := pageBase + 0x00FF
 
-func (window *Window) createFontAtlas(font *ttf.Font) (*sdl.Texture, error) {
-	atWidth, atHeight := window.tileWidthPixel, window.tileHeightPixel
+	log.Printf("Generating texture page from %v to %v", pageBase, pageMax)
 
-	firstRune, lastRune := 32, 127
+	page := fontPage{lookup: make(map[rune]sdl.Rect)}
 
-	width := atWidth * (lastRune - firstRune)
-	height := atHeight
+	var surfaces []*sdl.Surface
 
-	texture, err := window.SdlRenderer.CreateTexture(sdl.PIXELFORMAT_ARGB8888, sdl.TEXTUREACCESS_STREAMING, width, height)
+	textureWidth := int32(0)
+	height := int32(0)
+	for b := pageBase; b <= pageMax; b++ {
+		surface, err := window.font.RenderUTF8_Blended(string(b), White)
+		if err != nil {
+			if strings.Contains(err.Error(), "zero width") {
+				continue
+			}
+			return err
+		}
+		defer surface.Free()
+
+		log.Println(string(b))
+		rect := sdl.Rect{X: textureWidth, Y: 0, W: surface.W, H: surface.H}
+		page.lookup[rune(b)] = rect
+
+		surfaces = append(surfaces, surface)
+		textureWidth += surface.W
+		if surface.H > height {
+			height = surface.H
+		}
+	}
+
+	texture, err := window.SdlRenderer.CreateTexture(sdl.PIXELFORMAT_ARGB8888, sdl.TEXTUREACCESS_STREAMING, int(textureWidth), int(height))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := texture.SetBlendMode(sdl.BLENDMODE_ADD); err != nil {
-		return nil, err
+		return err
 	}
 
 	region, lockPitch, err := texture.Lock(nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	bytesPerPixel := lockPitch / width
-	for i := firstRune; i < lastRune; i++ {
-		str := string(i)
-		surface, err := window.font.RenderUTF8_Blended(str, White)
-		if err != nil {
-			return nil, err
-		}
-		defer surface.Free()
-
+	accW := int32(0)
+	bytesPerPixel := int32(lockPitch) / textureWidth
+	for _, surface := range surfaces {
 		count := int32(0)
 		offset := int32(0)
-		charOffset := int32(i-32) * int32(atWidth*bytesPerPixel)
+		charOffset := accW * bytesPerPixel
 		for _, b := range surface.Pixels() {
 			if count == surface.Pitch {
 				offset += int32(lockPitch)
@@ -105,12 +130,14 @@ func (window *Window) createFontAtlas(font *ttf.Font) (*sdl.Texture, error) {
 			region[count+offset+charOffset] = b
 			count++
 		}
-
+		accW += surface.W
 	}
 	texture.Unlock()
 
-	return texture, nil
+	page.texture = texture
+	window.texturePages[pageBase] = page
 
+	return nil
 }
 
 func computeCellSize(font *ttf.Font) (width int, height int, err error) {
@@ -175,11 +202,12 @@ func (window *Window) Init() error {
 	window.SdlWindow = sdlWindow
 	window.SdlRenderer = sdlRenderer
 
-	textureAtlas, err := window.createFontAtlas(openedFont)
-	if err != nil {
+	if err := window.AddTexturePage(0); err != nil {
 		return err
 	}
-	window.fontAtlas = textureAtlas
+	if err := window.AddTexturePage(0x2500); err != nil {
+		return err
+	}
 
 	window.fps = newFpsCounter()
 
@@ -212,14 +240,13 @@ func (window *Window) renderCell(col int, row int) error {
 
 	for index := range renderItems {
 		renderItem := &renderItems[index]
-		charOffset := int(renderItem.Glyph - ' ')
 
-		sourceRect := sdl.Rect{
-			X: int32(charOffset * window.tileWidthPixel),
-			Y: int32(0),
-			W: int32(window.tileWidthPixel),
-			H: int32(window.tileHeightPixel),
-		}
+		idx := int(renderItem.Glyph) & 0xFF00
+		page := window.texturePages[idx]
+
+		atlas := page.texture
+
+		sourceRect := page.lookup[renderItem.Glyph]
 
 		if err != nil {
 			return err
@@ -232,7 +259,14 @@ func (window *Window) renderCell(col int, row int) error {
 			H: int32(window.tileHeightPixel),
 		}
 
-		atlas := window.fontAtlas
+		// atlas := window.fontAtlas
+		fontPage := window.texturePages[0]
+
+		sourceRect, ok := fontPage.lookup[renderItem.Glyph]
+		if !ok {
+			log.Printf("Couldn't lookup glyph %v", renderItem.Glyph)
+		}
+
 		atlas.SetColorMod(renderItem.FColor.R, renderItem.FColor.G, renderItem.FColor.B)
 		err = window.SdlRenderer.Copy(atlas, &sourceRect, &destinationRect)
 		if err != nil {
@@ -350,36 +384,38 @@ func (fps *fpsCounter) MaybeRender(window *Window) {
 			W: int32(window.tileWidthPixel),
 			H: int32(window.tileHeightPixel),
 		}
-		source := sdl.Rect{
-			X: 0,
-			Y: 0,
-			W: int32(window.tileWidthPixel),
-			H: int32(window.tileHeightPixel),
-		}
 
 		r, g, b := uint8(fps.color.R), uint8(fps.color.G), uint8(fps.color.B)
 
-		for i, rune := range fpsString {
+		page := window.texturePages[0]
+		atlas, lookup := page.texture, page.lookup
+		for i, rn := range fpsString {
 			destination.X = int32(xStart + (window.tileWidthPixel * i))
-			source.X = int32(rune-' ') * int32(window.tileWidthPixel)
+			source := lookup[rn]
 
-			window.fontAtlas.SetColorMod(r, g, b)
-			if err := window.SdlRenderer.Copy(window.fontAtlas, &source, &destination); err != nil {
+			atlas.SetColorMod(r, g, b)
+			if err := window.SdlRenderer.Copy(atlas, &source, &destination); err != nil {
 				log.Println("Couldn't copy FPS to renderer", err)
 			}
 		}
 	}
 }
 
-func (window *Window) renderDebugFontTexture() {
-	_, _, width, height, err := window.fontAtlas.Query()
-	if err != nil {
-		log.Panicln("Couldn't render debug font texture", err)
+func (window *Window) renderNewDebugFontTexture(pageBase int, row int) {
+	page, ok := window.texturePages[pageBase]
+	if !ok {
+		log.Panicln("no texture?")
 	}
 
-	destRect := sdl.Rect{X: int32(0), Y: int32(window.heightPixel) - height, W: width, H: height}
-	window.SdlRenderer.Copy(window.fontAtlas, nil, &destRect)
+	tex := page.texture
+	_, _, width, height, err := tex.Query()
 
+	if err != nil {
+		log.Panicln("Couldn't render new debug font texture", err)
+	}
+
+	destRect := sdl.Rect{X: int32(0), Y: int32(row) * height, W: width, H: height}
+	window.SdlRenderer.Copy(tex, nil, &destRect)
 }
 
 var lastDraw = sdl.GetTicks()
@@ -413,11 +449,16 @@ func (window *Window) Refresh() {
 	}
 	window.SdlRenderer.Clear()
 
-	window.renderCells()
+	if err := window.renderCells(); err != nil {
+		log.Println("Failed to render cells", err)
+	}
 
 	window.fps.MaybeRender(window) // Ok this is dumb
 
-	// window.renderDebugFontTexture()
+	/*
+		window.renderNewDebugFontTexture(0, 0)
+		window.renderNewDebugFontTexture(0x2500, 1)
+	*/
 
 	window.SdlRenderer.Present()
 }

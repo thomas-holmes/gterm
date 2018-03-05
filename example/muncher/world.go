@@ -371,7 +371,6 @@ var ScentColors = []sdl.Color{
 }
 
 func (world *World) ToggleScentOverlay() {
-	log.Printf("Scent Map Toggle pointer: %+p", world.CurrentLevel.ScentMap)
 	world.showScentOverlay = !world.showScentOverlay
 }
 
