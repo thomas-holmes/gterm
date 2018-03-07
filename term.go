@@ -251,6 +251,10 @@ func (window *Window) renderCell(col int, row int) error {
 			log.Printf("Couldn't lookup glyph %v", renderItem.Glyph)
 		}
 
+		// This is a horrible hack but it seems to fix gross 1px gaps.
+		sourceRect.W--
+		sourceRect.H--
+
 		atlas := page.texture
 		atlas.SetColorMod(renderItem.FColor.R, renderItem.FColor.G, renderItem.FColor.B)
 		err = window.SdlRenderer.Copy(atlas, &sourceRect, &destinationRect)
