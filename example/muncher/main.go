@@ -57,7 +57,7 @@ func spawnRandomMonster(world *World) {
 
 func main() {
 	// Disable FPS limit, generally, so I can monitor performance.
-	window := gterm.NewWindow(100, 30, path.Join("assets", "font", "DejaVuSansMono.ttf"), 24, !NoVSync)
+	window := gterm.NewWindow(100, 30, path.Join("assets", "font", "DejaVuSansMono.ttf"), 24, 1.0, !NoVSync)
 
 	if err := window.Init(); err != nil {
 		log.Fatalln("Failed to Init() window", err)

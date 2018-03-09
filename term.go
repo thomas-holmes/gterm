@@ -294,15 +294,20 @@ func (window *Window) PutRune(col int, row int, glyph rune, fColor sdl.Color, bC
 	return nil
 }
 
-func (window *Window) PutString(col int, row int, content string, fColor sdl.Color) error {
+func (window *Window) PutStringBg(col int, row int, content string, fColor sdl.Color, bColor sdl.Color) error {
 	for step, rune := range content {
-		if err := window.PutRune(col+step, row, rune, fColor, NoColor); err != nil {
+		if err := window.PutRune(col+step, row, rune, fColor, bColor); err != nil {
 			return err
 		}
 	}
 
 	return nil
 }
+
+func (window *Window) PutString(col int, row int, content string, fColor sdl.Color) error {
+	return window.PutStringBg(col, row, content, fColor, NoColor)
+}
+
 func (window *Window) ClearRegion(col int, row int, width int, height int) error {
 	for y := row; y < row+height; y++ {
 		for x := col; x < col+width; x++ {
