@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	window := gterm.NewWindow(300, 20, "DejaVuSansMono.ttf", 16, true)
+	window := gterm.NewWindow(300, 20, "DejaVuSansMono.ttf", 16, 1.0, true)
 
 	if err := window.Init(); err != nil {
 		log.Fatalln("Failed to init window", err)

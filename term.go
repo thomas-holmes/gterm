@@ -31,6 +31,8 @@ type Window struct {
 	drawInterval    uint32
 	vsync           bool
 
+	fontScale float64
+
 	texturePages map[int]fontPage
 }
 
@@ -50,7 +52,7 @@ type renderItem struct {
 }
 
 // NewWindow constructs a window
-func NewWindow(columns int, rows int, fontPath string, fontSize int, vsync bool) *Window {
+func NewWindow(columns int, rows int, fontPath string, fontSize int, fontScale float64, vsync bool) *Window {
 	numCells := columns * rows
 	cells := make([]cell, numCells, numCells)
 	drawInterval := uint32(0)
@@ -64,6 +66,7 @@ func NewWindow(columns int, rows int, fontPath string, fontSize int, vsync bool)
 		vsync:        vsync,
 		drawInterval: drawInterval,
 		texturePages: make(map[int]fontPage),
+		fontScale:    fontScale,
 	}
 
 	return window
@@ -88,8 +91,7 @@ func (window *Window) AddTexturePage(start int) error {
 			return err
 		}
 		defer surface.Free()
-
-		rect := sdl.Rect{X: textureWidth, Y: 0, W: surface.W, H: surface.H}
+		rect := sdl.Rect{X: textureWidth, Y: 0, W: surface.W, H: surface.H - 1}
 		page.lookup[rune(b)] = rect
 
 		surfaces = append(surfaces, surface)
@@ -170,10 +172,10 @@ func (window *Window) Init() error {
 		return err
 	}
 
-	window.tileWidthPixel = tileWidth
-	window.tileHeightPixel = tileHeight
-	window.heightPixel = tileHeight * window.Rows
-	window.widthPixel = tileWidth * window.Columns
+	window.tileWidthPixel = int(float64(tileWidth) * window.fontScale)
+	window.tileHeightPixel = int(float64(tileHeight) * window.fontScale)
+	window.heightPixel = window.tileHeightPixel * window.Rows
+	window.widthPixel = window.tileWidthPixel * window.Columns
 
 	sdlWindow, err := sdl.CreateWindow("", sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, window.widthPixel, window.heightPixel, sdl.WINDOW_SHOWN)
 	if err != nil {
@@ -252,8 +254,8 @@ func (window *Window) renderCell(col int, row int) error {
 		}
 
 		// This is a horrible hack but it seems to fix gross 1px gaps.
-		sourceRect.W--
-		sourceRect.H--
+		// sourceRect.W--
+		// sourceRect.H--
 
 		atlas := page.texture
 		atlas.SetColorMod(renderItem.FColor.R, renderItem.FColor.G, renderItem.FColor.B)
