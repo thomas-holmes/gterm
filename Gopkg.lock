@@ -9,13 +9,30 @@
 
 [[projects]]
   name = "github.com/veandco/go-sdl2"
-  packages = ["sdl","ttf"]
+  packages = [
+    "img",
+    "sdl"
+  ]
   revision = "30f30965227962032c13bd0b12a89e6a5107c768"
   version = "v0.2"
+
+[[projects]]
+  name = "golang.org/x/text"
+  packages = [
+    "encoding",
+    "encoding/charmap",
+    "encoding/internal",
+    "encoding/internal/identifier",
+    "internal/gen",
+    "transform",
+    "unicode/cldr"
+  ]
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c2472608e6c969b9bd9510951f990c4aaddc0b6d5043e52947a57e0c5b1ea3a2"
+  inputs-digest = "fad8037dda7f65aa63587ff8f1eacfda0b51de5649f490b1da8cbeb6742727df"
   solver-name = "gps-cdcl"
   solver-version = 1

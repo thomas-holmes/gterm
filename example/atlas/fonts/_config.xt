@@ -1,0 +1,10 @@
+// Font Configuration
+//			Fonts------------------------------------------	
+// Set Name		GUI			Art			Available	Resolution @ 80x60
+"CP437 12x12"		cp437_12x12		cp437_12x12		1	//	960x720		<--whichever set is listed first is automatically considered "available", regardless of setting
+"CP437 14x14"		cp437_14x14		cp437_14x14		1	//	1120x840
+"CP437 16x16"		cp437_16x16		cp437_16x16		1	//	1280x960
+"CP437 18x18"		cp437_18x18		cp437_18x18		1	//	1440x1080
+"CP437 20x20"		cp437_20x20		cp437_20x20		1	//	1600x1200
+"CP437 8x8"		cp437_8x8		cp437_8x8		1	//	640x480
+"CP437 10x10"		cp437_10x10		cp437_10x10		1	//	800x600
