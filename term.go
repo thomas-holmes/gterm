@@ -169,7 +169,7 @@ func (window *Window) renderCell(cellCol int, cellRow int) error {
 
 		sourceRect := sdl.Rect{X: int32(sX), Y: int32(sY), W: int32(window.FontWPixel), H: int32(window.FontHPixel)}
 
-		{
+		if cell.bgColor != NoColor {
 			color := cell.bgColor
 			r, g, b, a := uint8(color.R), uint8(color.G), uint8(color.B), uint8(color.A)
 			window.SdlRenderer.SetDrawColor(r, g, b, a)
