@@ -91,7 +91,7 @@ func (window *Window) ChangeFont(fontPath string, w, h int) error {
 	return nil
 }
 
-func (window *Window) UpdateSize() {
+func (window *Window) updateSize() {
 	actualW, actualH := window.SdlWindow.GetSize()
 	window.DisplayWPixel = actualW / window.Columns
 	window.DisplayHPixel = actualH / window.Rows
@@ -329,7 +329,7 @@ func (window *Window) DebugDrawSpriteSheet() error {
 }
 
 func (window *Window) Refresh() {
-	window.UpdateSize()
+	window.updateSize()
 
 	err := window.SdlRenderer.SetDrawColor(window.backgroundColor.R, window.backgroundColor.G, window.backgroundColor.B, window.backgroundColor.A)
 	if err != nil {
