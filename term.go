@@ -22,6 +22,8 @@ type Window struct {
 	FontSize        int
 	FontHPixel      int
 	FontWPixel      int
+	DisplayHPixel   int
+	DisplayWPixel   int
 	HeightPixel     int
 	WidthPixel      int
 	fontPath        string
@@ -51,22 +53,75 @@ func NewWindow(columns int, rows int, fontPath string, fontX int, fontY int, vsy
 	cells := make([]cell, numCells, numCells)
 
 	window := &Window{
-		Columns:     columns,
-		Rows:        rows,
-		fontPath:    fontPath,
-		cells:       cells,
-		vsync:       vsync,
-		FontHPixel:  fontX,
-		FontWPixel:  fontY,
+		Columns:       columns,
+		Rows:          rows,
+		fontPath:      fontPath,
+		cells:         cells,
+		vsync:         vsync,
+		FontHPixel:    fontX,
+		FontWPixel:    fontY,
+		DisplayHPixel: fontX,
+		DisplayWPixel: fontY,
+
 		WidthPixel:  columns * fontX,
 		HeightPixel: rows * fontY,
 	}
-
 	return window
 }
 
 func (window *Window) SetTitle(title string) {
 	window.SdlWindow.SetTitle(title)
+}
+
+func (window *Window) ChangeFont(fontPath string, w, h int) error {
+	window.fontPath = fontPath
+	newFont, err := window.loadFont(w)
+	if err != nil {
+		return err
+	}
+
+	oldFont := window.fontSheet
+	oldFont.Destroy()
+
+	window.fontSheet = newFont
+	window.FontWPixel = w
+	window.FontHPixel = h
+	window.SdlWindow.SetSize(window.Columns*w, window.Rows*h)
+
+	return nil
+}
+
+func (window *Window) UpdateSize() {
+	actualW, actualH := window.SdlWindow.GetSize()
+	window.DisplayWPixel = actualW / window.Columns
+	window.DisplayHPixel = actualH / window.Rows
+}
+
+func (window *Window) loadFont(w int) (*sdl.Texture, error) {
+	rwops := sdl.RWFromFile(window.fontPath, "rb")
+	if rwops == nil {
+		return nil, fmt.Errorf("Failed to load image from %s", window.fontPath)
+	}
+
+	surface, err := img.LoadPNG_RW(rwops)
+	if err != nil {
+		return nil, err
+	}
+	defer surface.Free()
+	if err := surface.SetColorKey(sdl.ENABLE, 0); err != nil {
+		return nil, err
+	}
+
+	window.spritesPerRow = int(surface.W) / w
+
+	texture, err := window.SdlRenderer.CreateTextureFromSurface(surface)
+	if err != nil {
+		return nil, err
+	}
+	if err := texture.SetBlendMode(sdl.BLENDMODE_BLEND); err != nil {
+		return nil, err
+	}
+	return texture, nil
 }
 
 // Init initialized the window for drawing
@@ -79,7 +134,7 @@ func (window *Window) Init() error {
 		return errors.New("Failed to initialize sdl2_img for PNG")
 	}
 
-	sdlWindow, err := sdl.CreateWindow("", sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, window.WidthPixel, window.HeightPixel, sdl.WINDOW_SHOWN)
+	sdlWindow, err := sdl.CreateWindow("", sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED, window.WidthPixel, window.HeightPixel, sdl.WINDOW_SHOWN|sdl.WINDOW_RESIZABLE)
 	if err != nil {
 		return err
 	}
@@ -96,38 +151,18 @@ func (window *Window) Init() error {
 		return err
 	}
 
-	rwops := sdl.RWFromFile(window.fontPath, "rb")
-	if rwops == nil {
-		return fmt.Errorf("Failed to load image from %s", window.fontPath)
-	}
+	window.SdlWindow = sdlWindow
+	window.SdlRenderer = sdlRenderer
 
-	surface, err := img.LoadPNG_RW(rwops)
+	window.fontSheet, err = window.loadFont(window.FontWPixel)
 	if err != nil {
 		return err
 	}
-	defer surface.Free()
-	if err := surface.SetColorKey(sdl.ENABLE, 0); err != nil {
-		return err
-	}
-
-	window.spritesPerRow = int(surface.W) / window.FontWPixel
-
-	texture, err := sdlRenderer.CreateTextureFromSurface(surface)
-	if err != nil {
-		return err
-	}
-	if err := texture.SetBlendMode(sdl.BLENDMODE_BLEND); err != nil {
-		return err
-	}
-	window.fontSheet = texture
 
 	err = sdlRenderer.SetDrawColor(0, 0, 0, 0)
 	if err != nil {
 		log.Fatalln("Could not set render color", err)
 	}
-
-	window.SdlWindow = sdlWindow
-	window.SdlRenderer = sdlRenderer
 
 	window.fps = newFpsCounter()
 
@@ -151,9 +186,9 @@ func (window *Window) renderCell(cellCol int, cellRow int) error {
 		return err
 	}
 
-	destX := cellCol * window.FontWPixel
-	destY := cellRow * window.FontHPixel
-	destRect := sdl.Rect{X: int32(destX), Y: int32(destY), W: int32(window.FontWPixel), H: int32(window.FontHPixel)}
+	destX := cellCol * window.DisplayWPixel
+	destY := cellRow * window.DisplayHPixel
+	destRect := sdl.Rect{X: int32(destX), Y: int32(destY), W: int32(window.DisplayWPixel), H: int32(window.DisplayHPixel)}
 
 	cell := window.cells[idx]
 	for _, item := range cell.renderItems {
@@ -294,6 +329,8 @@ func (window *Window) DebugDrawSpriteSheet() error {
 }
 
 func (window *Window) Refresh() {
+	window.UpdateSize()
+
 	err := window.SdlRenderer.SetDrawColor(window.backgroundColor.R, window.backgroundColor.G, window.backgroundColor.B, window.backgroundColor.A)
 	if err != nil {
 		log.Fatal(err)
@@ -305,4 +342,5 @@ func (window *Window) Refresh() {
 	}
 
 	window.SdlRenderer.Present()
+
 }
