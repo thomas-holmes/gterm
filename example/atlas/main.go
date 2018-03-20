@@ -21,20 +21,6 @@ func main() {
 
 	w.SetResizable(true)
 
-	/*
-		row := 0
-		col := 0
-		for i := 32; i <= 255; i++ {
-			if (i-0x2500)%50 == 0 {
-				row++
-				col = 0
-			}
-
-			window.PutRune(col, row, rune(i), gterm.White, gterm.NoColor)
-			col++
-		}
-	*/
-
 	white := sdl.Color{R: 255, G: 255, B: 255, A: 255}
 	black := sdl.Color{R: 0, G: 0, B: 0, A: 255}
 	green := sdl.Color{R: 0, G: 255, B: 0, A: 255}
@@ -94,7 +80,8 @@ func main() {
 
 	frames := 0
 	last := sdl.GetTicks()
-	for {
+	var quit bool
+	for !quit {
 		frames++
 		now := sdl.GetTicks()
 		if now-last > 1000 {
@@ -105,10 +92,6 @@ func main() {
 		for {
 			e := sdl.PollEvent()
 			switch v := e.(type) {
-			case *sdl.WindowEvent:
-				if v.Event == sdl.WINDOWEVENT_RESIZED {
-					//					window.UpdateSize()
-				}
 			case *sdl.KeyDownEvent:
 				switch v.Keysym.Sym {
 				case sdl.K_1:
@@ -117,7 +100,11 @@ func main() {
 					window.ChangeFont("fonts/cp437_12x12.png", 12, 12)
 				case sdl.K_3:
 					window.ChangeFont("fonts/cp437_16x16.png", 16, 16)
+				case sdl.K_ESCAPE:
+					quit = true
 				}
+			case *sdl.QuitEvent:
+				quit = true
 			}
 			if e == nil {
 				break
