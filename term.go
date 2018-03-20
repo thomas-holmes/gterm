@@ -249,10 +249,12 @@ func (window *Window) PutRune(col int, row int, glyph rune, fColor sdl.Color, bC
 }
 
 func (window *Window) PutStringBg(col int, row int, content string, fColor sdl.Color, bColor sdl.Color) error {
-	for step, rune := range content {
+	step := 0
+	for _, rune := range content {
 		if err := window.PutRune(col+step, row, rune, fColor, bColor); err != nil {
 			return err
 		}
+		step++
 	}
 
 	return nil
